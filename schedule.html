@@ -100,6 +100,30 @@
             margin-left: 4px;
         }
 
+        .verified-checkmark-tier2 {
+            color: #3B74FF;
+            font-size: 24px;
+            vertical-align: middle;
+            margin-left: 4px;
+            font-variation-settings:
+                'FILL' 1,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+
+        .verified-checkmark-tier3 {
+            color: #FFD700;
+            font-size: 24px;
+            vertical-align: middle;
+            margin-left: 4px;
+            font-variation-settings:
+                'FILL' 1,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+
         /* Schedule Pickup Button Mobile Touch Fix */
         .schedule-pickup-btn {
             -webkit-tap-highlight-color: rgba(255, 255, 255, 0.3);
@@ -1651,7 +1675,7 @@
                     
                     <h1 id="companyName" class="text-white text-2xl font-bold hidden">
                         <span id="companyNameText"></span>
-                        <span id="verifiedBadge" class="material-symbols-outlined verified-checkmark">verified</span>
+                        <span id="verifiedBadge" class="material-symbols-outlined">verified</span>
                     </h1>
                     
                     <!-- Loading spinner for location -->
@@ -2978,6 +3002,27 @@
         let currentRating = 0;
         let selectedTags = new Set();
         let reviews = []; // Will be populated from database
+
+        // Helper function to get verified icon CSS class based on verification tier
+        function getVerifiedIconClass(tier) {
+            console.log(`🔍 [DEBUG] Getting icon class for tier: ${tier}`);
+            let cssClass;
+            switch (tier) {
+                case 2:
+                    cssClass = 'verified-checkmark-tier2'; // Blue icon
+                    console.log(`🔍 [DEBUG] Tier 2 -> Blue icon: ${cssClass}`);
+                    break;
+                case 3:
+                    cssClass = 'verified-checkmark-tier3'; // Gold icon
+                    console.log(`🔍 [DEBUG] Tier 3 -> Gold icon: ${cssClass}`);
+                    break;
+                default:
+                    cssClass = 'verified-checkmark-tier2'; // Default to blue (tier2)
+                    console.log(`🔍 [DEBUG] Default tier (${tier}) -> Blue icon: ${cssClass}`);
+                    break;
+            }
+            return cssClass;
+        }
 
         // Functions from original schedule.html
         function toggleReadMore() {
@@ -6608,7 +6653,7 @@
 
             companyMarker.bindPopup(`
                 <div class="p-2">
-                    <h3 class="font-semibold text-white mb-1">${window.currentCompany?.name || currentCompany.name}<span class="material-symbols-outlined verified-checkmark" style="font-size: 16px; margin-left: 2px;">verified</span></h3>
+                    <h3 class="font-semibold text-white mb-1">${window.currentCompany?.name || currentCompany.name}<span class="material-symbols-outlined ${getVerifiedIconClass(window.currentCompany?.verification_tier || 2)}" style="font-size: 16px; margin-left: 2px;">verified</span></h3>
                     <p class="text-gray-300 text-sm mb-2">${window.currentCompany?.location || currentCompany.location}</p>
                     <button onclick="callCompany()" class="text-[#3B74FF] text-sm hover:underline">Call Now</button>
                 </div>
@@ -6698,7 +6743,7 @@
             // Update popup content
             companyMarker.setPopupContent(`
                 <div class="p-2">
-                    <h3 class="font-semibold text-white mb-1">${name || 'Company'}<span class="material-symbols-outlined verified-checkmark" style="font-size: 16px; margin-left: 2px;">verified</span></h3>
+                    <h3 class="font-semibold text-white mb-1">${name || 'Company'}<span class="material-symbols-outlined ${getVerifiedIconClass(window.currentCompany?.verification_tier || 2)}" style="font-size: 16px; margin-left: 2px;">verified</span></h3>
                     <p class="text-gray-300 text-sm mb-2">${window.currentCompany?.location || 'Location'}</p>
                     <button onclick="callCompany()" class="text-[#3B74FF] text-sm hover:underline">Call Now</button>
                 </div>
@@ -6983,10 +7028,19 @@
                 }
             }
             
-            // Update verification badge (always visible)
+            // Update verification badge with tier-based styling
             const verifiedBadge = document.getElementById('verifiedBadge');
             if (verifiedBadge) {
-                console.log('✅ Verified badge is visible for:', branchData.branch_name);
+                // Get verification tier from branch data
+                const verificationTier = branchData.verification_tier || 2; // Default to tier2
+                const iconClass = getVerifiedIconClass(verificationTier);
+                
+                // Remove all existing verified classes
+                verifiedBadge.classList.remove('verified-checkmark', 'verified-checkmark-tier2', 'verified-checkmark-tier3');
+                // Add the appropriate tier class
+                verifiedBadge.classList.add(iconClass);
+                
+                console.log(`✅ Updated verified badge for ${branchData.branch_name}: tier ${verificationTier} -> ${iconClass}`);
             } else {
                 console.log('❌ verifiedBadge element not found!');
             }
