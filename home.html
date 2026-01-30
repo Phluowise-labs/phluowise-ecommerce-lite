@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRV3R43NQZ"></script>
 <script>
@@ -128,6 +131,30 @@
             font-size: 20px;
             margin-left: 4px;
             vertical-align: middle;
+        }
+
+        .verified-checkmark-tier2 {
+            color: #3B74FF;
+            font-size: 20px;
+            margin-left: 4px;
+            vertical-align: middle;
+            font-variation-settings:
+                'FILL' 1,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+
+        .verified-checkmark-tier3 {
+            color: #FFD700;
+            font-size: 20px;
+            margin-left: 4px;
+            vertical-align: middle;
+            font-variation-settings:
+                'FILL' 1,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
         }
 
         .header-bar {
@@ -295,7 +322,7 @@
         <!-- Greeting Text -->
         <div class="flex-1">
             <h1 id="greetingText" class="text-white text-lg font-medium truncate max-w-[250px]">
-                Good Morning, USER
+                Good Morning
             </h1>
         </div>
 
@@ -347,8 +374,8 @@
                 </div>
 
                 <!-- User Name -->
-                <h2 id="menuUserName" class="text-white text-xl font-semibold">John Doe</h2>
-                <p id="menuUserEmail" class="text-[#808080] text-base">john@example.com</p>
+                <h2 id="menuUserName" class="text-white text-xl font-semibold">Loading...</h2>
+                <p id="menuUserEmail" class="text-[#808080] text-base">Loading...</p>
             </div>
 
             <!-- Menu Content -->
@@ -796,9 +823,43 @@
             return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
         }
 
-        // Filter companies based on search query and location
+        // Get verified icon CSS class based on verification tier
+        function getVerifiedIconClass(tier) {
+            console.log(`🔍 [DEBUG] Getting icon class for tier: ${tier}`);
+            let cssClass;
+            switch (tier) {
+                case 2:
+                    cssClass = 'verified-checkmark-tier2'; // Blue icon
+                    console.log(`🔍 [DEBUG] Tier 2 -> Blue icon: ${cssClass}`);
+                    break;
+                case 3:
+                    cssClass = 'verified-checkmark-tier3'; // Gold icon
+                    console.log(`🔍 [DEBUG] Tier 3 -> Gold icon: ${cssClass}`);
+                    break;
+                default:
+                    cssClass = 'verified-checkmark-tier2'; // Default to blue (tier2)
+                    console.log(`🔍 [DEBUG] Default tier (${tier}) -> Blue icon: ${cssClass}`);
+                    break;
+            }
+            return cssClass;
+        }
+
+        // Filter companies based on search query, location, and verification tier
         async function getFilteredCompanies() {
+            console.log(`🔍 [DEBUG] Starting getFilteredCompanies with ${companies.length} companies`);
             let filtered = companies;
+
+            // Apply verification tier filtering
+            filtered = filtered.filter(company => {
+                const tier = company.verification_tier || 2; // Default to tier2 if not set
+                console.log(`🔍 [DEBUG] Company: ${company.name}, Tier: ${tier}, verification_tier field: ${company.verification_tier}`);
+                // Hide tier1 companies, show tier2 and tier3
+                const shouldShow = tier !== 1;
+                console.log(`🔍 [DEBUG] Should show ${company.name}: ${shouldShow} (tier ${tier})`);
+                return shouldShow;
+            });
+
+            console.log(`🔍 [DEBUG] After tier filtering: ${filtered.length} companies remaining`);
 
             // Apply search filter
             if (searchQuery) {
@@ -806,6 +867,7 @@
                     company.name.toLowerCase().includes(searchQuery) ||
                     company.location.toLowerCase().includes(searchQuery)
                 );
+                console.log(`🔍 [DEBUG] After search filtering: ${filtered.length} companies remaining`);
             }
 
             // Apply location filter with enhanced distance calculation
@@ -978,7 +1040,10 @@
                                 </div>
                                 <!-- Info -->
                                 <div class="flex flex-col gap-2 ml-2 text-left" style="width: 47%;">
-                                    <h3 class="text-white text-xl font-medium text-truncate">${company.name}<span class="material-symbols-outlined verified-checkmark">verified</span></h3>
+                                    <h3 class="text-white text-xl font-medium text-truncate">
+                                        ${company.name}
+                                        <span class="material-symbols-outlined ${getVerifiedIconClass(company.verification_tier)}">verified</span>
+                                    </h3>
                                     <p class="text-white text-lg font-medium text-truncate">${company.location}</p>
                                     <span class="text-white text-sm font-normal">${distanceText}${accuracyBadge}</span>
                                 </div>
@@ -1035,7 +1100,8 @@
                                 </div>
                                 <div class="relative text-left" style="top: -30px;">
                                     <p class="text-white font-medium text-base text-truncate" style="width: 100%;">
-                                        ${company.name}<span class="material-symbols-outlined verified-checkmark">verified</span>
+                                        ${company.name}
+                                        <span class="material-symbols-outlined ${getVerifiedIconClass(company.verification_tier)}">verified</span>
                                     </p>
                                 </div>
                             </div>
@@ -1209,22 +1275,103 @@
                 });
         }
 
-        async function refreshCompaniesData(previousState) {
+        async function handleManualRefresh() {
             try {
-                console.log('🔄 Manual refresh - loading fresh data...');
+                console.log('🔄 Manual refresh - replacing cache with fresh data...');
                 
-                // Force refresh from database (ignore cache for manual refresh)
+                // Force refresh from database first
                 const freshData = await window.companyDataManager.fetchCompanyData();
+                
+                // Replace cache with fresh data (don't just clear)
+                if (window.cacheManager) {
+                    window.cacheManager.setCache('companies', freshData);
+                    console.log('💾 Cache replaced with fresh data');
+                }
                 
                 // Update local companies array
                 companies = freshData;
                 companiesDataLoaded = true;
 
-                // Update cache with fresh data
+                // Clear service worker cache and update with fresh content
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    for (const cacheName of cacheNames) {
+                        const cache = await caches.open(cacheName);
+                        // Clear old entries
+                        const requests = await cache.keys();
+                        await Promise.all(requests.map(request => cache.delete(request)));
+                        console.log(`🗑️ Cleared ${requests.length} items from ${cacheName}`);
+                    }
+                }
+                
+                // Re-render with current filters and search
+                await renderCompanies();
+
+                // Hide pull-to-refresh indicator
+                hidePullToRefresh();
+                
+                console.log('✅ Manual refresh completed - cache replaced');
+                return { status: 'success', timestamp: Date.now() };
+                
+            } catch (error) {
+                console.error('❌ Manual refresh failed:', error);
+                
+                // Try fallback methods
+                try {
+                    const fallbackData = window.companyDataManager.getFallbackData();
+                    companies = fallbackData;
+                    companiesDataLoaded = true;
+                    
+                    // Replace cache with fallback data
+                    if (window.cacheManager) {
+                        window.cacheManager.setCache('companies', fallbackData);
+                    }
+                    
+                    renderCompanies();
+                    hidePullToRefresh();
+                    return { status: 'partial', timestamp: Date.now() };
+                } catch (fallbackError) {
+                    console.error('❌ All refresh methods failed:', fallbackError);
+                    
+                    // Last resort - try existing cache
+                    if (window.cacheManager) {
+                        const cachedCompanies = window.cacheManager.getCache('companies');
+                        if (cachedCompanies && cachedCompanies.length > 0) {
+                            console.log('📦 Using existing cache as fallback');
+                            companies = cachedCompanies;
+                            companiesDataLoaded = true;
+                            renderCompanies();
+                            hidePullToRefresh();
+                            return { status: 'fallback', timestamp: Date.now() };
+                        }
+                    }
+                    
+                    // Final fallback
+                    companies = window.companyDataManager.getFallbackData();
+                    companiesDataLoaded = true;
+                    renderCompanies();
+                    hidePullToRefresh();
+                    return { status: 'emergency', timestamp: Date.now() };
+                }
+            }
+        }
+
+        async function refreshCompaniesData(previousState) {
+            try {
+                console.log('🔄 Refresh - replacing cache with fresh data...');
+                
+                // Force refresh from database first
+                const freshData = await window.companyDataManager.fetchCompanyData();
+                
+                // Replace cache with fresh data (don't just update)
                 if (window.cacheManager) {
                     window.cacheManager.setCache('companies', freshData);
-                    console.log('💾 Cache updated with fresh data from manual refresh');
+                    console.log('💾 Cache replaced with fresh data');
                 }
+                
+                // Update local companies array
+                companies = freshData;
+                companiesDataLoaded = true;
 
                 // Re-render with current filters and search
                 renderCompanies();
@@ -1237,7 +1384,7 @@
 
                 return { status: 'success', timestamp: Date.now() };
             } catch (error) {
-                console.error('❌ Manual refresh failed:', error);
+                console.error('❌ Refresh failed:', error);
                 
                 // Don't break the UI - keep existing data
                 if (companies.length > 0) {
@@ -1245,13 +1392,15 @@
                     return { status: 'partial', timestamp: Date.now() };
                 }
                 
-                // Last resort - try cache
+                // Last resort - try cache and replace with it
                 if (window.cacheManager) {
                     const cachedCompanies = window.cacheManager.getCache('companies');
                     if (cachedCompanies && cachedCompanies.length > 0) {
-                        console.log('📦 Using cache as fallback for refresh');
+                        console.log('📦 Using cache as fallback and ensuring it\'s set');
                         companies = cachedCompanies;
                         companiesDataLoaded = true;
+                        // Ensure cache is properly set
+                        window.cacheManager.setCache('companies', cachedCompanies);
                         renderCompanies();
                         return { status: 'fallback', timestamp: Date.now() };
                     }
@@ -1297,14 +1446,14 @@
                 
                 // Check if data has changed
                 if (hasCompaniesChanged(freshData, companies)) {
-                    console.log('🆕 New data detected - updating cache and UI');
+                    console.log('🆕 New data detected - replacing cache and updating UI');
                     companies = freshData;
                     companiesDataLoaded = true;
                     
-                    // Update cache
+                    // Replace cache with fresh data
                     if (window.cacheManager) {
                         window.cacheManager.setCache('companies', freshData);
-                        console.log('💾 Cache updated with fresh data');
+                        console.log('💾 Cache replaced with fresh data');
                     }
                     
                     // Update UI
@@ -1348,10 +1497,10 @@
                 companies = await window.companyDataManager.fetchCompanyData();
                 companiesDataLoaded = true;
                 
-                // Cache the loaded companies
+                // Replace cache with the loaded companies
                 if (window.cacheManager) {
                     window.cacheManager.setCache('companies', companies);
-                    console.log('💾 Companies cached for offline access');
+                    console.log('💾 Cache replaced with fresh database data');
                 }
                 
                 renderCompanies();
@@ -1360,26 +1509,29 @@
             } catch (error) {
                 console.error('❌ Database load failed:', error);
                 
-                // Fallback 1: Try cache manager again
+                // Fallback 1: Try cache manager again and ensure it's set
                 if (window.cacheManager) {
                     const cachedCompanies = window.cacheManager.getCache('companies');
                     if (cachedCompanies && cachedCompanies.length > 0) {
                         console.log('📦 Using cache manager as fallback:', cachedCompanies.length);
                         companies = cachedCompanies;
                         companiesDataLoaded = true;
+                        // Ensure cache is properly set
+                        window.cacheManager.setCache('companies', cachedCompanies);
                         renderCompanies();
                         return;
                     }
                 }
                 
-                // Fallback 2: Use companyDataManager fallback data
+                // Fallback 2: Use companyDataManager fallback data and cache it
                 console.log('🔄 Using companyDataManager fallback data...');
                 companies = window.companyDataManager.getFallbackData();
                 companiesDataLoaded = true;
                 
-                // Cache fallback data
+                // Replace cache with fallback data
                 if (window.cacheManager) {
                     window.cacheManager.setCache('companies', companies);
+                    console.log('💾 Cache replaced with fallback data');
                 }
                 
                 renderCompanies();
@@ -1549,6 +1701,121 @@
             // Initialize pull-to-refresh functionality
             initPullToRefresh();
 
+            // Add cache debugging function to console
+            window.debugCache = function() {
+                console.log('=== CACHE DEBUG INFO ===');
+                
+                // Service Worker Cache
+                if ('caches' in window) {
+                    caches.keys().then(cacheNames => {
+                        console.log('Service Worker Caches:', cacheNames);
+                        cacheNames.forEach(name => {
+                            caches.open(name).then(cache => {
+                                cache.keys().then(requests => {
+                                    console.log(`Cache ${name}:`, requests.length, 'items');
+                                });
+                            });
+                        });
+                    });
+                }
+                
+                // LocalStorage Cache
+                if (window.cacheManager) {
+                    const stats = window.cacheManager.getCacheStats();
+                    console.log('Cache Manager Stats:', stats);
+                }
+                
+                // User Data Sources
+                console.log('User Data Sources:');
+                console.log('- customerSession:', localStorage.getItem('customerSession') ? '✓' : '✗');
+                console.log('- userProfile:', localStorage.getItem('userProfile') ? '✓' : '✗');
+                console.log('- customerData:', localStorage.getItem('customerData') ? '✓' : '✗');
+                console.log('- userName:', localStorage.getItem('userName') ? '✓' : '✗');
+                
+                console.log('=== END CACHE DEBUG ===');
+            };
+
+            // Add force cache replacement function
+            window.forceCacheReplace = async function() {
+                console.log('🔄 Force replacing all cache...');
+                try {
+                    // Get fresh data
+                    const freshData = await window.companyDataManager.fetchCompanyData();
+                    
+                    // Replace localStorage cache
+                    if (window.cacheManager) {
+                        window.cacheManager.setCache('companies', freshData);
+                        console.log('💾 LocalStorage cache replaced');
+                    }
+                    
+                    // Clear service worker cache
+                    if ('caches' in window) {
+                        const cacheNames = await caches.keys();
+                        for (const cacheName of cacheNames) {
+                            const cache = await caches.open(cacheName);
+                            const requests = await cache.keys();
+                            await Promise.all(requests.map(request => cache.delete(request)));
+                            console.log(`🗑️ Cleared ${requests.length} items from ${cacheName}`);
+                        }
+                    }
+                    
+                    // Update UI
+                    companies = freshData;
+                    companiesDataLoaded = true;
+                    renderCompanies();
+                    
+                    console.log('✅ All cache replaced successfully');
+                    return true;
+                } catch (error) {
+                    console.error('❌ Force cache replace failed:', error);
+                    return false;
+                }
+            };
+
+            console.log('💡 Run debugCache() to check cache status');
+            console.log('💡 Run forceCacheReplace() to force replace all cache');
+            console.log('💡 Run testVerificationTiers() to test verification tier logic');
+
+            // Test verification tiers function
+            window.testVerificationTiers = function() {
+                console.log('=== TESTING VERIFICATION TIERS ===');
+                
+                if (!window.companyDataManager) {
+                    console.log('❌ CompanyDataManager not available');
+                    return;
+                }
+                
+                console.log('📋 User Settings:', window.companyDataManager.userSettings);
+                console.log('📋 Companies:', window.companyDataManager.companies);
+                console.log('📋 Merged Companies:', companies);
+                
+                // Show detailed user settings
+                console.log('\n--- DETAILED USER SETTINGS ---');
+                window.companyDataManager.userSettings.forEach((setting, index) => {
+                    console.log(`Setting ${index + 1}:`, {
+                        branch_id: setting.branch_id,
+                        user_id: setting.user_id,
+                        verification_level: setting.verification_level,
+                        $id: setting.$id
+                    });
+                });
+                
+                // Test each company
+                companies.forEach((company, index) => {
+                    console.log(`\n--- Company ${index + 1}: ${company.name} ---`);
+                    console.log(`Company ID: ${company.company_id}`);
+                    console.log(`Branch ID: ${company.branch_id}`);
+                    console.log(`Verification Tier: ${company.verification_tier}`);
+                    console.log(`Icon Class: ${getVerifiedIconClass(company.verification_tier)}`);
+                    
+                    // Test the tier determination directly
+                    const directTier = window.companyDataManager.getVerificationTier(company.company_id, company.branch_id);
+                    console.log(`Direct Tier Test: ${directTier}`);
+                });
+                
+                console.log('\n=== END VERIFICATION TEST ===');
+            };
+
             // Load company data from database
             loadInitialCompanyData();
 
@@ -1645,34 +1912,8 @@
                 if (window.companyDataManager && typeof window.companyDataManager.getFallbackData === 'function') {
                     companies = window.companyDataManager.getFallbackData();
                 } else {
-                    // Hardcoded fallback if companyDataManager is not available
-                    companies = [
-                        {
-                            $id: 'fallback-1',
-                            name: 'Phluowise Demo',
-                            company_id: 'demo-company',
-                            email: 'demo@phluowise.com',
-                            branches: [
-                                {
-                                    $id: 'branch-1',
-                                    branch_id: 'demo-branch-1',
-                                    branch_name: 'Main Branch',
-                                    location: 'Accra, Ghana',
-                                    email: 'main@phluowise.com',
-                                    phone_number: '+233500000000',
-                                    is_active: true,
-                                    is_online: true
-                                }
-                            ],
-                            working_days: [
-                                { day: 'Monday', time: '8:00 AM - 6:00 PM' },
-                                { day: 'Tuesday', time: '8:00 AM - 6:00 PM' },
-                                { day: 'Wednesday', time: '8:00 AM - 6:00 PM' },
-                                { day: 'Thursday', time: '8:00 AM - 6:00 PM' },
-                                { day: 'Friday', time: '8:00 AM - 6:00 PM' }
-                            ]
-                        }
-                    ];
+                    // Return empty array for professional empty state
+                    companies = [];
                 }
                 companiesDataLoaded = true;
                 renderCompanies();
