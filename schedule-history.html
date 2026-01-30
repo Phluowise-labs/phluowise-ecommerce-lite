@@ -1,0 +1,3219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TRV3R43NQZ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TRV3R43NQZ');
+</script>
+    <title>Phluowise - Schedule History</title>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#007ACC">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Phluowise">
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=verified" />
+    <link rel="stylesheet" href="css/notifications.css" />
+    <link rel="stylesheet" href="css/mobile-responsive.css" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#007ACC',
+                        tabActive: '#3B74FF',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        :root {
+            --bg-color: #060606;
+            --bg-second: #1D1D1DF2;
+            --header-bg: #101010;
+            --btn-color: #007ACC66;
+            --btn-border: #3B74FF;
+            --btn-second-color: #F57D7D4D;
+            --btn-second-border: #F57D7D;
+            --modal-bg: #101010;
+            --modal-border: #DADADA;
+            --text-color: #FFFFFF;
+            --bottom-sheet-color: #1D1D1D;
+            --input-bg: #292B2F;
+            --input-border: #40444B;
+        }
+
+        body.dark-theme {
+            --bg-color: #060606;
+            --bg-second: #1D1D1DF2;
+            --btn-second-color: #F57D7D4D;
+            --btn-second-border: #F57D7D;
+            --modal-bg: #101010;
+            --modal-border: #DADADA;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Material Symbols Styles */
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 1,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+
+        .verified-checkmark {
+            color: #FFD700;
+            font-size: 20px;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Sliding Menu Styles */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sliding-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 80%;
+            max-width: 400px;
+            height: 100%;
+            background-color: var(--bg-color);
+            z-index: 1000;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sliding-menu.active {
+            right: 0;
+        }
+
+        /* Prevent unwanted scrolling */
+        .no-scroll {
+            overscroll-behavior: none;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Bottom sheet touch handling */
+        .bottom-sheet {
+            touch-action: pan-y;
+            overscroll-behavior: contain;
+        }
+
+        /* Prevent horizontal scrolling */
+        .no-horizontal-scroll {
+            overflow-x: hidden;
+            touch-action: pan-y;
+        }
+
+        /* Mobile-specific fixes */
+        @media (max-width: 768px) {
+
+            html,
+            body {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                touch-action: none;
+            }
+
+            body {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                overscroll-behavior: none;
+                touch-action: none;
+                -webkit-overflow-scrolling: auto;
+            }
+
+            .mobile-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                overflow: hidden;
+                touch-action: none;
+            }
+
+            .mobile-scrollable {
+                -webkit-overflow-scrolling: touch;
+                overflow-y: auto;
+                overflow-x: hidden;
+                touch-action: pan-y;
+            }
+        }
+
+        /* Floating Button Styles */
+        .floating-return-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(59, 116, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 116, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(59, 116, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            transform: translateY(0);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .floating-return-btn:hover {
+            transform: scale(1.1) translateY(-5px);
+            background: rgba(59, 116, 255, 0.35);
+            border: 1px solid rgba(59, 116, 255, 0.4);
+            box-shadow: 0 12px 40px rgba(59, 116, 255, 0.3);
+        }
+
+        .floating-return-btn .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #FF4757;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+                align-items: center;
+            justify-content: center;
+            border: 2px solid #060606;
+        }
+
+        .floating-return-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Bottle Status Styles */
+        .tag-pending {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: rgb(245, 158, 11);
+        }
+
+        .tag-requested {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: rgb(34, 197, 94);
+        }
+
+        .tag-accepted {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: rgb(59, 130, 246);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-button {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .glass-button-blue {
+            background: rgba(59, 116, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 116, 255, 0.3);
+            box-shadow: none;
+        }
+
+        .glass-button-blue:hover {
+            background: rgba(59, 116, 255, 0.35);
+            border: 1px solid rgba(59, 116, 255, 0.4);
+            box-shadow: none;
+        }
+
+        .glass-tag {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            0% { transform: translateY(10px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #3B74FF;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, #1D1D1D 25%, #2a2a2a 50%, #1D1D1D 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-card {
+            height: 120px;
+            margin-bottom: 12px;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Instant Loading Styles */
+        .instant-load {
+            opacity: 1;
+            transition: opacity 0.1s ease;
+        }
+
+        .data-loaded {
+            opacity: 1 !important;
+        }
+
+        /* Company Name Container Styles */
+        .company-name-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            max-width: 220px;
+            width: 100%;
+            position: relative;
+        }
+
+        .company-name-text {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.2;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 0;
+            padding-right: 20px;
+        }
+
+        .verified-icon {
+            color: #FFD700;
+            font-size: 16px;
+            font-variation-settings:
+                'FILL' 1,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 16;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .company-name-container {
+                max-width: 180px;
+            }
+            
+            .company-name-text {
+                font-size: 16px;
+                padding-right: 18px;
+            }
+            
+            .verified-icon {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .company-name-container {
+                max-width: 160px;
+            }
+            
+            .company-name-text {
+                font-size: 15px;
+                padding-right: 16px;
+            }
+            
+            .verified-icon {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .company-name-container {
+                max-width: 140px;
+            }
+            
+            .company-name-text {
+                font-size: 18px;
+                padding-right: 15px;
+            }
+            
+            .verified-icon {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body class="dark-theme h-screen flex flex-col overflow-hidden no-scroll mobile-container">
+
+    <!-- Header (exact from RN layout: height: 110, bg: #101010) -->
+    <div class="flex flex-row items-center justify-between px-4"
+        style="height: 110px; background-color: var(--header-bg);">
+        <h1 class="text-white text-xl font-medium">Schedule History</h1>
+        <button onclick="toggleMenu()"
+            class="relative overflow-hidden rounded-full flex justify-center items-center border"
+            style="height: 45px; width: 45px; border-width: 0.5px; border-color: #808080; background-color: #40444B4D;">
+            <div class="w-full h-full flex justify-center items-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="4" y1="12" x2="20" y2="12" />
+                    <line x1="4" y1="18" x2="20" y2="18" />
+                </svg>
+            </div>
+        </button>
+    </div>
+
+    <!-- Status Tabs Component (Exact from Status.tsx: bg: #101010, height: 40, py-4, px-10) -->
+    <div style="background-color: #101010;">
+        <div class="py-4 px-10 overflow-x-auto">
+            <div class="flex flex-row items-center gap-1 min-w-max justify-start">
+                <!-- Status Button -->
+                <button onclick="setStatusView('status')" id="btn-status" class="rounded-lg px-4 instant-load" style="height: 40px; min-width: 80px;">
+                    <div class="items-center justify-center flex flex-1">
+                        <span class="text-white flex justify-center items-center font-[600]">Status</span>
+                    </div>
+                </button>
+                <!-- Ongoing Button -->
+                <button onclick="setStatusView('ongoing')" id="btn-ongoing" class="rounded-lg px-4 instant-load"
+                    style="height: 40px; background-color: transparent; min-width: 80px;">
+                    <div class="items-center justify-center flex-1">
+                        <span class="text-white flex justify-center items-center font-[600]">Ongoing</span>
+                    </div>
+                </button>
+                <!-- Denied Button -->
+                <button onclick="setStatusView('denied')" id="btn-denied" class="rounded-lg px-4 instant-load"
+                    style="height: 40px; background-color: transparent; min-width: 80px;">
+                    <div class="items-center justify-center flex-1">
+                        <span class="text-white flex justify-center items-center font-[600]">Denied</span>
+                    </div>
+                </button>
+                <!-- Completed Button -->
+                <button onclick="setStatusView('completed')" id="btn-completed" class="rounded-lg px-4 instant-load"
+                    style="height: 40px; background-color: transparent; min-width: 80px;">
+                    <div class="items-center justify-center flex-1">
+                        <span class="text-white flex justify-center items-center font-[600]">Completed</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Cards List (ScheduleProduct.tsx - Exact) -->
+    <div class="flex-1 overflow-y-auto hide-scrollbar no-horizontal-scroll mobile-scrollable instant-load" id="ordersList"
+        style="background-color: var(--bg-color); gap: 6px;">
+        <!-- Loading Skeleton -->
+        <div id="loadingSkeleton" class="p-4 space-y-3">
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+        </div>
+        <!-- Cards rendered by JS -->
+    </div>
+
+    <!-- Floating Bottle Return Button -->
+    <div id="floatingBottleBtn" class="floating-return-btn instant-load" onclick="showComingSoonModal()">
+        <div class="badge" id="bottleCounter">0</div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+    </div>
+
+    <!-- Menu Overlay -->
+    <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+    <!-- Sliding Menu -->
+    <div class="sliding-menu" id="slidingMenu">
+        <!-- Avatar Section -->
+        <div class="flex flex-col items-center justify-center gap-4 py-6">
+            <!-- Profile Image Container -->
+            <div class="relative flex items-center justify-center rounded-full border-[0.5px] border-[#292B2F]"
+                style="height: 110px; width: 110px; background-color: #292B2F;">
+                <img src="images/main/ProfileImage.png" class="w-[62px] h-[62px] object-contain"
+                    alt="Profile">
+
+                <!-- Edit Button -->
+                <button onclick="openProfileImagePicker()"
+                    class="absolute rounded-full flex items-center justify-center"
+                    style="top: 2px; right: 0; height: 38px; width: 38px; background-color: #40444B;">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                </button>
+
+                <!-- Hidden file input -->
+                <input type="file" id="profileImageInput" accept="image/*" style="display: none;"
+                    onchange="handleProfileImageChange(event)">
+            </div>
+
+            <!-- User Name -->
+            <h2 class="text-white text-xl font-semibold">Phluowisere</h2>
+            <p class="text-[#808080] text-base">loading.../p>
+        </div>
+
+        <!-- Menu Content -->
+        <div class="p-4">
+            <div class="rounded-[15px] overflow-hidden border-[0.5px]" style="border-color: #DADADA;">
+
+                <!-- History -->
+                <a href="schedule-history.html"
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
+                    style="background-color: #101010;">
+                    <div class="flex flex-row items-center gap-[30px]">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span class="text-white text-lg font-semibold">History</span>
+                    </div>
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+
+                <!-- About -->
+                <a href="about.html" onclick="navigateToPage('about.html')"
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
+                    style="background-color: #101010;">
+                    <div class="flex flex-row items-center gap-[30px]">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-white text-lg font-semibold">About</span>
+                    </div>
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+
+                <!-- Report -->
+                <a href="report.html" onclick="navigateToPage('report.html')"
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
+                    style="background-color: #101010;">
+                    <div class="flex flex-row items-center gap-[30px]">
+                        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span class="text-white text-lg font-semibold">Report</span>
+                    </div>
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+
+                <!-- Theme -->
+                <button onclick="openThemeModal()"
+                    class="w-full h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
+                    style="background-color: #101010;">
+                    <div class="flex flex-row items-center gap-[30px]">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <span class="text-white text-lg font-semibold">Theme</span>
+                    </div>
+                    <div class="py-2 px-4 rounded-[5px]" style="background-color: #FFFFFF1A;">
+                        <span id="currentThemeDisplay" class="capitalize text-white text-sm font-medium">Dark</span>
+                    </div>
+                </button>
+
+                <!-- Profile -->
+                <a href="profile.html" onclick="navigateToPage('profile.html')"
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
+                    style="background-color: #101010;">
+                    <div class="flex flex-row items-center gap-[30px]">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span class="text-white text-lg font-semibold">Profile</span>
+                    </div>
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+
+                <!-- Delete Account -->
+                <button onclick="showDeleteConfirm()"
+                    class="w-full h-[60px] flex flex-row justify-between items-center px-6"
+                    style="background-color: #101010;">
+                    <div class="flex flex-row items-center gap-[30px]">
+                        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span class="text-white text-lg font-semibold">Delete Account</span>
+                    </div>
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+
+                <!-- Visit Website -->
+                <a href="https://phluowise.com" target="_blank"
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-t border-[#3A3B3F]"
+                    style="background-color: #101010;">
+                    <div class="flex flex-row items-center gap-[30px]">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-white text-lg font-semibold">Visit us on our website</span>
+                    </div>
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+
+            </div>
+
+            <!-- Logout Button -->
+            <button onclick="logout()"
+                class="mt-4 h-[62px] w-full rounded-[15px] flex flex-row justify-between items-center px-6 shadow-md"
+                style="background-color: #1D1D1D;">
+                <div class="flex flex-row items-center gap-[30px]">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span class="text-white text-lg font-semibold">Logout</span>
+                </div>
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+            </button>
+        </div>
+
+        <!-- Version -->
+        <div class="flex flex-col items-center gap-2 mt-4 pb-8">
+            <span class="text-lg font-semibold text-[#808080]">Phluowise</span>
+            <span class="text-xs font-medium text-white">version 1.0.0</span>
+        </div>
+    </div>
+
+    <!-- Order Status Modal (Exact from schedulepickup.tsx) -->
+    <div id="orderModal"
+        class="fixed inset-0 z-30 flex items-center justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet"
+        style="background-color: rgba(0,0,0,0.5);">
+        <div id="orderModalContent"
+            class="pointer-events-auto w-full max-w-[400px] p-5 flex flex-col items-center relative transform translate-y-full transition-transform duration-300">
+            <!-- Back Button -->
+            <div class="relative w-full">
+                <button onclick="closeOrderModal()" class="relative w-10 h-10 flex justify-center items-center">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M15 18l-6-6 6-6" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Content (height varies by type) -->
+            <div class="flex-1 w-full items-center justify-center relative p-5">
+                <div id="modalInner"
+                    class="border rounded-[10px] w-full px-10 py-7 flex flex-col items-center justify-center"
+                    style="background-color: var(--bottom-sheet-color); border-color: #40444B; border-width: 0.2px; min-height: 250px;">
+                    <div class="flex-1 w-full flex-col gap-4 justify-center items-center relative">
+                        <div class="w-full flex-col items-center justify-center relative" id="modalMessage">
+                            <!-- Message rendered by JS -->
+                        </div>
+                        <div class="w-full flex-col relative">
+                            <div class="flex w-full items-center justify-center mt-6">
+                                <button onclick="closeOrderModal()"
+                                    class="rounded-[100px] flex items-center justify-center border backdrop-blur-xl bg-blue-500/20 border-blue-500/40 hover:bg-blue-500/30 transition-all duration-300 shadow-lg"
+                                    style="height: 40px; width: 94px;">
+                                    <span class="text-white text-base font-[500] capitalize leading-5">okay</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Bottom Sheet -->
+    <div id="orderDetailsSheet"
+        class="fixed inset-0 z-20 flex items-end justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet"
+        style="background-color: rgba(0,0,0,0.5);">
+        <div id="orderDetailsContent"
+            class="pointer-events-auto w-full max-w-[400px] transform translate-y-full transition-transform duration-300">
+
+            <!-- Bottom Sheet Container -->
+            <div class="w-full rounded-t-[20px] overflow-hidden backdrop-blur-xl bg-black/40 shadow-2xl"
+                style="border: 1px solid rgba(255, 255, 255, 0.1);">
+
+                <!-- Handle Bar -->
+                <div class="w-full flex justify-center py-3">
+                    <div class="w-12 h-1 rounded-full bg-white/30"></div>
+                </div>
+
+                <!-- Header -->
+                <div class="px-6 pb-4 flex justify-between items-center">
+                    <h2 class="text-white text-2xl font-bold">Order Details</h2>
+                    <button onclick="closeOrderDetailsSheet()"
+                        class="text-white text-2xl backdrop-blur-xl bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all duration-300 shadow-lg p-2">×</button>
+                </div>
+
+                <!-- Order Details Content -->
+                <div class="px-6 pb-6 overflow-y-auto" style="max-height: 70vh;">
+                    <div id="orderDetailsContentArea" class="space-y-6">
+                        <!-- Content will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Pickups Bottom Sheet -->
+    <div id="returnPickupsSheet"
+        class="fixed inset-0 z-20 flex items-end justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet"
+        style="background-color: rgba(0,0,0,0.5);">
+        <div id="returnPickupsContent"
+            class="pointer-events-auto w-full max-w-[400px] transform translate-y-full transition-transform duration-300">
+
+            <!-- Bottom Sheet Container -->
+            <div class="w-full rounded-t-[20px] overflow-hidden backdrop-blur-xl bg-black/40 shadow-2xl"
+                style="border: 1px solid rgba(255, 255, 255, 0.1);">
+
+                <!-- Handle Bar -->
+                <div class="w-full flex justify-center py-3">
+                    <div class="w-12 h-1 rounded-full bg-white/30"></div>
+                </div>
+
+                <!-- Header -->
+                <div class="px-6 pb-4">
+                    <h2 class="text-white text-2xl font-bold text-center">Return pickups</h2>
+                </div>
+
+                <!-- Return Options -->
+                <div class="px-6 pb-6 space-y-3">
+                    <!-- Return Option 1 -->
+                    <button onclick="selectReturnOption('damaged')"
+                        class="w-full h-[60px] rounded-[16px] border border-white/20 backdrop-blur-xl bg-white/10 hover:bg-white/20 transition-all duration-300 shadow-lg flex items-center px-4">
+                        <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mr-4">
+                            <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div class="flex-1 text-left">
+                            <span class="text-white text-base font-medium">Damaged</span>
+                        </div>
+                        <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+
+                    <!-- Return Option 2 -->
+                    <button onclick="selectReturnOption('wrong_item')"
+                        class="w-full h-[60px] rounded-[16px] border border-white/20 backdrop-blur-xl bg-white/10 hover:bg-white/20 transition-all duration-300 shadow-lg flex items-center px-4">
+                        <div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center mr-4">
+                            <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                        </div>
+                        <div class="flex-1 text-left">
+                            <span class="text-white text-base font-medium">Wrong item</span>
+                        </div>
+                        <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+
+                    <!-- Return Option 3 -->
+                    <button onclick="selectReturnOption('other')"
+                        class="w-full h-[60px] rounded-[16px] border border-white/20 backdrop-blur-xl bg-white/10 hover:bg-white/20 transition-all duration-300 shadow-lg flex items-center px-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-4">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="flex-1 text-left">
+                            <span class="text-white text-base font-medium">Other</span>
+                        </div>
+                        <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Cancel Button -->
+                <div class="px-6 pb-6">
+                    <button onclick="closeReturnPickupsSheet()"
+                        class="w-full h-[50px] rounded-[16px] border border-white/20 backdrop-blur-xl bg-white/10 hover:bg-white/20 transition-all duration-300 shadow-lg flex items-center justify-center">
+                        <span class="text-white text-base font-medium">Cancel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="tab-bar fixed bottom-0 left-0 right-0 h-[64px] flex flex-row justify-around items-center px-4 border-t-0 z-40"
+        style="background-color: #101010;">
+        <a href="home.html" class="flex flex-col items-center justify-center gap-1 flex-1">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5">
+                <path
+                    d="M9.02 2.84004L3.63 7.04004C2.73 7.74004 2 9.23004 2 10.36V17.77C2 20.09 3.89 21.99 6.21 21.99H17.79C20.11 21.99 22 20.09 22 17.78V10.5C22 9.29004 21.19 7.74004 20.2 7.05004L14.02 2.72004C12.62 1.74004 10.37 1.79004 9.02 2.84004Z"
+                    stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M12 17.99V14.99" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="text-sm text-white font-normal mt-1">Home</span>
+        </a>
+        <a href="services.html" class="flex flex-col items-center justify-center gap-1 flex-1">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#FFFFFF" stroke-width="1.5">
+                <path fill="#FFFFFF"
+                    d="m31.696 15.098-1.75-4.376a1.742 1.742 0 0 0-1.625-1.1H23.75V8.376a.75.75 0 0 0-.75-.75H4a1.75 1.75 0 0 0-1.75 1.75v14A1.75 1.75 0 0 0 4 25.125h2.325a3.75 3.75 0 0 0 7.35 0h6.65a3.75 3.75 0 0 0 7.35 0H30a1.75 1.75 0 0 0 1.75-1.75v-8a.752.752 0 0 0-.054-.277Zm-7.946-3.973h4.573a.25.25 0 0 1 .232.158l1.337 3.342H23.75v-3.5Zm-20-1.75a.25.25 0 0 1 .25-.25h18.25v8.5H3.75v-8.25ZM10 26.625a2.25 2.25 0 1 1 0-4.5 2.25 2.25 0 0 1 0 4.5Zm10.325-3h-6.65a3.75 3.75 0 0 0-7.35 0H4a.25.25 0 0 1-.25-.25v-4.25h18.5v1.935a3.763 3.763 0 0 0-1.925 2.565Zm3.675 3a2.25 2.25 0 1 1 0-4.5 2.25 2.25 0 0 1 0 4.5Zm6.25-3.25a.25.25 0 0 1-.25.25h-2.325a3.756 3.756 0 0 0-3.675-3c-.084 0-.168 0-.25.009v-4.509h6.5v7.25Z" />
+            </svg>
+            <span class="text-sm text-white font-normal mt-1">Services</span>
+        </a>
+        <a href="schedule-history.html" class="flex flex-col items-center justify-center gap-1 flex-1">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3B74FF" stroke-width="1.5">
+                <path d="M8 2V5" />
+                <path d="M16 2V5" />
+                <path d="M3.5 9.09H20.5" />
+                <path
+                    d="M18.2 21.4C19.9673 21.4 21.4 19.9673 21.4 18.2C21.4 16.4327 19.9673 15 18.2 15C16.4327 15 15 16.4327 15 18.2C15 19.9673 16.4327 21.4 18.2 21.4Z" />
+                <path d="M22 22L21 21" />
+                <path
+                    d="M21 8.5V13.63C20.27 13.14 19.38 12.85 18.43 12.85C15.86 12.85 13.78 14.95 13.78 17.54C13.78 18.45 14.04 19.29 14.49 20H8C4.5 20 3 18 3 15V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z" />
+            </svg>
+            <span class="text-sm text-[#3B74FF] font-normal mt-1">Schedule History</span>
+        </a>
+    </div>
+
+    <script src="js/appwriteConfig.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/companyData.js"></script>
+    <script src="js/orderManager.js"></script>
+    <script>
+        let currentView = 'status';
+        let orders = [];
+        let currentOrderForDetails = null;
+        let orderManager = new OrderManager();
+        let isInitialLoad = true;
+        let isLoading = false;
+        let dataLoadInProgress = false;
+
+        // Import Query from Appwrite SDK
+        const Query = window.Query;
+
+        // Instant initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set theme immediately
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.classList.remove('dark-theme', 'gray-theme', 'light-theme');
+            document.body.classList.add(savedTheme + '-theme');
+
+            // Set active tab
+            setStatusView('status');
+            
+            // Show UI immediately
+            document.querySelectorAll('.instant-load').forEach(el => {
+                el.classList.add('data-loaded');
+            });
+
+            // Start loading data in background
+            setTimeout(() => {
+                loadInitialData();
+            }, 50);
+            
+            // Load user profile data
+            setTimeout(() => {
+                updateUserProfile();
+            }, 100);
+            
+            // Preload essential functions
+            preloadEssentialFunctions();
+        });
+
+        // Preload essential functions
+        function preloadEssentialFunctions() {
+            window.setStatusView = setStatusView;
+            window.toggleMenu = toggleMenu;
+            window.closeMenu = closeMenu;
+        }
+
+        // Listen for storage events from services.html
+        window.addEventListener('storage', function(e) {
+            console.log('🔄 Storage event detected in schedule-history.html');
+            loadInitialData();
+            
+            const newOrderNotification = document.createElement('div');
+            newOrderNotification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300';
+            newOrderNotification.innerHTML = 'New orders loaded!';
+            newOrderNotification.style.transform = 'translateX(200%)';
+            document.body.appendChild(newOrderNotification);
+            
+            setTimeout(() => {
+                if (newOrderNotification.parentNode) {
+                    newOrderNotification.style.transform = 'translateX(0)';
+                    setTimeout(() => {
+                        if (newOrderNotification.parentNode) {
+                            newOrderNotification.remove();
+                        }
+                    }, 300);
+                }
+            }, 3000);
+        });
+
+        window.logout = logout;
+        window.navigateToPage = navigateToPage;
+        window.loadInitialData = loadInitialData;
+
+        let currentPage = 0;
+        const ORDERS_PER_PAGE = 1000; // Fetch all orders at once
+        let isLoadingMore = false;
+        let hasMoreOrders = true;
+        let lastOrderId = null;
+        
+        // Direct function to fetch company/branch data from database
+        async function fetchCompanyBranchData(branchId) {
+            try {
+                if (!branchId) return null;
+                
+                console.log(`🔍 Fetching branch data for branchId: ${branchId}`);
+                
+                // Try branches table first
+                const branchResponse = await window.databases.listDocuments(
+                    window.appwriteConfig.DATABASE_ID,
+                    window.appwriteConfig.BRANCHES_TABLE,
+                    [Query.equal('branch_id', branchId)]
+                );
+                
+                if (branchResponse.documents.length > 0) {
+                    const branch = branchResponse.documents[0];
+                    console.log(`✅ Found branch: ${branch.branch_name}`);
+                    return {
+                        name: branch.branch_name || branch.name || 'Unknown Company',
+                        profile_image: branch.profile_image ? 
+                            (branch.profile_image.startsWith('http') ? 
+                                branch.profile_image : 
+                                `https://nyc.cloud.appwrite.io/v1/storage/buckets/68b1c57b001542be7fbe/files/${branch.profile_image}/view?project=68b17582003582da69c8`) : 
+                            null
+                    };
+                }
+                
+                // If not found in branches, try companies table
+                const companyResponse = await window.databases.listDocuments(
+                    window.appwriteConfig.DATABASE_ID,
+                    window.appwriteConfig.COMPANY_TABLE,
+                    [Query.equal('company_id', branchId)]
+                );
+                
+                if (companyResponse.documents.length > 0) {
+                    const company = companyResponse.documents[0];
+                    console.log(`✅ Found company: ${company.name}`);
+                    return {
+                        name: company.name || 'Unknown Company',
+                        profile_image: null // Companies typically don't have profile images
+                    };
+                }
+                
+                console.warn(`⚠️ No company/branch found for branchId: ${branchId}`);
+                return null;
+                
+            } catch (error) {
+                console.error('❌ Error fetching company/branch data:', error);
+                return null;
+            }
+        }
+
+        async function loadInitialData() {
+            if (dataLoadInProgress) return;
+            dataLoadInProgress = true;
+            
+            try {
+                console.log('🚀 Starting data fetch...');
+                
+                orders = [];
+                currentPage = 0;
+                hasMoreOrders = true;
+                lastOrderId = null;
+                
+                showLoadingSkeleton();
+                
+                // Load company data first
+                // Fetch orders directly from database (all at once)
+                await fetchOrdersFromDatabase();
+                
+            } catch (error) {
+                console.error('❌ Error loading data:', error);
+                showOfflineState();
+            } finally {
+                hideLoadingSkeleton();
+                dataLoadInProgress = false;
+            }
+        }
+
+        function clearWeb2AppCache() {
+            try {
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.includes('web2app') || key.includes('ordersCache') || key.includes('tempOrder')) {
+                        keysToRemove.push(key);
+                    }
+                }
+                
+                keysToRemove.forEach(key => {
+                    localStorage.removeItem(key);
+                    console.log('🗑️ Removed cache key:', key);
+                });
+                
+                sessionStorage.clear();
+                
+                console.log('✅ All web2app cache cleared');
+            } catch (e) {
+                console.warn('⚠️ Could not clear web2app cache:', e);
+            }
+        }
+
+        async function fetchOrdersFromDatabase(loadMore = false) {
+            if (!navigator.onLine) {
+                console.log('📴 Offline mode - cannot fetch from database');
+                showOfflineState();
+                return;
+            }
+            
+            if (isLoadingMore || !hasMoreOrders) {
+                console.log('🔄 Already loading or no more orders');
+                return;
+            }
+            
+            isLoadingMore = true;
+            
+            try {
+                const customerId = getCustomerId();
+                if (!customerId) {
+                    console.log('🏁 No customer ID found');
+                    return;
+                }
+                
+                console.log(`🔍 Fetching orders page ${currentPage} for customer:`, customerId);
+                
+                // Try Appwrite first, fallback to local API if network fails
+                let response;
+                try {
+                    const queries = [
+                        Query.equal('customer_id', customerId),
+                        Query.orderDesc('$createdAt'),
+                        Query.limit(ORDERS_PER_PAGE)
+                    ];
+                    
+                    if (lastOrderId && loadMore) {
+                        queries.push(Query.cursorAfter(lastOrderId));
+                    }
+                    
+                    response = await window.databases.listDocuments(
+                        window.appwriteConfig.DATABASE_ID,
+                        window.appwriteConfig.ORDERS_TABLE,
+                        queries
+                    );
+                } catch (appwriteError) {
+                    console.warn('⚠️ Appwrite network failed, trying local API:', appwriteError.message);
+                    
+                    // Fallback to local API
+                    try {
+                        const localResponse = await fetch(`${window.location.origin}/api/schedule-history?userId=${customerId}&limit=${ORDERS_PER_PAGE}`);
+                        if (localResponse.ok) {
+                            const localData = await localResponse.json();
+                            response = {
+                                documents: localData.scheduleHistory || [],
+                                total: localData.total || 0
+                            };
+                        } else {
+                            throw new Error('Local API also failed');
+                        }
+                    } catch (localError) {
+                        console.error('❌ Both Appwrite and local API failed:', localError);
+                        throw new Error(`Failed to fetch orders: ${appwriteError.message}`);
+                    }
+                }
+                
+                console.log(`📊 Retrieved ${response.documents.length} orders from database`);
+                
+                if (response.documents.length === 0) {
+                    hasMoreOrders = false;
+                    console.log('🏁 No more orders to load');
+                    return;
+                }
+                
+                const newOrders = [];
+                const processedOrderIds = new Set();
+                
+                for (const order of response.documents) {
+                    try {
+                        const orderId = order.$id || order.orderId || order.id;
+                        
+                        if (processedOrderIds.has(orderId)) {
+                            console.log('⚠️ Skipping duplicate order:', orderId);
+                            continue;
+                        }
+                        
+                        const existingOrderIds = new Set(orders.map(o => o.$id || o.orderId));
+                        if (existingOrderIds.has(orderId)) {
+                            console.log('⚠️ Skipping existing order:', orderId);
+                            continue;
+                        }
+                        
+                        processedOrderIds.add(orderId);
+                        
+                        const minimalOrder = await processOrderMinimal(order);
+                        if (minimalOrder) {
+                            const orderCreatedAt = new Date(order.$createdAt || order.createdAt || Date.now());
+                            const fiveMinutesAgo = new Date();
+                            fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+                            const isRecentlyCreated = orderCreatedAt > fiveMinutesAgo;
+                            
+                            minimalOrder.isNew = isRecentlyCreated && !loadMore;
+                            
+                            if (isRecentlyCreated && !loadMore) {
+                                console.log('🆕 Detected new order from DB:', orderId, 'created at:', orderCreatedAt.toISOString());
+                            }
+                            
+                            newOrders.push(minimalOrder);
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Error processing order:', order.$id, error);
+                    }
+                }
+                
+                if (newOrders.length > 0) {
+                    lastOrderId = newOrders[newOrders.length - 1].$id;
+                }
+                
+                if (loadMore) {
+                    orders.push(...newOrders);
+                } else {
+                    orders = newOrders;
+                }
+                
+                console.log(`✅ Processed ${newOrders.length} valid orders from database`);
+                
+                renderOrders();
+                updateFloatingButton();
+                
+            } catch (error) {
+                console.error('❌ Error fetching orders:', error);
+                if (!loadMore) {
+                    showOfflineState();
+                }
+            } finally {
+                isLoadingMore = false;
+                hideLoadingMoreIndicator();
+            }
+        }
+
+        function showLoadingMoreIndicator() {
+            const container = document.getElementById('ordersList');
+            const existingIndicator = document.getElementById('loadingMoreIndicator');
+            
+            if (existingIndicator) return;
+            
+            const indicator = document.createElement('div');
+            indicator.id = 'loadingMoreIndicator';
+            indicator.className = 'flex justify-center py-4';
+            indicator.innerHTML = `
+                <div class="flex items-center gap-2 text-white/60">
+                    <div class="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+                    <span class="text-sm">Loading more orders...</span>
+                </div>
+            `;
+            
+            container.appendChild(indicator);
+        }
+
+        function hideLoadingMoreIndicator() {
+            const indicator = document.getElementById('loadingMoreIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        async function loadAllOrdersForCustomer(customerId) {
+            try {
+                console.log('📚 Loading all remaining orders for customer...');
+                
+                const response = await window.databases.listDocuments(
+                    window.appwriteConfig.DATABASE_ID,
+                    window.appwriteConfig.ORDERS_TABLE,
+                    [
+                        Query.equal('customer_id', customerId),
+                        Query.orderDesc('$createdAt'),
+                        Query.limit(200)
+                    ]
+                );
+                
+                const minimalOrders = [];
+                for (const order of response.documents) {
+                    try {
+                        const minimalOrder = await processOrderMinimal(order);
+                        if (minimalOrder) {
+                            minimalOrders.push(minimalOrder);
+                        }
+                    } catch (error) {
+                        console.warn('Error processing order:', order.$id, error);
+                    }
+                }
+                
+                return minimalOrders;
+                
+            } catch (error) {
+                console.error('❌ Error loading all orders:', error);
+                return [];
+            }
+        }
+
+        async function processOrderMinimal(order) {
+            try {
+                if (!order.$id || !order.customer_id) {
+                    console.warn('⚠️ Skipping invalid order (missing $id or customer_id):', order);
+                    return null;
+                }
+                
+                const orderId = order.$id;
+                const orderStatus = order.orderStatus || order.status || 'pending';
+                const deliveryName = order.deliveryName || order.companyName || order.branchName || '';
+                const deliveryAddress = order.deliveryAddress || order.address || order.location || '';
+                const paymentMethod = order.paymentMethod || order.payment || 'Mobile Money';
+                const deliveryTime = order.deliveryTime || 'N/A';
+                const deliveryDate = order.deliveryDate || order.date || order.$createdAt || 'N/A';
+                const total = order.total || order.amount || order.price || 0;
+                
+                let transformedStatus = 'pending';
+                let statusText = 'Pending';
+                let statusColor = '#F2A78C';
+                
+                if (orderStatus === 'confirmed' || orderStatus === 'accepted') {
+                    transformedStatus = 'accepted';
+                    statusText = 'Accepted';
+                    statusColor = '#2C9043';
+                } else if (orderStatus === 'ongoing' || orderStatus === 'completed') {
+                    transformedStatus = 'ongoing';
+                    statusText = 'Completed';
+                    statusColor = '#2CAA48';
+                } else if (orderStatus === 'denied' || orderStatus === 'rejected') {
+                    transformedStatus = 'denied';
+                    statusText = 'Denied';
+                    statusColor = '#F85D5D';
+                }
+                
+                let companyImage = null;
+                let finalCompanyName = deliveryName;
+                
+                const branchId = order.branchId || order.branch_id || order.company_id;
+                
+                if (branchId) {
+                    try {
+                        console.log(`🔍 Looking up company/branch for order ${orderId}, branchId: ${branchId}`);
+                        
+                        const companyData = await fetchCompanyBranchData(branchId);
+                        
+                        if (companyData) {
+                            finalCompanyName = companyData.name;
+                            companyImage = companyData.profile_image;
+                            
+                            console.log(`🔍 Found company data for order ${orderId}:`, finalCompanyName, 'Image:', companyImage ? 'Yes' : 'No');
+                        } else {
+                            console.warn(`⚠️ No company/branch data found for branchId: ${branchId}`);
+                        }
+                    } catch (error) {
+                        console.warn('Could not fetch company/branch data:', error);
+                    }
+                } else {
+                    console.warn(`⚠️ No branchId found for order ${orderId}. Available fields:`, Object.keys(order));
+                }
+                
+                if (!finalCompanyName || finalCompanyName === 'Unknown Company') {
+                    finalCompanyName = 'Company';
+                }
+                
+                return {
+                    $id: orderId,
+                    orderId: orderId,
+                    company: finalCompanyName,
+                    companyImage: companyImage,
+                    location: deliveryAddress,
+                    payment: paymentMethod,
+                    time: deliveryTime,
+                    date: deliveryDate,
+                    price: total ? `GH₵${parseFloat(total).toFixed(2)}` : 'GH₵0.00',
+                    status: transformedStatus,
+                    statusText: statusText,
+                    statusColor: statusColor,
+                    total: parseFloat(total) || 0,
+                    timestamp: order.$createdAt || new Date().toISOString(),
+                    transactionId: order.transactionId || orderId,
+                    deliveryInstructions: order.orderComment || order.instructions || '',
+                    deliveryDate: order.deliveryDate,
+                    deliveryTime: order.deliveryTime,
+                    customer_id: order.customer_id,
+                    branchId: order.branchId,
+                    _loadedDetails: false
+                };
+            } catch (error) {
+                console.error('Error in minimal order processing:', error);
+                return null;
+            }
+        }
+
+        async function loadOrderDetailsBackground(minimalOrders) {
+            for (let i = 0; i < minimalOrders.length; i++) {
+                if (i >= 10) break;
+                
+                const order = minimalOrders[i];
+                if (order && !order._loadedDetails) {
+                    try {
+                        await enrichOrderDetails(order);
+                        order._loadedDetails = true;
+                        
+                        renderOrders();
+                    } catch (error) {
+                        console.warn('Background detail loading failed for order:', order.orderId);
+                    }
+                }
+            }
+        }
+
+        async function enrichOrderDetails(order) {
+            try {
+                if (orderManager && typeof orderManager.getOrderItems === 'function') {
+                    const orderItems = await orderManager.getOrderItems(order.orderId);
+                    
+                    if (orderItems && orderItems.length > 0) {
+                        order.products = orderItems.map(item => ({
+                            id: item.productId || item.productName,
+                            name: item.productName || 'Unknown Product',
+                            price: item.productPrice || 0,
+                            quantity: item.productQty || 1,
+                            image: item.productImage,
+                            type: item.productType || 'product'
+                        }));
+                        
+                        // Calculate subtotal properly from order items
+                        order.subtotal = orderItems.reduce((sum, item) => {
+                            const price = parseFloat(item.productPrice) || 0;
+                            const qty = parseInt(item.productQty) || 1;
+                            return sum + (price * qty);
+                        }, 0);
+                        
+                        // Calculate service fee: GHS0.10 per item
+                        order.serviceFee = orderItems.reduce((sum, item) => {
+                            const qty = parseInt(item.productQty) || 1;
+                            return sum + (0.10 * qty);
+                        }, 0);
+                        
+                        // Calculate total
+                        order.total = order.subtotal + order.serviceFee;
+                        order.price = `GH₵${order.total.toFixed(2)}`;
+                        
+                        console.log(`💰 Order ${order.orderId}: Subtotal: ${order.subtotal.toFixed(2)}, Service Fee: ${order.serviceFee.toFixed(2)}, Total: ${order.total.toFixed(2)}`);
+                    }
+                }
+                
+                if (orderManager && typeof orderManager.getPurchaseRecipientInfo === 'function') {
+                    const recipientInfo = await orderManager.getPurchaseRecipientInfo(order.orderId);
+                    if (recipientInfo) {
+                        order.recipient = {
+                            type: recipientInfo.purchase_recipient_type,
+                            name: recipientInfo.recipient_name,
+                            phone: recipientInfo.recipient_phone,
+                            email: recipientInfo.recipient_email,
+                            address: recipientInfo.recipient_address,
+                            businessName: recipientInfo.business_name,
+                            businessType: recipientInfo.business_type
+                        };
+                    }
+                }
+                
+            } catch (error) {
+                console.warn('Could not enrich order details:', order.orderId, error);
+            }
+        }
+
+        function getCustomerId() {
+            console.log('🔍 Getting customer ID from localStorage...');
+            
+            // Debug: Log all localStorage keys
+            console.log('📋 All localStorage keys:');
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                console.log(`  ${key}: ${value.substring(0, 100)}${value.length > 100 ? '...' : ''}`);
+            }
+            
+            const sources = [
+                () => {
+                    const customerData = JSON.parse(localStorage.getItem('customerData') || '{}');
+                    const id = customerData.$id || customerData.uid || customerData.id;
+                    console.log('🔍 customerData source:', id);
+                    return id;
+                },
+                () => {
+                    const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                    const id = userProfile.$id || userProfile.uid || userProfile.id;
+                    console.log('🔍 userProfile source:', id);
+                    return id;
+                },
+                () => {
+                    const id = localStorage.getItem('currentUserId');
+                    console.log('🔍 currentUserId source:', id);
+                    return id;
+                },
+                () => {
+                    const userStr = localStorage.getItem('user');
+                    if (userStr) {
+                        try {
+                            const user = JSON.parse(userStr);
+                            const id = user.$id || user.uid || user.id || user.userId;
+                            console.log('🔍 user source:', id);
+                            return id;
+                        } catch (e) {
+                            console.log('🔍 user source - parse error');
+                            return null;
+                        }
+                    }
+                    return null;
+                },
+                () => {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.includes('id') || key.includes('user') || key.includes('customer')) {
+                            try {
+                                const value = JSON.parse(localStorage.getItem(key));
+                                if (value && (value.$id || value.uid || value.id || value.userId)) {
+                                    console.log('🔍 Found customer ID in key', key, ':', value.$id || value.uid || value.id || value.userId);
+                                    return value.$id || value.uid || value.id || value.userId;
+                                }
+                            } catch (e) {
+                                const value = localStorage.getItem(key);
+                                if (value && value.length > 10 && value.length < 50) {
+                                    console.log('🔍 Found customer ID as string in key', key, ':', value);
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                    return null;
+                }
+            ];
+            
+            for (const source of sources) {
+                const id = source();
+                if (id) {
+                    console.log('✅ Found customer ID:', id);
+                    return id;
+                }
+            }
+            
+            console.log('❌ No customer ID found in any source');
+            return null;
+        }
+
+        // Fetch customer data from database
+        async function fetchCustomerData() {
+            try {
+                const customerId = getCustomerId();
+                if (!customerId) {
+                    console.warn('⚠️ No customer ID found, cannot fetch customer data');
+                    return null;
+                }
+                
+                console.log('🔍 Fetching customer data for:', customerId);
+                
+                const response = await window.databases.listDocuments(
+                    window.appwriteConfig.DATABASE_ID,
+                    window.appwriteConfig.CUSTOMER_TABLE,
+                    [Query.equal('uid', customerId)]
+                );
+                
+                if (response.documents.length > 0) {
+                    const customer = response.documents[0];
+                    console.log('✅ Found customer:', customer.full_name);
+                    return customer;
+                } else {
+                    console.warn('⚠️ No customer found with ID:', customerId);
+                    return null;
+                }
+            } catch (error) {
+                console.error('❌ Error fetching customer data:', error);
+                return null;
+            }
+        }
+
+        // Update user profile in menu
+        async function updateUserProfile() {
+            try {
+                const customer = await fetchCustomerData();
+                if (customer) {
+                    // Update user name
+                    const userNameElement = document.querySelector('.sliding-menu h2.text-white');
+                    if (userNameElement) {
+                        userNameElement.textContent = customer.full_name || 'User';
+                    }
+                    
+                    // Update user email
+                    const userEmailElement = document.querySelector('.sliding-menu p[class*="text-[#808080]"]');
+                    if (!userEmailElement) {
+                        // Try alternative approach - find the p element after h2
+                        const userNameElement = document.querySelector('.sliding-menu h2.text-white');
+                        if (userNameElement && userNameElement.nextElementSibling) {
+                            const emailElement = userNameElement.nextElementSibling;
+                            if (emailElement.tagName === 'P') {
+                                emailElement.textContent = customer.email || 'user@example.com';
+                            }
+                        }
+                    } else {
+                        userEmailElement.textContent = customer.email || 'user@example.com';
+                    }
+                    
+                    console.log('✅ Updated user profile in menu');
+                } else {
+                    console.warn('⚠️ Could not update user profile - no customer data found');
+                }
+            } catch (error) {
+                console.error('❌ Error updating user profile:', error);
+            }
+        }
+
+        function showLoadingSkeleton() {
+            const container = document.getElementById('ordersList');
+            container.innerHTML = `
+                <div id="loadingSkeleton" class="p-4 space-y-3">
+                    <div class="skeleton skeleton-card"></div>
+                    <div class="skeleton skeleton-card"></div>
+                    <div class="skeleton skeleton-card"></div>
+                </div>
+            `;
+        }
+
+        function hideLoadingSkeleton() {
+            const skeleton = document.getElementById('loadingSkeleton');
+            if (skeleton) {
+                skeleton.style.display = 'none';
+            }
+        }
+
+        function showOfflineState() {
+            const container = document.getElementById('ordersList');
+            if (!container.innerHTML.includes('No orders found')) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-white text-center p-8">
+                        <div class="mb-4">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" class="text-gray-400">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Connection Error</h3>
+                        <p class="text-gray-400 mb-4">Unable to load orders. Please check your connection.</p>
+                        <button onclick="loadInitialData()" class="mt-4 px-6 py-2 backdrop-blur-xl bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all duration-300 shadow-lg flex items-center gap-2">
+                            <span class="loading-spinner" id="refreshSpinner" style="display: none;"></span>
+                            Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function formatShortDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${month}/${day}/${year}`;
+            } catch (e) {
+                return dateString || 'N/A';
+            }
+        }
+
+        function formatOrderSentTime(timestamp) {
+            try {
+                if (!timestamp) return 'Order sent:\nN/A';
+                
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                if (diffMins < 1) {
+                    return 'Order sent:\nJust now';
+                } else if (diffMins < 60) {
+                    return `Order sent:\n${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+                } else if (diffHours < 24) {
+                    return `Order sent:\n${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                } else if (diffDays < 7) {
+                    return `Order sent:\n${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                } else {
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const year = date.getFullYear();
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const mins = String(date.getMinutes()).padStart(2, '0');
+                    return `Order sent:\n${month}/${day}/${year} at ${hours}:${mins}`;
+                }
+            } catch (e) {
+                return 'Order sent:\nN/A';
+            }
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            const order = orders.find(o => o.orderId === orderId);
+            if (order) {
+                order.status = newStatus;
+                order.statusText = getStatusText(newStatus);
+                order.statusColor = getStatusColor(newStatus);
+
+                try {
+                    await window.databases.updateDocument(
+                        window.appwriteConfig.DATABASE_ID,
+                        window.appwriteConfig.ORDERS_TABLE,
+                        orderId,
+                        { orderStatus: newStatus }
+                    );
+                } catch (error) {}
+
+                renderOrders();
+            }
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'pending': 'Pending',
+                'accepted': 'Accepted',
+                'denied': 'Denied',
+                'ongoing': 'Completed',
+                'completed': 'Completed'
+            };
+            return texts[status] || status;
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'pending': '#F2A78C',
+                'accepted': '#2C9043',
+                'denied': '#F85D5D',
+                'ongoing': '#2CAA48',
+                'completed': '#2CAA48'
+            };
+            return colors[status] || '#F2A78C';
+        }
+
+        function setStatusView(view) {
+            currentView = view;
+            const btns = ['status', 'ongoing', 'denied', 'completed'];
+            btns.forEach(btn => {
+                const button = document.getElementById('btn-' + btn);
+                if (btn === view) {
+                    button.style.backgroundColor = 'var(--btn-color)';
+                } else {
+                    button.style.backgroundColor = 'transparent';
+                }
+            });
+            renderOrders();
+        }
+
+        function removeNewStatusAfterDelay() {
+            setTimeout(() => {
+                let hasNewOrders = false;
+                orders.forEach(order => {
+                    if (order.isNew) {
+                        order.isNew = false;
+                        hasNewOrders = true;
+                    }
+                });
+                
+                if (hasNewOrders) {
+                    console.log(' Removing NEW status from orders');
+                    renderOrders();
+                }
+            }, 10000);
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('ordersList');
+            
+            hideLoadingSkeleton();
+            
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
+            const filteredOrders = orders.filter(order => {
+                if (currentView === 'status') {
+                    return order.status === 'pending';
+                } else if (currentView === 'ongoing') {
+                    return order.status === 'accepted';
+                } else if (currentView === 'denied') {
+                    return order.status === 'denied';
+                } else if (currentView === 'completed') {
+                    return order.status === 'ongoing';
+                }
+                return true;
+            });
+            
+            if (filteredOrders.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-white text-center p-8">
+                        <div class="mb-4">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" class="text-gray-400">
+                                <path d="M9 2L3 7v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7l-6-5H9z"/>
+                                <path d="M3 7h18"/>
+                                <path d="M9 2v5"/>
+                                <path d="M13 16v-4"/>
+                                <circle cx="13" cy="16" r="1"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">No orders found</h3>
+                        <p class="text-gray-400">No ${currentView} orders to display</p>
+                        <button onclick="loadInitialData()" class="mt-4 px-6 py-2 backdrop-blur-xl bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all duration-300 shadow-lg flex items-center gap-2">
+                            <span class="loading-spinner" id="refreshSpinner" style="display: none;"></span>
+                            Refresh
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredOrders.forEach((order, index) => {
+                const card = document.createElement('button');
+                card.className = 'w-full flex items-center justify-center px-4 mb-3 animate-slide-up relative';
+                card.style.height = '120px';
+                card.style.backgroundColor = 'var(--bg-second)';
+                card.dataset.orderId = order.orderId;
+
+                if (order.isNew) {
+                    card.style.border = '2px solid #10b981';
+                    card.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.3)';
+                    
+                    const newBadge = document.createElement('div');
+                    newBadge.className = 'absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse';
+                    newBadge.textContent = 'NEW';
+                    newBadge.style.zIndex = '10';
+                    card.appendChild(newBadge);
+                }
+
+                card.onclick = () => openOrderModal(order.status, order);
+
+                // Use company/branch profile image instead of customer image
+                let displayImage = null;
+                if (order.companyImage) {
+                    displayImage = order.companyImage;
+                } else if (order.profile_image) {
+                    displayImage = order.profile_image;
+                }
+
+                card.innerHTML = `
+                    <div class="flex flex-row w-full items-center gap-2">
+                        <!-- Company Image Container -->
+                        <div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+                            ${displayImage ? 
+                                `<img src="${displayImage}" class="w-full h-full object-cover" alt="${order.company}" loading="lazy">` :
+                                `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
+                                    <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                </div>`
+                            }
+                        </div>
+                        
+                        <!-- Info Section -->
+                        <div class="flex flex-col ml-2 items-start flex-1" style="gap: 2px;">
+                            <!-- Company Name with Verified Icon -->
+                            <div class="company-name-container">
+                                <span class="company-name-text">${order.company || 'Unknown Company'}</span>
+                                <span class="material-symbols-outlined verified-icon">verified</span>
+                            </div>
+                            
+                            <!-- Payment Method (Network) -->
+                            ${order.payment ? `<span class="text-white/80 text-base font-[400]">${order.payment}</span>` : ''}
+                            
+                            <!-- Order Sent Date/Time -->
+                            <div class="text-white/60 text-sm text-left">
+                                ${formatOrderSentTime(order.timestamp)}
+                            </div>
+                        </div>
+                        
+                        <!-- Price & Status Section -->
+                        <div class="flex flex-col items-center justify-end gap-1" style="min-width: 80px;">
+                            <span class="text-xl font-[700] text-white text-right">${order.price || 'GH₵0.00'}</span>
+                            <span class="text-sm font-[500] text-right" style="color: ${order.statusColor || '#F2A78C'};">${order.statusText || 'Pending'}</span>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+                
+                if (index < 10) {
+                    card.style.animationDelay = `${index * 0.05}s`;
+                }
+            });
+        }
+
+        function updateFloatingButton() {
+            const bottleBtn = document.getElementById('floatingBottleBtn');
+            const counter = document.getElementById('bottleCounter');
+            
+            // Initialize myBottles if not defined
+            if (typeof myBottles === 'undefined') {
+                window.myBottles = [];
+            }
+            
+            const pendingBottles = myBottles.filter(bottle => bottle.status === 'pending').length;
+            
+            if (pendingBottles > 0) {
+                bottleBtn.style.display = 'flex';
+                counter.textContent = pendingBottles;
+            } else {
+                bottleBtn.style.display = 'flex';
+                counter.textContent = '0';
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            
+            const typeStyles = {
+                success: {
+                    bg: 'bg-green-500/20',
+                    border: 'border-green-500/50',
+                    text: 'text-green-500',
+                    icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />'
+                },
+                error: {
+                    bg: 'bg-red-500/20',
+                    border: 'border-red-500/50',
+                    text: 'text-red-500',
+                    icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />'
+                },
+                info: {
+                    bg: 'bg-blue-500/20',
+                    border: 'border-blue-500/50',
+                    text: 'text-blue-500',
+                    icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                }
+            };
+            
+            const style = typeStyles[type] || typeStyles.info;
+            
+            notification.className = `fixed top-4 right-4 glass border ${style.border} text-foreground px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-up max-w-sm`;
+            notification.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 ${style.bg} rounded-full flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5 ${style.text}" fill="none" stroke="currentColor" stroke-width="2">
+                            ${style.icon}
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium">${message}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function openOrderModal(status, order) {
+            currentOrderForDetails = order;
+            const modal = document.getElementById('orderModal');
+            const content = document.getElementById('orderModalContent');
+            const inner = document.getElementById('modalInner');
+            const message = document.getElementById('modalMessage');
+
+            if (status === 'accepted') {
+                inner.style.minHeight = '350px';
+            } else {
+                inner.style.minHeight = '250px';
+            }
+
+            if (status === 'pending') {
+                message.innerHTML = `
+                    <div class="flex flex-col items-center justify-center gap-4">
+                        <div class="flex flex-col items-center justify-center">
+                            <span class="text-white text-center text-xl font-[500]">
+                                Your order is still <span style="color: #F9A24B;">pending</span>.<br>
+                                Wait for company name to<br>accept your order
+                            </span>
+                        </div>
+                        <button onclick="openOrderDetailsSheet()" class="flex flex-col items-center justify-center backdrop-blur-xl bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all duration-300 shadow-lg px-4 py-2">
+                            <span class="text-white text-center text-xl font-[600]">See details of Order</span>
+                        </button>
+                    </div>
+                `;
+            } else if (status === 'denied') {
+                message.innerHTML = `
+                    <div class="flex flex-col items-center justify-center gap-4">
+                        <div class="flex flex-col items-center justify-center">
+                            <span class="text-white text-center text-xl font-[500]">
+                                Your order has been <br><span style="color: #F85D5D;">denied</span>.
+                            </span>
+                        </div>
+                        <button onclick="openOrderDetailsSheet()" class="flex flex-col items-center justify-center backdrop-blur-xl bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all duration-300 shadow-lg px-4 py-2">
+                            <span class="text-white text-center text-xl font-[600]">See details of Order</span>
+                        </button>
+                    </div>
+                `;
+            } else if (status === 'accepted') {
+                message.innerHTML = `
+                    <div class="flex flex-col items-center justify-center gap-4">
+                        <div class="flex flex-col items-center justify-center">
+                            <span class="text-white text-center text-xl font-[500]">
+                                Your order has been <br><span style="color: #2C9043;">accepted</span>.
+                            </span>
+                        </div>
+                        <button onclick="openOrderDetailsSheet()" class="flex flex-col items-center justify-center backdrop-blur-xl bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all duration-300 shadow-lg px-4 py-2">
+                            <span class="text-white text-center text-xl font-[600]">See details of Order</span>
+                        </button>
+                        <div class="flex flex-col items-center justify-center gap-4 mt-2">
+                            <button onclick="markOrderAsComplete('${order.orderId}')" class="rounded-[10px] flex items-center justify-center border backdrop-blur-xl bg-white/10 border-white/20 hover:bg-white/20 transition-all duration-300 shadow-lg" style="height: 48px; width: 250px;">
+                                <div class="p-2 flex flex-row items-center justify-between gap-2">
+                                    <span class="text-white text-center font-[600]" style="font-size: 16.5px;">Mark as complete</span>
+                                    <span class="text-white">✓</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (status === 'ongoing') {
+                message.innerHTML = `
+                    <div class="flex flex-col items-center justify-center gap-4">
+                        <div class="flex flex-col items-center justify-center">
+                            <span class="text-white text-center text-xl font-[500]">
+                                Your order has been <br><span style="color: #2CAA48;">completed</span>.
+                            </span>
+                        </div>
+                        <button onclick="openOrderDetailsSheet()" class="flex flex-col items-center justify-center backdrop-blur-xl bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all duration-300 shadow-lg px-4 py-2">
+                            <span class="text-white text-center text-xl font-[600]">See details of Order</span>
+                        </button>
+                    </div>
+                `;
+            }
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            setTimeout(() => content.classList.remove('translate-y-full'), 10);
+        }
+
+        function closeOrderModal() {
+            const modal = document.getElementById('orderModal');
+            const content = document.getElementById('orderModalContent');
+            content.classList.add('translate-y-full');
+            setTimeout(() => {
+                modal.classList.remove('opacity-100');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }, 300);
+        }
+
+        async function markOrderAsComplete(orderId) {
+            const completeButton = document.querySelector(`button[onclick*="markOrderAsComplete('${orderId}')"]`);
+            if (completeButton) {
+                completeButton.disabled = true;
+                completeButton.innerHTML = `
+                    <div class="p-2 flex flex-row items-center justify-between gap-2">
+                        <span class="text-white text-center font-[600]" style="font-size: 16.5px;">Completing...</span>
+                        <div class="loading-spinner"></div>
+                    </div>
+                `;
+            }
+
+            try {
+                await window.databases.updateDocument(
+                    window.appwriteConfig.DATABASE_ID,
+                    window.appwriteConfig.ORDERS_TABLE,
+                    orderId,
+                    { orderStatus: 'ongoing' }
+                );
+
+                updateOrderStatus(orderId, 'ongoing');
+                closeOrderModal();
+                
+                showNotification('✅ Order marked as complete! Bottle added to return tracker.', 'success');
+                
+            } catch (error) {
+                if (completeButton) {
+                    completeButton.disabled = false;
+                    completeButton.innerHTML = `
+                        <div class="p-2 flex flex-row items-center justify-between gap-2">
+                            <span class="text-white text-center font-[600]" style="font-size: 16.5px;">Mark as complete</span>
+                            <span class="text-white">✓</span>
+                        </div>
+                    `;
+                }
+                
+                showNotification('❌ Failed to mark order as complete. Please try again.', 'error');
+            }
+        }
+
+        async function fetchCompleteOrderDetails(orderId) {
+            try {
+                console.log(`🔍 Fetching complete order details for: ${orderId}`);
+                
+                // Try Appwrite first, fallback to local API
+                let orderDetails;
+                try {
+                    const response = await window.databases.getDocument(
+                        window.appwriteConfig.DATABASE_ID,
+                        window.appwriteConfig.ORDERS_TABLE,
+                        orderId
+                    );
+                    orderDetails = response;
+                } catch (appwriteError) {
+                    console.warn('⚠️ Appwrite fetch failed, trying local API:', appwriteError.message);
+                    
+                    // Fallback to local API
+                    try {
+                        const localResponse = await fetch(`${window.location.origin}/api/order-details?orderId=${orderId}`);
+                        if (localResponse.ok) {
+                            const localData = await localResponse.json();
+                            orderDetails = localData.order;
+                        } else {
+                            throw new Error('Local API also failed');
+                        }
+                    } catch (localError) {
+                        console.error('❌ Both Appwrite and local API failed:', localError);
+                        throw new Error(`Failed to fetch order details: ${appwriteError.message}`);
+                    }
+                }
+                
+                console.log('✅ Fetched complete order details:', orderDetails);
+                return orderDetails;
+                
+            } catch (error) {
+                console.error('❌ Error fetching complete order details:', error);
+                throw error;
+            }
+        }
+
+        async function fetchRelatedOrderData(orderDetails) {
+            try {
+                console.log('🔍 Fetching related order data...');
+                
+                const enrichedData = { ...orderDetails };
+                
+                // Fetch customer details if customer_id exists
+                if (orderDetails.customer_id) {
+                    try {
+                        const customerResponse = await window.databases.listDocuments(
+                            window.appwriteConfig.DATABASE_ID,
+                            window.appwriteConfig.CUSTOMER_TABLE || 'customer_tb',
+                            [Query.equal('uid', orderDetails.customer_id)]
+                        );
+                        
+                        if (customerResponse.documents.length > 0) {
+                            enrichedData.customerDetails = customerResponse.documents[0];
+                            console.log('✅ Found customer details');
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Could not fetch customer details:', error);
+                    }
+                }
+                
+                // Fetch recipient details if order has recipient info
+                if (orderDetails.recipient_id || orderDetails.purchase_recipient_id) {
+                    try {
+                        const recipientId = orderDetails.recipient_id || orderDetails.purchase_recipient_id;
+                        const recipientResponse = await window.databases.listDocuments(
+                            window.appwriteConfig.DATABASE_ID,
+                            'purchase_recipient_info',
+                            [Query.equal('order_id', orderDetails.$id)]
+                        );
+                        
+                        if (recipientResponse.documents.length > 0) {
+                            enrichedData.recipientDetails = recipientResponse.documents[0];
+                            console.log('✅ Found recipient details');
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Could not fetch recipient details:', error);
+                    }
+                }
+                
+                // Fetch order items if available
+                try {
+                    const orderItemsResponse = await window.databases.listDocuments(
+                        window.appwriteConfig.DATABASE_ID,
+                        'order_items',
+                        [Query.equal('orderId', orderDetails.$id)] // Use 'orderId' as confirmed by schema
+                    );
+                    
+                    if (orderItemsResponse.documents.length > 0) {
+                        enrichedData.orderItems = orderItemsResponse.documents;
+                        console.log(`✅ Found ${orderItemsResponse.documents.length} order items`);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Could not fetch order items (collection may not exist):', error.message);
+                }
+                
+                // Fetch ratings if available
+                try {
+                    const ratingsResponse = await window.databases.listDocuments(
+                        window.appwriteConfig.DATABASE_ID,
+                        'ratings',
+                        [Query.equal('order_id', orderDetails.$id)]
+                    );
+                    
+                    if (ratingsResponse.documents.length > 0) {
+                        enrichedData.rating = ratingsResponse.documents[0];
+                        console.log('✅ Found order rating');
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Could not fetch rating:', error);
+                }
+                
+                return enrichedData;
+                
+            } catch (error) {
+                console.error('❌ Error fetching related order data:', error);
+                return orderDetails; // Return basic order details if related data fetch fails
+            }
+        }
+
+        async function openOrderDetailsSheet() {
+            closeOrderModal();
+
+            if (!currentOrderForDetails) {
+                currentOrderForDetails = orders[0];
+            }
+
+            if (!currentOrderForDetails) {
+                console.warn('⚠️ No order selected for details');
+                return;
+            }
+
+            const sheet = document.getElementById('orderDetailsSheet');
+            const content = document.getElementById('orderDetailsContent');
+            const detailsArea = document.getElementById('orderDetailsContentArea');
+
+            try {
+                // Show loading state
+                detailsArea.innerHTML = `
+                    <div class="flex items-center justify-center h-64">
+                        <div class="text-center">
+                            <div class="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+                            <p class="text-white/60">Loading order details...</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Open the sheet with loading state
+                sheet.classList.remove('opacity-0', 'pointer-events-none');
+                sheet.classList.add('opacity-100', 'z-50');
+                setTimeout(() => content.classList.remove('translate-y-full'), 10);
+
+                // Fetch complete order details from database
+                const orderId = currentOrderForDetails.orderId || currentOrderForDetails.$id;
+                const completeOrderDetails = await fetchCompleteOrderDetails(orderId);
+                const enrichedOrderDetails = await fetchRelatedOrderData(completeOrderDetails);
+                
+                // Update currentOrderForDetails with complete data
+                currentOrderForDetails = enrichedOrderDetails;
+                
+                // Now render the complete order details
+                renderOrderDetailsSheet();
+                
+            } catch (error) {
+                console.error('❌ Error loading order details:', error);
+                
+                // Show error state
+                detailsArea.innerHTML = `
+                    <div class="flex items-center justify-center h-64">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <p class="text-white/60 mb-2">Failed to load order details</p>
+                            <p class="text-white/40 text-sm">${error.message}</p>
+                            <button onclick="closeOrderDetailsSheet()" class="mt-4 px-4 py-2 bg-gray-600 text-white rounded-lg">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderOrderDetailsSheet() {
+            const detailsArea = document.getElementById('orderDetailsContentArea');
+            
+            // Debug: Log the entire order structure
+            console.log('🔍 Full order structure:', JSON.stringify(currentOrderForDetails, null, 2));
+            console.log('🔍 Order keys:', Object.keys(currentOrderForDetails));
+            console.log('🔍 Products exists:', !!currentOrderForDetails.products);
+            console.log('🔍 Products type:', typeof currentOrderForDetails.products);
+            console.log('🔍 Products is array:', Array.isArray(currentOrderForDetails.products));
+
+            const isNewOrderStructure = currentOrderForDetails.products && Array.isArray(currentOrderForDetails.products);
+            
+            let productInfo = {
+                name: 'N/A',
+                image: null,
+                quantity: 1,
+                unitPrice: 0
+            };
+
+            // Try to get product info from orderItems first (new structure)
+            if (currentOrderForDetails.orderItems && Array.isArray(currentOrderForDetails.orderItems) && currentOrderForDetails.orderItems.length > 0) {
+                const firstItem = currentOrderForDetails.orderItems[0];
+                const totalQuantity = currentOrderForDetails.orderItems.reduce((sum, item) => sum + (item.productQty || 1), 0);
+                
+                productInfo = {
+                    name: currentOrderForDetails.orderItems.length > 1 ? 
+                        `${currentOrderForDetails.orderItems.length} products` : 
+                        firstItem.productName || 'N/A',
+                    image: firstItem.productImage || null,
+                    quantity: totalQuantity,
+                    unitPrice: firstItem.productPrice || 0
+                };
+            }
+            // Fallback to products array if it exists
+            else if (isNewOrderStructure && currentOrderForDetails.products.length > 0) {
+                productInfo = {
+                    name: currentOrderForDetails.products.length > 1 ? 
+                        `${currentOrderForDetails.products.length} products` : 
+                        currentOrderForDetails.products[0].name || 'N/A',
+                    image: currentOrderForDetails.products[0]?.image || null,
+                    quantity: currentOrderForDetails.products.reduce((sum, p) => sum + (p.quantity || 0), 0),
+                    unitPrice: currentOrderForDetails.products[0]?.price || 0
+                };
+            }
+
+            let displayImage = null;
+            
+            // First try: product image from orderItems
+            if (productInfo.image) {
+                displayImage = productInfo.image;
+                if (displayImage.includes('appwrite.io/v1/storage/buckets/')) {
+                    // Try preview endpoint first
+                    const projectId = window.appwriteConfig.PROJECT_ID || '695f826500067c381616';
+                    displayImage = displayImage.replace('/view?', '/preview?') + '&width=200&height=200&quality=80';
+                }
+            }
+            
+            // Second try: company image from enriched data
+            if (!displayImage && currentOrderForDetails.companyImage) {
+                displayImage = currentOrderForDetails.companyImage;
+            }
+            
+            // Third try: get company image from original order list
+            if (!displayImage) {
+                const originalOrder = orders.find(o => (o.orderId === currentOrderForDetails.orderId) || (o.$id === currentOrderForDetails.$id));
+                if (originalOrder && originalOrder.companyImage) {
+                    displayImage = originalOrder.companyImage;
+                }
+            }
+            
+            // Final fallback: placeholder based on product name (always use this for water products)
+            if (!displayImage && productInfo.name) {
+                if (productInfo.name.toLowerCase().includes('water') || productInfo.name.toLowerCase().includes('bottle')) {
+                    displayImage = 'images/products/large-bottle.jpg';
+                }
+            }
+            
+            // If still no image and it's a water product, use placeholder anyway
+            if (!displayImage && productInfo.name && productInfo.name.toLowerCase().includes('water')) {
+                displayImage = 'images/products/large-bottle.jpg';
+            }
+
+            const subtotal = parseFloat(currentOrderForDetails.subtotal) || 0;
+            const serviceFee = parseFloat(currentOrderForDetails.serviceFee) || 0;
+            const total = parseFloat(currentOrderForDetails.total) || 0;
+            
+            // Calculate service fee if not already calculated
+            let calculatedServiceFee = serviceFee;
+            let calculatedSubtotal = subtotal;
+            
+            // Always try to calculate from products if available
+            if (currentOrderForDetails.products && Array.isArray(currentOrderForDetails.products) && currentOrderForDetails.products.length > 0) {
+                calculatedSubtotal = currentOrderForDetails.products.reduce((sum, product) => {
+                    const price = parseFloat(product.price) || 0;
+                    const qty = parseInt(product.quantity) || 1;
+                    return sum + (price * qty);
+                }, 0);
+                
+                calculatedServiceFee = currentOrderForDetails.products.reduce((sum, product) => {
+                    const qty = parseInt(product.quantity) || 1;
+                    return sum + (0.10 * qty); // GHS0.10 per item
+                }, 0);
+            } else {
+                // If no products array, try to calculate from total amount
+                // Assume service fee is 10% of items, and we can estimate from total
+                if (total > 0) {
+                    // Estimate: If total is 27.30, likely subtotal is around 27.20 (0.10 service fee)
+                    calculatedServiceFee = 0.10; // Default service fee
+                    calculatedSubtotal = total - calculatedServiceFee;
+                }
+            }
+            
+            const calculatedTotal = calculatedSubtotal + calculatedServiceFee;
+            const displayTotal = total > 0 ? total : calculatedTotal;
+            const displaySubtotal = subtotal > 0 ? subtotal : calculatedSubtotal;
+            
+            console.log(`🧮 Price Breakdown: Subtotal: ${displaySubtotal.toFixed(2)}, Service Fee: ${calculatedServiceFee.toFixed(2)}, Total: ${displayTotal.toFixed(2)}`);
+            console.log(`🔍 Debug: isNewOrderStructure=${isNewOrderStructure}, products=${!!currentOrderForDetails.products}, products.length=${currentOrderForDetails.products?.length || 0}`);
+            
+            // Debug company and image data
+            console.log('🏢 Company Data Debug:');
+            console.log('  - deliveryName:', currentOrderForDetails.deliveryName);
+            console.log('  - company:', currentOrderForDetails.company);
+            console.log('  - companyImage:', currentOrderForDetails.companyImage);
+            console.log('  - productInfo.image:', productInfo.image);
+            console.log('  - displayImage:', displayImage);
+            console.log('  - orderItems:', currentOrderForDetails.orderItems);
+
+            // Transform the status for consistent display
+            let transformedStatus = 'pending';
+            let statusText = 'Pending';
+            let statusColor = '#F2A78C';
+            
+            const orderStatus = currentOrderForDetails.orderStatus || currentOrderForDetails.status || 'pending';
+            
+            if (orderStatus === 'confirmed' || orderStatus === 'accepted') {
+                transformedStatus = 'accepted';
+                statusText = 'Accepted';
+                statusColor = '#2C9043';
+            } else if (orderStatus === 'ongoing' || orderStatus === 'completed') {
+                transformedStatus = 'ongoing';
+                statusText = 'Completed';
+                statusColor = '#2CAA48';
+            } else if (orderStatus === 'denied' || orderStatus === 'rejected') {
+                transformedStatus = 'denied';
+                statusText = 'Denied';
+                statusColor = '#F85D5D';
+            }
+
+            detailsArea.innerHTML = `
+                <div class="space-y-4">
+                    <!-- Company/Product Image -->
+                    <div class="bg-gray-800/50 rounded-xl p-4">
+                        <h3 class="text-white text-lg font-bold mb-3">Company</h3>
+                        <div class="flex items-center space-x-4">
+                            <div class="rounded-[10px] bg-[#808080] overflow-hidden flex-shrink-0" style="width: 80px; height: 80px;">
+                                ${displayImage ? 
+                                    `<img src="${displayImage}" class="w-full h-full object-cover" alt="${currentOrderForDetails.deliveryName || 'Product'}" loading="lazy" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                     onload="console.log('✅ Image loaded successfully:', this.src);">
+                                    <div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center" style="display:none;">
+                                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                        </svg>
+                                    </div>` :
+                                    `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                        </svg>
+                                    </div>`
+                                }
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-white text-lg font-semibold">${currentOrderForDetails.deliveryName || currentOrderForDetails.company || 'N/A'}<span class="material-symbols-outlined verified-checkmark" style="font-size: 16px; margin-left: 2px;">verified</span></h4>
+                                <p class="text-gray-400 text-sm">${productInfo.name}</p>
+                                <p class="text-gray-400 text-sm">Quantity: ${productInfo.quantity}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${currentOrderForDetails.orderItems && currentOrderForDetails.orderItems.length > 0 ? `
+                    <!-- Order Items -->
+                    <div class="bg-gray-800/50 rounded-xl p-4">
+                        <h3 class="text-white text-lg font-bold mb-3">Order Items</h3>
+                        <div class="space-y-3">
+                            ${currentOrderForDetails.orderItems.map((item, index) => `
+                                <div class="flex justify-between items-center py-2 border-b border-gray-700">
+                                    <div class="flex-1">
+                                        <p class="text-white font-medium">${item.productName || 'Unknown Product'}</p>
+                                        <p class="text-gray-400 text-sm">Qty: ${item.productQty || 1}</p>
+                                        <p class="text-gray-400 text-sm">Type: ${item.productType || 'N/A'}</p>
+                                    </div>
+                                    <p class="text-white font-medium">GHS${((item.productPrice || 0) * (item.productQty || 1)).toFixed(2)}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>` : ''}
+                    
+                    <!-- Order Summary -->
+                    <div class="bg-gray-800/50 rounded-xl p-4">
+                        <h3 class="text-white text-lg font-bold mb-3">Order Summary</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Order ID:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.orderId || 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Company:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.deliveryName || 'N/A'}<span class="material-symbols-outlined verified-checkmark" style="font-size: 14px; margin-left: 2px;">verified</span></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Product:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.orderItems && currentOrderForDetails.orderItems.length > 0 ? currentOrderForDetails.orderItems[0].productName : productInfo.name}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Quantity:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.orderItems ? currentOrderForDetails.orderItems.reduce((sum, item) => sum + (item.productQty || 0), 0) : productInfo.quantity}</span>
+                            </div>
+                            ${currentOrderForDetails.deliveryDate ? `
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Delivery Date:</span>
+                                <span class="text-white font-medium">${new Date(currentOrderForDetails.deliveryDate).toLocaleDateString()}</span>
+                            </div>` : ''}
+                            ${currentOrderForDetails.deliveryTime ? `
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Delivery Time:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.deliveryTime}</span>
+                            </div>` : ''}
+                            ${currentOrderForDetails.orderComment ? `
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Instructions:</span>
+                                <span class="text-white font-medium text-right" style="max-width: 60%;">${currentOrderForDetails.orderComment}</span>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Price Breakdown -->
+                    <div class="bg-gray-800/50 rounded-xl p-4">
+                        <h3 class="text-white text-lg font-bold mb-3">Price Breakdown</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Subtotal:</span>
+                                <span class="text-white font-medium">GHS${displaySubtotal.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Service Fee:</span>
+                                <span class="text-white font-medium">GHS${calculatedServiceFee.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between pt-2 border-t border-gray-700">
+                                <span class="text-white font-bold text-lg">Total:</span>
+                                <span class="text-white font-bold text-lg">GHS${displayTotal.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment & Status -->
+                    <div class="bg-gray-800/50 rounded-xl p-4">
+                        <h3 class="text-white text-lg font-bold mb-3">Payment & Status</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Payment Method:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.paymentMethod || 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Status:</span>
+                                <span class="font-medium" style="color: ${statusColor};">${statusText}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Transaction ID:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.transactionId || 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Delivery Address:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.deliveryAddress || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Customer Information -->
+                    ${currentOrderForDetails.customerDetails ? `
+                    <div class="bg-gray-800/50 rounded-xl p-4">
+                        <h3 class="text-white text-lg font-bold mb-3">Customer Information</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Name:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.customerDetails.full_name || 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Phone:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.customerDetails.phone_number || 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Email:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.customerDetails.email || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>` : ''}
+                    
+                    <!-- Actions -->
+                    <div class="flex space-x-3">
+                        <button onclick="downloadOrderPDF()" class="flex-1 py-3 rounded-lg backdrop-blur-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-all duration-300 shadow-lg bg-red-500/40 text-red-500 border-red-500/50">
+                            Download PDF
+                        </button>
+                        <button onclick="closeOrderDetailsSheet()" class="flex-1 py-3 rounded-lg backdrop-blur-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-all duration-300 shadow-lg">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Get the sheet and content elements from the DOM
+            const sheet = document.getElementById('orderDetailsSheet');
+            const content = document.getElementById('orderDetailsContent');
+            
+            if (sheet && content) {
+                sheet.classList.remove('opacity-0', 'pointer-events-none');
+                sheet.classList.add('opacity-100', 'z-50');
+                setTimeout(() => content.classList.remove('translate-y-full'), 10);
+            }
+        }
+
+        function formatFullDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } catch (e) {
+                return dateString || 'N/A';
+            }
+        }
+
+        function closeOrderDetailsSheet() {
+            const sheet = document.getElementById('orderDetailsSheet');
+            const content = document.getElementById('orderDetailsContent');
+            content.classList.add('translate-y-full');
+            setTimeout(() => {
+                sheet.classList.remove('opacity-100', 'z-50');
+                sheet.classList.add('opacity-0', 'pointer-events-none');
+            }, 300);
+            currentOrderForDetails = null;
+        }
+
+        function downloadOrderPDF() {
+            if (!currentOrderForDetails) {
+                alert('No order details available for PDF download');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18);
+            doc.text('Order Details', 20, 20);
+            
+            doc.setFontSize(12);
+            let yPosition = 40;
+            
+            doc.setFontSize(14);
+            doc.text('Order Summary', 20, yPosition);
+            yPosition += 10;
+            
+            doc.setFontSize(11);
+            doc.text(`Order ID: ${currentOrderForDetails.orderId || 'N/A'}`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`Company: ${currentOrderForDetails.company || 'N/A'}`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`Status: ${currentOrderForDetails.statusText || 'Pending'}`, 20, yPosition);
+            yPosition += 8;
+            
+            if (currentOrderForDetails.deliveryDate) {
+                doc.text(`Delivery Date: ${currentOrderForDetails.deliveryDate}`, 20, yPosition);
+                yPosition += 8;
+            }
+            
+            if (currentOrderForDetails.deliveryTime) {
+                doc.text(`Delivery Time: ${currentOrderForDetails.deliveryTime}`, 20, yPosition);
+                yPosition += 8;
+            }
+            
+            yPosition += 5;
+            
+            doc.setFontSize(14);
+            doc.text('Price Breakdown', 20, yPosition);
+            yPosition += 10;
+            
+            doc.setFontSize(11);
+            const subtotal = currentOrderForDetails.subtotal || 0;
+            const serviceFee = currentOrderForDetails.serviceFee || 0;
+            const total = currentOrderForDetails.total || 0;
+            doc.text(`Subtotal: GHS${subtotal.toFixed(2)}`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`Service Fee: GHS${serviceFee.toFixed(2)}`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`Total: GHS${total.toFixed(2)}`, 20, yPosition);
+            
+            doc.save(`order_${currentOrderForDetails.orderId || Date.now()}.pdf`);
+        }
+
+        function openReturnPickupsSheet(order) {
+            const sheet = document.getElementById('returnPickupsSheet');
+            const content = document.getElementById('returnPickupsContent');
+
+            window.currentReturnOrder = order;
+
+            sheet.classList.remove('opacity-0', 'pointer-events-none');
+            sheet.classList.add('opacity-100', 'z-50');
+            setTimeout(() => content.classList.remove('translate-y-full'), 10);
+        }
+
+        function closeReturnPickupsSheet() {
+            const sheet = document.getElementById('returnPickupsSheet');
+            const content = document.getElementById('returnPickupsContent');
+            content.classList.add('translate-y-full');
+            setTimeout(() => {
+                sheet.classList.remove('opacity-100', 'z-50');
+                sheet.classList.add('opacity-0', 'pointer-events-none');
+            }, 300);
+        }
+
+        function selectReturnOption(reason) {
+            if (window.currentReturnOrder) {
+                alert(`Return request submitted for: ${reason}\n\nOrder ID: ${window.currentReturnOrder.orderId}`);
+                closeReturnPickupsSheet();
+            }
+        }
+
+        function toggleMenu() {
+            const menuOverlay = document.getElementById('menuOverlay');
+            const slidingMenu = document.getElementById('slidingMenu');
+
+            if (menuOverlay.classList.contains('active')) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
+        }
+
+        function openMenu() {
+            const menuOverlay = document.getElementById('menuOverlay');
+            const slidingMenu = document.getElementById('slidingMenu');
+
+            menuOverlay.classList.add('active');
+            slidingMenu.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMenu() {
+            const menuOverlay = document.getElementById('menuOverlay');
+            const slidingMenu = document.getElementById('slidingMenu');
+
+            menuOverlay.classList.remove('active');
+            slidingMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function openProfileImagePicker() {
+            document.getElementById('profileImageInput').click();
+        }
+
+        function handleProfileImageChange(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const profileImg = document.querySelector('.w-\\[62px\\].h-\\[62px\\].object-contain');
+                    if (profileImg) {
+                        profileImg.src = e.target.result;
+                        localStorage.setItem('profileImage', e.target.result);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function logout() {
+            // Get the logout button and show loading state
+            const logoutBtn = document.querySelector('button[onclick="logout()"]');
+            const originalContent = logoutBtn.innerHTML;
+            
+            // Show loading indicator
+            logoutBtn.innerHTML = `
+                <div class="flex flex-row items-center gap-[30px]">
+                    <div class="w-6 h-6 flex items-center justify-center">
+                        <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    <span class="text-white text-lg font-semibold">Signing out...</span>
+                </div>
+                <div class="w-5 h-5 flex items-center justify-center">
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            `;
+            logoutBtn.disabled = true;
+            
+            try {
+                // Clear all local storage data
+                localStorage.removeItem('customerSession');
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userEmail');
+                
+                // Try to clear Appwrite session if available
+                if (typeof account !== 'undefined') {
+                    try {
+                        await account.deleteSession('current');
+                        console.log('Appwrite session cleared');
+                    } catch (appwriteError) {
+                        console.log('Appwrite session already cleared or error:', appwriteError);
+                    }
+                }
+                
+                // Show success briefly before redirect
+                logoutBtn.innerHTML = `
+                    <div class="flex flex-row items-center gap-[30px]">
+                        <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-white text-lg font-semibold">Signed out!</span>
+                    </div>
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                `;
+                
+                // Redirect to signin page after brief delay
+                setTimeout(() => {
+                    window.location.href = 'signin.html';
+                }, 500);
+                
+            } catch (error) {
+                console.error('Logout error:', error);
+                
+                // Show error state
+                logoutBtn.innerHTML = `
+                    <div class="flex flex-row items-center gap-[30px]">
+                        <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        <span class="text-white text-lg font-semibold">Error</span>
+                    </div>
+                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                `;
+                
+                // Even if there's an error, clear storage and redirect after brief delay
+                setTimeout(() => {
+                    localStorage.removeItem('customerSession');
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem('userName');
+                    localStorage.removeItem('userEmail');
+                    window.location.href = 'signin.html';
+                }, 1000);
+            }
+        }
+
+        function saveCurrentPage() {
+            localStorage.setItem('previousPage', window.location.pathname.split('/').pop());
+        }
+
+        function navigateToPage(page) {
+            saveCurrentPage();
+            window.location.href = page;
+        }
+
+        window.addEventListener('popstate', function (event) {
+            const previousPage = localStorage.getItem('previousPage');
+            if (previousPage && previousPage !== window.location.pathname.split('/').pop()) {
+                window.location.href = previousPage;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!localStorage.getItem('previousPage')) {
+                localStorage.setItem('previousPage', 'schedule-history.html');
+            }
+        });
+
+        // Show Coming Soon Modal for Bottle Returns
+        window.showComingSoonModal = function() {
+            // Create modal overlay following the existing pattern
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'comingSoonModal';
+            modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
+            modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
+            
+            // Create modal content following existing modal pattern
+            const modalContent = document.createElement('div');
+            modalContent.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]';
+            modalContent.style.cssText = 'background-color: var(--modal-bg); border-color: var(--modal-border);';
+            
+            modalContent.innerHTML = `
+                <div class="flex flex-col items-center justify-center w-full h-full">
+                    <!-- Bottle Icon Section -->
+                    <div class="flex flex-col items-center justify-center mb-6">
+                        <div class="w-[80px] h-[80px] rounded-full flex items-center justify-center mb-4"
+                             style="background-color: rgba(59, 116, 255, 0.1);">
+                            <svg class="w-[40px] h-[40px] text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
+                        
+                        <h2 class="text-white text-[20px] font-bold text-center mb-3">Coming Soon!</h2>
+                        <p class="text-gray-400 text-[14px] text-center leading-[20px] mb-6">
+                            We're working on an exciting new feature for returning dispenser bottles to companies after use. This will help you easily manage returns and contribute to sustainability.
+                        </p>
+                        
+                        <div class="w-full text-left mb-6">
+                            <div class="text-gray-400 text-[13px] space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8">
+                                        <circle cx="4" cy="4" r="2"/>
+                                    </svg>
+                                    <span>Easy bottle return scheduling</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8">
+                                        <circle cx="4" cy="4" r="2"/>
+                                    </svg>
+                                    <span>Track return status</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8">
+                                        <circle cx="4" cy="4" r="2"/>
+                                    </svg>
+                                    <span>Eco-friendly recycling program</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8">
+                                        <circle cx="4" cy="4" r="2"/>
+                                    </svg>
+                                    <span>Rewards for returns</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Button Section -->
+                    <div class="w-full flex items-center">
+                        <!-- Got it Button -->
+                        <button onclick="closeComingSoonModal()"
+                                class="h-[37px] flex-1 rounded-[100px] flex items-center justify-center border transition-all hover:opacity-80"
+                                style="background-color: rgba(59, 116, 255, 0.25); border-color: rgba(59, 116, 255, 0.3);">
+                            <span class="text-white text-base font-semibold capitalize">Got it!</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            modalOverlay.appendChild(modalContent);
+            document.body.appendChild(modalOverlay);
+            
+            // Close modal when clicking overlay
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === modalOverlay) {
+                    closeComingSoonModal();
+                }
+            });
+        };
+
+        // Close coming soon modal function
+        window.closeComingSoonModal = function() {
+            const modal = document.getElementById('comingSoonModal');
+            if (modal) {
+                modal.remove();
+            }
+        };
+    </script>
+    <script src="js/notifications.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered successfully:', registration);
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New content is available
+                                    if (confirm('New version available! Reload to update?')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+
+<script>
+    // Delete Account Confirmation function
+    window.showDeleteConfirm = function() {
+        // Create modal overlay following the existing pattern
+        const modalOverlay = document.createElement('div');
+        modalOverlay.id = 'deleteAccountModal';
+        modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
+        modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
+        
+        // Create modal content following existing modal pattern
+        const modalContent = document.createElement('div');
+        modalContent.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]';
+        modalContent.style.cssText = 'background-color: var(--modal-bg); border-color: var(--modal-border);';
+        
+        modalContent.innerHTML = `
+            <div class="flex flex-col items-center justify-center w-full h-full">
+                <!-- Warning Icon Section -->
+                <div class="flex flex-col items-center justify-center mb-6">
+                    <div class="w-[80px] h-[80px] rounded-full flex items-center justify-center mb-4"
+                         style="background-color: rgba(245, 125, 125, 0.1);">
+                        <svg class="w-[40px] h-[40px] text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                    </div>
+                    
+                    <h2 class="text-white text-[20px] font-bold text-center mb-3">Delete Account</h2>
+                    <p class="text-gray-400 text-[14px] text-center leading-[20px] mb-6">
+                        Are you sure you want to delete your account? This action cannot be undone and will permanently delete:
+                    </p>
+                    
+                    <div class="w-full text-left mb-6">
+                        <div class="text-gray-400 text-[13px] space-y-2">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-[4px] h-[4px] text-red-500" fill="currentColor" viewBox="0 0 8 8">
+                                    <circle cx="4" cy="4" r="2"/>
+                                </svg>
+                                <span>Your profile information</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-[4px] h-[4px] text-red-500" fill="currentColor" viewBox="0 0 8 8">
+                                    <circle cx="4" cy="4" r="2"/>
+                                </svg>
+                                <span>Order history</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-[4px] h-[4px] text-red-500" fill="currentColor" viewBox="0 0 8 8">
+                                    <circle cx="4" cy="4" r="2"/>
+                                </svg>
+                                <span>Saved preferences</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-[4px] h-[4px] text-red-500" fill="currentColor" viewBox="0 0 8 8">
+                                    <circle cx="4" cy="4" r="2"/>
+                                </svg>
+                                <span>All associated data</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Button Section -->
+                <div class="w-full flex items-center gap-3">
+                    <!-- Cancel Button -->
+                    <button onclick="cancelDeleteAccount()"
+                            class="h-[37px] flex-1 rounded-[100px] flex items-center justify-center border transition-all hover:opacity-80"
+                            style="background-color: var(--btn-second-color); border-color: var(--btn-second-border);">
+                        <span class="text-white text-base font-semibold capitalize">Cancel</span>
+                    </button>
+                    
+                    <!-- Delete Button -->
+                    <button onclick="confirmDeleteAccount()"
+                            class="h-[37px] flex-1 rounded-[100px] flex items-center justify-center border transition-all hover:opacity-80"
+                            style="background-color: #F57D7D; border-color: #F57D7D;">
+                        <span class="text-white text-base font-semibold capitalize">Delete</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+        
+        // Close modal when clicking overlay
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === modalOverlay) {
+                cancelDeleteAccount();
+            }
+        });
+    };
+
+    // Show delete success modal
+    window.showDeleteSuccessModal = function() {
+        // Close the delete confirmation modal first
+        const deleteModal = document.getElementById('deleteAccountModal');
+        if (deleteModal) {
+            deleteModal.remove();
+        }
+        
+        // Create success modal overlay
+        const modalOverlay = document.createElement('div');
+        modalOverlay.id = 'deleteSuccessModal';
+        modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
+        modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
+        
+        // Create modal content
+        const modalContent = document.createElement('div');
+        modalContent.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]';
+        modalContent.style.cssText = 'background-color: var(--modal-bg); border-color: var(--modal-border);';
+        
+        modalContent.innerHTML = `
+            <div class="flex flex-col items-center justify-center w-full h-full">
+                <!-- Success Icon Section -->
+                <div class="flex flex-col items-center justify-center mb-6">
+                    <div class="w-[80px] h-[80px] rounded-full flex items-center justify-center mb-4"
+                         style="background-color: rgba(34, 197, 94, 0.1);">
+                        <svg class="w-[40px] h-[40px] text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    
+                    <h2 class="text-white text-[20px] font-bold text-center mb-3">Account Deleted</h2>
+                    <p class="text-gray-400 text-[14px] text-center leading-[20px] mb-4">
+                        Your account has been successfully deleted.
+                    </p>
+                    <p class="text-gray-500 text-[13px] text-center leading-[18px]">
+                        Redirecting to sign-in page...
+                    </p>
+                    
+                    <!-- Loading indicator -->
+                    <div class="flex items-center gap-1 mt-4">
+                        <div class="w-[6px] h-[6px] rounded-full bg-green-500 animate-pulse"></div>
+                        <div class="w-[6px] h-[6px] rounded-full bg-green-500 animate-pulse" style="animation-delay: 0.2s"></div>
+                        <div class="w-[6px] h-[6px] rounded-full bg-green-500 animate-pulse" style="animation-delay: 0.4s"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+        
+        // Auto-remove modal after redirect (backup cleanup)
+        setTimeout(() => {
+            const modal = document.getElementById('deleteSuccessModal');
+            if (modal) {
+                modal.remove();
+            }
+        }, 3000);
+    };
+
+    // Cancel delete account
+    window.cancelDeleteAccount = function() {
+        const modal = document.getElementById('deleteAccountModal');
+        if (modal) {
+            modal.remove();
+        }
+    };
+
+    // Confirm delete account
+    window.confirmDeleteAccount = async function() {
+        try {
+            // Show loading state
+            const deleteBtn = document.querySelector('#deleteAccountModal button[onclick="confirmDeleteAccount()"] span');
+            const originalText = deleteBtn.textContent;
+            deleteBtn.textContent = 'Deleting...';
+            deleteBtn.parentElement.disabled = true;
+            
+            // Get current user
+            const user = await window.account.get();
+            const userEmail = user.email;
+            
+            // Delete from customer_tb first
+            try {
+                const customerDocs = await window.databases.listDocuments(
+                    window.appwriteConfig.DATABASE_ID,
+                    window.appwriteConfig.CUSTOMER_TABLE,
+                    [window.Query.equal('email', userEmail.toLowerCase())]
+                );
+                
+                // Delete customer records
+                for (const doc of customerDocs.documents) {
+                    await window.databases.deleteDocument(
+                        window.appwriteConfig.DATABASE_ID,
+                        window.appwriteConfig.CUSTOMER_TABLE,
+                        doc.$id
+                    );
+                }
+                console.log('✅ Customer data deleted from database');
+            } catch (dbError) {
+                console.warn('⚠️ Could not delete customer data:', dbError.message);
+            }
+            
+            // Immediately logout user by deleting all sessions
+            console.log('🔒 Logging out user...');
+            try {
+                const sessions = await window.account.listSessions();
+                for (const session of sessions.sessions) {
+                    await window.account.deleteSession(session.$id);
+                }
+                console.log('✅ User logged out - all sessions deleted');
+            } catch (sessionError) {
+                console.warn('⚠️ Could not delete sessions:', sessionError.message);
+                // Try to delete current session as fallback
+                try {
+                    await window.account.deleteSession('current');
+                    console.log('✅ User logged out - current session deleted');
+                } catch (fallbackError) {
+                    console.warn('⚠️ Could not delete current session:', fallbackError.message);
+                }
+            }
+            
+            // Clear local storage immediately after logout
+            localStorage.clear();
+            console.log('🧹 Local storage cleared');
+            
+            // Show success modal
+            showDeleteSuccessModal();
+            
+            // Redirect to sign-in page after delay
+            setTimeout(() => {
+                window.location.href = 'signin.html';
+            }, 2500);
+            
+        } catch (error) {
+            console.error('❌ Error deleting account:', error);
+            
+            // Reset button
+            const deleteBtn = document.querySelector('#deleteAccountModal button[onclick="confirmDeleteAccount()"] span');
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.parentElement.disabled = false;
+            
+            // Show error message
+            alert('Failed to delete account. Please try again or contact support. Error: ' + error.message);
+        }
+    };
+</script>
+
+</body>
+
+</html>
