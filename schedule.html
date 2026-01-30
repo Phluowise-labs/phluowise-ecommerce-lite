@@ -2149,14 +2149,18 @@
                 </button>
             </div>
             
-            <!-- Content with Notion iframe -->
+            <!-- Content with Notion link -->
             <div class="flex-1 overflow-hidden p-4">
-                <iframe 
-                    src="https://www.notion.so/your-terms-of-service-page" 
-                    class="w-full h-full rounded-lg border-0"
-                    style="background: white;"
-                    title="Terms of Service">
-                </iframe>
+                <div class="w-full h-full rounded-lg border-0 bg-white p-6 text-center">
+                    <h4 class="text-gray-800 text-lg font-medium mb-4">Terms of Service</h4>
+                    <p class="text-gray-600 mb-6">Please read our Terms of Service on Notion</p>
+                    <a href="https://concrete-aurora-836.notion.site/ebd//1c7c077ea6428075b4c6f68ad38d15c1" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        View Terms of Service
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -6717,14 +6721,14 @@
                 const queryPrimary = hasGhana ? normalized : (hasAccra ? `${normalized}, Ghana` : `${normalized}, Accra, Ghana`);
                 
                 // First attempt: restrict to Ghana and limit results
-                let url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=gh&q=${encodeURIComponent(queryPrimary)}`;
+                let url = `/api/geocode?q=${encodeURIComponent(queryPrimary)}`;
                 let response = await fetch(url);
                 let data = await response.json();
                 
                 // Fallback attempt: if no result, try with just Ghana
                 if (!data || data.length === 0) {
                     const queryFallback = `${normalized}, Ghana`;
-                    url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=gh&q=${encodeURIComponent(queryFallback)}`;
+                    url = `/api/geocode?q=${encodeURIComponent(queryFallback)}`;
                     response = await fetch(url);
                     data = await response.json();
                 }
