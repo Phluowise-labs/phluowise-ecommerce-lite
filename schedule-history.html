@@ -6,14 +6,14 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-TRV3R43NQZ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRV3R43NQZ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-  gtag('config', 'G-TRV3R43NQZ');
-</script>
+        gtag('config', 'G-TRV3R43NQZ');
+    </script>
     <title>Phluowise - Schedule History</title>
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -241,7 +241,7 @@
             height: 22px;
             border-radius: 50%;
             display: flex;
-                align-items: center;
+            align-items: center;
             justify-content: center;
             border: 2px solid #060606;
         }
@@ -253,9 +253,12 @@
         }
 
         @keyframes float {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translateY(0);
             }
+
             50% {
                 transform: translateY(-10px);
             }
@@ -326,13 +329,25 @@
         }
 
         @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         @keyframes slideUp {
-            0% { transform: translateY(10px); opacity: 0; }
-            100% { transform: translateY(0); opacity: 1; }
+            0% {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         /* Loading Spinner */
@@ -347,7 +362,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Skeleton Loading */
@@ -369,8 +386,13 @@
         }
 
         @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
         }
 
         /* Instant Loading Styles */
@@ -426,12 +448,12 @@
             .company-name-container {
                 max-width: 180px;
             }
-            
+
             .company-name-text {
                 font-size: 16px;
                 padding-right: 18px;
             }
-            
+
             .verified-icon {
                 font-size: 14px;
             }
@@ -441,12 +463,12 @@
             .company-name-container {
                 max-width: 160px;
             }
-            
+
             .company-name-text {
                 font-size: 15px;
                 padding-right: 16px;
             }
-            
+
             .verified-icon {
                 font-size: 13px;
             }
@@ -456,12 +478,12 @@
             .company-name-container {
                 max-width: 140px;
             }
-            
+
             .company-name-text {
                 font-size: 18px;
                 padding-right: 15px;
             }
-            
+
             .verified-icon {
                 font-size: 16px;
             }
@@ -493,7 +515,8 @@
         <div class="py-4 px-10 overflow-x-auto">
             <div class="flex flex-row items-center gap-1 min-w-max justify-start">
                 <!-- Status Button -->
-                <button onclick="setStatusView('status')" id="btn-status" class="rounded-lg px-4 instant-load" style="height: 40px; min-width: 80px;">
+                <button onclick="setStatusView('status')" id="btn-status" class="rounded-lg px-4 instant-load"
+                    style="height: 40px; min-width: 80px;">
                     <div class="items-center justify-center flex flex-1">
                         <span class="text-white flex justify-center items-center font-[600]">Status</span>
                     </div>
@@ -524,8 +547,8 @@
     </div>
 
     <!-- Order Cards List (ScheduleProduct.tsx - Exact) -->
-    <div class="flex-1 overflow-y-auto hide-scrollbar no-horizontal-scroll mobile-scrollable instant-load" id="ordersList"
-        style="background-color: var(--bg-color); gap: 6px;">
+    <div class="flex-1 overflow-y-auto hide-scrollbar no-horizontal-scroll mobile-scrollable instant-load"
+        id="ordersList" style="background-color: var(--bg-color); gap: 6px;">
         <!-- Loading Skeleton -->
         <div id="loadingSkeleton" class="p-4 space-y-3">
             <div class="skeleton skeleton-card"></div>
@@ -539,7 +562,8 @@
     <div id="floatingBottleBtn" class="floating-return-btn instant-load" onclick="showComingSoonModal()">
         <div class="badge" id="bottleCounter">0</div>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
     </div>
 
@@ -552,8 +576,7 @@
             <!-- Profile Image Container -->
             <div class="relative flex items-center justify-center rounded-full border-[0.5px] border-[#292B2F]"
                 style="height: 110px; width: 110px; background-color: #292B2F;">
-                <img src="images/main/ProfileImage.png" class="w-[62px] h-[62px] object-contain"
-                    alt="Profile">
+                <img src="images/main/ProfileImage.png" class="w-[62px] h-[62px] object-contain" alt="Profile">
 
                 <!-- Edit Button -->
                 <button onclick="openProfileImagePicker()"
@@ -571,8 +594,8 @@
             </div>
 
             <!-- User Name -->
-            <h2 class="text-white text-xl font-semibold">Phluowisere</h2>
-            <p class="text-[#808080] text-base">loading.../p>
+            <h2 class="text-white text-xl font-semibold"></h2>
+            <p class="text-[#808080] text-base">loading...</p>
         </div>
 
         <!-- Menu Content -->
@@ -704,9 +727,9 @@
                     </svg>
                     <span class="text-white text-lg font-semibold">Logout</span>
                 </div>
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
             </button>
         </div>
 
@@ -926,7 +949,7 @@
         const Query = window.Query;
 
         // Instant initialization
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Set theme immediately
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.body.classList.remove('dark-theme', 'gray-theme', 'light-theme');
@@ -934,7 +957,7 @@
 
             // Set active tab
             setStatusView('status');
-            
+
             // Show UI immediately
             document.querySelectorAll('.instant-load').forEach(el => {
                 el.classList.add('data-loaded');
@@ -944,12 +967,12 @@
             setTimeout(() => {
                 loadInitialData();
             }, 50);
-            
+
             // Load user profile data
             setTimeout(() => {
                 updateUserProfile();
             }, 100);
-            
+
             // Preload essential functions
             preloadEssentialFunctions();
         });
@@ -962,16 +985,16 @@
         }
 
         // Listen for storage events from services.html
-        window.addEventListener('storage', function(e) {
+        window.addEventListener('storage', function (e) {
             console.log('🔄 Storage event detected in schedule-history.html');
             loadInitialData();
-            
+
             const newOrderNotification = document.createElement('div');
             newOrderNotification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300';
             newOrderNotification.innerHTML = 'New orders loaded!';
             newOrderNotification.style.transform = 'translateX(200%)';
             document.body.appendChild(newOrderNotification);
-            
+
             setTimeout(() => {
                 if (newOrderNotification.parentNode) {
                     newOrderNotification.style.transform = 'translateX(0)';
@@ -989,57 +1012,83 @@
         window.loadInitialData = loadInitialData;
 
         let currentPage = 0;
-        const ORDERS_PER_PAGE = 1000; // Fetch all orders at once
+        const ORDERS_PER_PAGE = 100; // Standard Appwrite limit is 100
         let isLoadingMore = false;
         let hasMoreOrders = true;
         let lastOrderId = null;
-        
+
         // Direct function to fetch company/branch data from database
         async function fetchCompanyBranchData(branchId) {
             try {
                 if (!branchId) return null;
-                
+
                 console.log(`🔍 Fetching branch data for branchId: ${branchId}`);
-                
+
                 // Try branches table first
                 const branchResponse = await window.databases.listDocuments(
                     window.appwriteConfig.DATABASE_ID,
                     window.appwriteConfig.BRANCHES_TABLE,
                     [Query.equal('branch_id', branchId)]
                 );
-                
+
                 if (branchResponse.documents.length > 0) {
                     const branch = branchResponse.documents[0];
-                    console.log(`✅ Found branch: ${branch.branch_name}`);
+                    let branchName = branch.branch_name || branch.name || 'Unknown Branch';
+                    let companyName = branchName; // Default to branch name
+
+                    // Fetch parent company to get the real company name
+                    if (branch.company_id) {
+                        try {
+                            const parentCompany = await window.databases.listDocuments(
+                                window.appwriteConfig.DATABASE_ID,
+                                window.appwriteConfig.COMPANY_TABLE,
+                                [Query.equal('company_id', branch.company_id)]
+                            );
+
+                            if (parentCompany.documents.length > 0) {
+                                companyName = parentCompany.documents[0].name;
+                                console.log(`✅ Found parent company: ${companyName} for branch: ${branchName}`);
+                            }
+                        } catch (e) {
+                            console.warn('Could not fetch parent company:', e);
+                        }
+                    }
+
+                    console.log(`✅ Found branch: ${branchName}, resolved to Company: ${companyName}`);
                     return {
-                        name: branch.branch_name || branch.name || 'Unknown Company',
-                        profile_image: branch.profile_image ? 
-                            (branch.profile_image.startsWith('http') ? 
-                                branch.profile_image : 
-                                `https://nyc.cloud.appwrite.io/v1/storage/buckets/68b1c57b001542be7fbe/files/${branch.profile_image}/view?project=68b17582003582da69c8`) : 
+                        name: companyName, // Use the resolved company name
+                        branchName: branchName,
+                        profile_image: branch.profile_image ?
+                            (branch.profile_image.startsWith('http') ?
+                                branch.profile_image :
+                                `https://nyc.cloud.appwrite.io/v1/storage/buckets/68b1c57b001542be7fbe/files/${branch.profile_image}/view?project=68b17582003582da69c8`) :
                             null
                     };
                 }
-                
+
                 // If not found in branches, try companies table
                 const companyResponse = await window.databases.listDocuments(
                     window.appwriteConfig.DATABASE_ID,
                     window.appwriteConfig.COMPANY_TABLE,
                     [Query.equal('company_id', branchId)]
                 );
-                
+
                 if (companyResponse.documents.length > 0) {
                     const company = companyResponse.documents[0];
                     console.log(`✅ Found company: ${company.name}`);
                     return {
                         name: company.name || 'Unknown Company',
-                        profile_image: null // Companies typically don't have profile images
+                        profile_image: company.profile_image ?
+                            (company.profile_image.startsWith('http') ?
+                                company.profile_image :
+                                `https://nyc.cloud.appwrite.io/v1/storage/buckets/68b1c57b001542be7fbe/files/${company.profile_image}/view?project=68b17582003582da69c8`) :
+                            null
                     };
                 }
-                
+
                 console.warn(`⚠️ No company/branch found for branchId: ${branchId}`);
                 return null;
-                
+
             } catch (error) {
                 console.error('❌ Error fetching company/branch data:', error);
                 return null;
@@ -1049,21 +1098,21 @@
         async function loadInitialData() {
             if (dataLoadInProgress) return;
             dataLoadInProgress = true;
-            
+
             try {
                 console.log('🚀 Starting data fetch...');
-                
+
                 orders = [];
                 currentPage = 0;
                 hasMoreOrders = true;
                 lastOrderId = null;
-                
+
                 showLoadingSkeleton();
-                
+
                 // Load company data first
                 // Fetch orders directly from database (all at once)
                 await fetchOrdersFromDatabase();
-                
+
             } catch (error) {
                 console.error('❌ Error loading data:', error);
                 showOfflineState();
@@ -1073,28 +1122,80 @@
             }
         }
 
-        function clearWeb2AppCache() {
-            try {
-                const keysToRemove = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key.includes('web2app') || key.includes('ordersCache') || key.includes('tempOrder')) {
-                        keysToRemove.push(key);
-                    }
-                }
-                
-                keysToRemove.forEach(key => {
-                    localStorage.removeItem(key);
-                    console.log('🗑️ Removed cache key:', key);
-                });
-                
-                sessionStorage.clear();
-                
-                console.log('✅ All web2app cache cleared');
-            } catch (e) {
-                console.warn('⚠️ Could not clear web2app cache:', e);
+        // Diagnostic function to check database connection and orders
+        async function diagnoseOrdersIssue() {
+            console.log('🔧 === DIAGNOSTIC MODE ===');
+
+            // Check 1: Customer ID
+            const customerId = getCustomerId();
+            console.log('1️⃣ Customer ID:', customerId || '❌ NOT FOUND');
+
+            if (!customerId) {
+                console.log('   💡 Customer ID is missing. User may not be logged in.');
+                return;
             }
+
+            // Check 2: Try to fetch ALL orders (no filter)
+            try {
+                console.log('2️⃣ Fetching ALL orders from database (no customer filter)...');
+                const allOrdersResponse = await window.databases.listDocuments(
+                    window.appwriteConfig.DATABASE_ID,
+                    window.appwriteConfig.ORDERS_TABLE,
+                    [Query.limit(10)]
+                );
+                console.log(`   ✅ Total orders in database: ${allOrdersResponse.total}`);
+                console.log(`   📄 Sample orders (first 10):`, allOrdersResponse.documents.map(o => ({
+                    id: o.$id,
+                    customer_id: o.customer_id,
+                    buyerId: o.buyerId,
+                    status: o.orderStatus
+                })));
+            } catch (error) {
+                console.error('   ❌ Failed to fetch all orders:', error.message);
+            }
+
+            // Check 3: Try to fetch orders with customer_id filter
+            try {
+                console.log(`3️⃣ Fetching orders with customer_id="${customerId}"...`);
+                const customerOrdersResponse = await window.databases.listDocuments(
+                    window.appwriteConfig.DATABASE_ID,
+                    window.appwriteConfig.ORDERS_TABLE,
+                    [Query.equal('customer_id', customerId)]
+                );
+                console.log(`   ✅ Orders found for this customer: ${customerOrdersResponse.total}`);
+                if (customerOrdersResponse.documents.length > 0) {
+                    console.log(`   📄 Customer orders:`, customerOrdersResponse.documents);
+                } else {
+                    console.log('   ⚠️ No orders found for this customer_id');
+                    console.log('   💡 Check if orders in database have the correct customer_id value');
+                }
+            } catch (error) {
+                console.error('   ❌ Failed to fetch customer orders:', error.message);
+            }
+
+            // Check 4: Try alternative field name (buyerId)
+            try {
+                console.log(`4️⃣ Trying alternative field "buyerId"="${customerId}"...`);
+                const buyerOrdersResponse = await window.databases.listDocuments(
+                    window.appwriteConfig.DATABASE_ID,
+                    window.appwriteConfig.ORDERS_TABLE,
+                    [Query.equal('buyerId', customerId)]
+                );
+                console.log(`   ✅ Orders found with buyerId: ${buyerOrdersResponse.total}`);
+                if (buyerOrdersResponse.documents.length > 0) {
+                    console.log(`   📄 Buyer orders:`, buyerOrdersResponse.documents);
+                }
+            } catch (error) {
+                console.log('   ⚠️ buyerId field may not exist:', error.message);
+            }
+
+            console.log('🔧 === END DIAGNOSTIC ===');
         }
+
+        // Expose diagnostic function globally for console access
+        window.diagnoseOrdersIssue = diagnoseOrdersIssue;
+
+
 
         async function fetchOrdersFromDatabase(loadMore = false) {
             if (!navigator.onLine) {
@@ -1102,23 +1203,27 @@
                 showOfflineState();
                 return;
             }
-            
+
             if (isLoadingMore || !hasMoreOrders) {
                 console.log('🔄 Already loading or no more orders');
                 return;
             }
-            
+
             isLoadingMore = true;
-            
+
             try {
-                const customerId = getCustomerId();
+                const customerId = await getCustomerIdAsync();
                 if (!customerId) {
-                    console.log('🏁 No customer ID found');
+                    console.error('❌ No customer ID found - cannot fetch orders');
+                    console.log('💡 Tip: User needs to log in');
+                    showOfflineState();
+                    isLoadingMore = false;
                     return;
                 }
-                
-                console.log(`🔍 Fetching orders page ${currentPage} for customer:`, customerId);
-                
+
+                console.log(`🔍 Fetching orders for customer_id: "${customerId}"`);
+                console.log(`📄 Page: ${currentPage}, LoadMore: ${loadMore}`);
+
                 // Try Appwrite first, fallback to local API if network fails
                 let response;
                 try {
@@ -1127,100 +1232,213 @@
                         Query.orderDesc('$createdAt'),
                         Query.limit(ORDERS_PER_PAGE)
                     ];
-                    
+
                     if (lastOrderId && loadMore) {
                         queries.push(Query.cursorAfter(lastOrderId));
                     }
-                    
+
+                    console.log('🔎 Executing query with filters:', {
+                        database: window.appwriteConfig.DATABASE_ID,
+                        collection: window.appwriteConfig.ORDERS_TABLE,
+                        customer_id: customerId,
+                        limit: ORDERS_PER_PAGE
+                    });
+
                     response = await window.databases.listDocuments(
                         window.appwriteConfig.DATABASE_ID,
                         window.appwriteConfig.ORDERS_TABLE,
                         queries
                     );
+
+                    console.log(`✅ Query executed successfully. Total documents: ${response.total}, Retrieved: ${response.documents.length}`);
                 } catch (appwriteError) {
-                    console.warn('⚠️ Appwrite network failed, trying local API:', appwriteError.message);
-                    
-                    // Fallback to local API
+                    console.error('❌ Appwrite query failed:', appwriteError);
+                    console.error('❌ Error details:', {
+                        message: appwriteError.message,
+                        code: appwriteError.code,
+                        type: appwriteError.type
+                    });
+                    throw new Error(`Failed to fetch orders: ${appwriteError.message}`);
+                }
+
+                console.log(`📊 Retrieved ${response.documents.length} orders from database`);
+
+                if (response.documents.length === 0) {
+                    console.log('⚠️ No orders found with customer_id, trying buyerId field...');
+
+                    // Try with buyerId as fallback
                     try {
-                        const localResponse = await fetch(`${window.location.origin}/api/schedule-history?userId=${customerId}&limit=${ORDERS_PER_PAGE}`);
-                        if (localResponse.ok) {
-                            const localData = await localResponse.json();
-                            response = {
-                                documents: localData.scheduleHistory || [],
-                                total: localData.total || 0
-                            };
-                        } else {
-                            throw new Error('Local API also failed');
+                        const buyerQueries = [
+                            Query.equal('buyerId', customerId),
+                            Query.orderDesc('$createdAt'),
+                            Query.limit(ORDERS_PER_PAGE)
+                        ];
+
+                        if (lastOrderId && loadMore) {
+                            buyerQueries.push(Query.cursorAfter(lastOrderId));
                         }
-                    } catch (localError) {
-                        console.error('❌ Both Appwrite and local API failed:', localError);
-                        throw new Error(`Failed to fetch orders: ${appwriteError.message}`);
+
+                        console.log('🔎 Executing query with buyerId filter:', {
+                            database: window.appwriteConfig.DATABASE_ID,
+                            collection: window.appwriteConfig.ORDERS_TABLE,
+                            buyerId: customerId,
+                            limit: ORDERS_PER_PAGE
+                        });
+
+                        const buyerResponse = await window.databases.listDocuments(
+                            window.appwriteConfig.DATABASE_ID,
+                            window.appwriteConfig.ORDERS_TABLE,
+                            buyerQueries
+                        );
+
+                        console.log(`✅ Query with buyerId executed. Total documents: ${buyerResponse.total}, Retrieved: ${buyerResponse.documents.length}`);
+
+                        if (buyerResponse.documents.length > 0) {
+                            console.log('✅ Found orders using buyerId field!');
+                            response = buyerResponse; // Use the buyerId results
+                        } else {
+                            // Try one more time with customer document $id
+                            console.log('⚠️ No orders found with buyerId (UID), trying customer document $id...');
+
+                            try {
+                                const customerDataStr = localStorage.getItem('customerData');
+                                if (customerDataStr) {
+                                    const customerData = JSON.parse(customerDataStr);
+                                    const customerDocId = customerData.$id;
+
+                                    if (customerDocId && customerDocId !== customerId) {
+                                        console.log(`🔎 Trying with customer document ID: ${customerDocId}`);
+
+                                        const docIdQueries = [
+                                            Query.equal('buyerId', customerDocId),
+                                            Query.orderDesc('$createdAt'),
+                                            Query.limit(ORDERS_PER_PAGE)
+                                        ];
+
+                                        if (lastOrderId && loadMore) {
+                                            docIdQueries.push(Query.cursorAfter(lastOrderId));
+                                        }
+
+                                        const docIdResponse = await window.databases.listDocuments(
+                                            window.appwriteConfig.DATABASE_ID,
+                                            window.appwriteConfig.ORDERS_TABLE,
+                                            docIdQueries
+                                        );
+
+                                        console.log(`✅ Query with customer doc ID executed. Total: ${docIdResponse.total}, Retrieved: ${docIdResponse.documents.length}`);
+
+                                        if (docIdResponse.documents.length > 0) {
+                                            console.log('🎯 SUCCESS! Found orders using customer document $id!');
+                                            response = docIdResponse;
+                                        } else {
+                                            hasMoreOrders = false;
+                                            console.log('🏁 No orders found with any ID variation');
+
+                                            if (!loadMore && currentPage === 0) {
+                                                console.log('🔧 Running automatic diagnostic...');
+                                                setTimeout(() => diagnoseOrdersIssue(), 1000);
+                                            }
+                                            return;
+                                        }
+                                    } else {
+                                        hasMoreOrders = false;
+                                        console.log('🏁 No orders found with customer_id OR buyerId');
+
+                                        if (!loadMore && currentPage === 0) {
+                                            console.log('🔧 Running automatic diagnostic...');
+                                            setTimeout(() => diagnoseOrdersIssue(), 1000);
+                                        }
+                                        return;
+                                    }
+                                } else {
+                                    hasMoreOrders = false;
+                                    console.log('🏁 No customerData found in localStorage');
+
+                                    if (!loadMore && currentPage === 0) {
+                                        console.log('🔧 Running automatic diagnostic...');
+                                        setTimeout(() => diagnoseOrdersIssue(), 1000);
+                                    }
+                                    return;
+                                }
+                            } catch (docIdError) {
+                                console.error('❌ Customer doc ID query failed:', docIdError.message);
+                                hasMoreOrders = false;
+
+                                if (!loadMore && currentPage === 0) {
+                                    console.log('🔧 Running automatic diagnostic...');
+                                    setTimeout(() => diagnoseOrdersIssue(), 1000);
+                                }
+                                return;
+                            }
+                        }
+                    } catch (buyerError) {
+                        console.error('❌ buyerId query also failed:', buyerError.message);
+                        hasMoreOrders = false;
+
+                        // Auto-run diagnostic if no orders found on initial load
+                        if (!loadMore && currentPage === 0) {
+                            console.log('🔧 Running automatic diagnostic...');
+                            setTimeout(() => diagnoseOrdersIssue(), 1000);
+                        }
+                        return;
                     }
                 }
-                
-                console.log(`📊 Retrieved ${response.documents.length} orders from database`);
-                
-                if (response.documents.length === 0) {
-                    hasMoreOrders = false;
-                    console.log('🏁 No more orders to load');
-                    return;
-                }
-                
+
                 const newOrders = [];
                 const processedOrderIds = new Set();
-                
+
                 for (const order of response.documents) {
                     try {
                         const orderId = order.$id || order.orderId || order.id;
-                        
+
                         if (processedOrderIds.has(orderId)) {
                             console.log('⚠️ Skipping duplicate order:', orderId);
                             continue;
                         }
-                        
+
                         const existingOrderIds = new Set(orders.map(o => o.$id || o.orderId));
                         if (existingOrderIds.has(orderId)) {
                             console.log('⚠️ Skipping existing order:', orderId);
                             continue;
                         }
-                        
+
                         processedOrderIds.add(orderId);
-                        
+
                         const minimalOrder = await processOrderMinimal(order);
                         if (minimalOrder) {
                             const orderCreatedAt = new Date(order.$createdAt || order.createdAt || Date.now());
                             const fiveMinutesAgo = new Date();
                             fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
                             const isRecentlyCreated = orderCreatedAt > fiveMinutesAgo;
-                            
+
                             minimalOrder.isNew = isRecentlyCreated && !loadMore;
-                            
+
                             if (isRecentlyCreated && !loadMore) {
                                 console.log('🆕 Detected new order from DB:', orderId, 'created at:', orderCreatedAt.toISOString());
                             }
-                            
+
                             newOrders.push(minimalOrder);
                         }
                     } catch (error) {
                         console.warn('⚠️ Error processing order:', order.$id, error);
                     }
                 }
-                
+
                 if (newOrders.length > 0) {
                     lastOrderId = newOrders[newOrders.length - 1].$id;
                 }
-                
+
                 if (loadMore) {
                     orders.push(...newOrders);
                 } else {
                     orders = newOrders;
                 }
-                
+
                 console.log(`✅ Processed ${newOrders.length} valid orders from database`);
-                
+
                 renderOrders();
                 updateFloatingButton();
-                
+
             } catch (error) {
                 console.error('❌ Error fetching orders:', error);
                 if (!loadMore) {
@@ -1235,9 +1453,9 @@
         function showLoadingMoreIndicator() {
             const container = document.getElementById('ordersList');
             const existingIndicator = document.getElementById('loadingMoreIndicator');
-            
+
             if (existingIndicator) return;
-            
+
             const indicator = document.createElement('div');
             indicator.id = 'loadingMoreIndicator';
             indicator.className = 'flex justify-center py-4';
@@ -1247,7 +1465,7 @@
                     <span class="text-sm">Loading more orders...</span>
                 </div>
             `;
-            
+
             container.appendChild(indicator);
         }
 
@@ -1261,7 +1479,7 @@
         async function loadAllOrdersForCustomer(customerId) {
             try {
                 console.log('📚 Loading all remaining orders for customer...');
-                
+
                 const response = await window.databases.listDocuments(
                     window.appwriteConfig.DATABASE_ID,
                     window.appwriteConfig.ORDERS_TABLE,
@@ -1271,7 +1489,7 @@
                         Query.limit(200)
                     ]
                 );
-                
+
                 const minimalOrders = [];
                 for (const order of response.documents) {
                     try {
@@ -1283,9 +1501,9 @@
                         console.warn('Error processing order:', order.$id, error);
                     }
                 }
-                
+
                 return minimalOrders;
-                
+
             } catch (error) {
                 console.error('❌ Error loading all orders:', error);
                 return [];
@@ -1298,20 +1516,21 @@
                     console.warn('⚠️ Skipping invalid order (missing $id or customer_id):', order);
                     return null;
                 }
-                
+
                 const orderId = order.$id;
                 const orderStatus = order.orderStatus || order.status || 'pending';
-                const deliveryName = order.deliveryName || order.companyName || order.branchName || '';
+                // Remove deliveryName as source for company name. It's often the customer name.
+                const deliveryName = order.deliveryName || '';
                 const deliveryAddress = order.deliveryAddress || order.address || order.location || '';
                 const paymentMethod = order.paymentMethod || order.payment || 'Mobile Money';
                 const deliveryTime = order.deliveryTime || 'N/A';
                 const deliveryDate = order.deliveryDate || order.date || order.$createdAt || 'N/A';
                 const total = order.total || order.amount || order.price || 0;
-                
+
                 let transformedStatus = 'pending';
                 let statusText = 'Pending';
                 let statusColor = '#F2A78C';
-                
+
                 if (orderStatus === 'confirmed' || orderStatus === 'accepted') {
                     transformedStatus = 'accepted';
                     statusText = 'Accepted';
@@ -1325,22 +1544,22 @@
                     statusText = 'Denied';
                     statusColor = '#F85D5D';
                 }
-                
+
                 let companyImage = null;
-                let finalCompanyName = deliveryName;
-                
+                let finalCompanyName = null; // Do not default to deliveryName as it may be customer name
+
                 const branchId = order.branchId || order.branch_id || order.company_id;
-                
+
                 if (branchId) {
                     try {
                         console.log(`🔍 Looking up company/branch for order ${orderId}, branchId: ${branchId}`);
-                        
+
                         const companyData = await fetchCompanyBranchData(branchId);
-                        
+
                         if (companyData) {
                             finalCompanyName = companyData.name;
                             companyImage = companyData.profile_image;
-                            
+
                             console.log(`🔍 Found company data for order ${orderId}:`, finalCompanyName, 'Image:', companyImage ? 'Yes' : 'No');
                         } else {
                             console.warn(`⚠️ No company/branch data found for branchId: ${branchId}`);
@@ -1351,11 +1570,12 @@
                 } else {
                     console.warn(`⚠️ No branchId found for order ${orderId}. Available fields:`, Object.keys(order));
                 }
-                
+
                 if (!finalCompanyName || finalCompanyName === 'Unknown Company') {
-                    finalCompanyName = 'Company';
+                    // One last check: if we have a companyName or branchName field on the order directly
+                    finalCompanyName = order.company || order.companyName || order.branchName || 'Company';
                 }
-                
+
                 return {
                     $id: orderId,
                     orderId: orderId,
@@ -1388,13 +1608,13 @@
         async function loadOrderDetailsBackground(minimalOrders) {
             for (let i = 0; i < minimalOrders.length; i++) {
                 if (i >= 10) break;
-                
+
                 const order = minimalOrders[i];
                 if (order && !order._loadedDetails) {
                     try {
                         await enrichOrderDetails(order);
                         order._loadedDetails = true;
-                        
+
                         renderOrders();
                     } catch (error) {
                         console.warn('Background detail loading failed for order:', order.orderId);
@@ -1407,7 +1627,7 @@
             try {
                 if (orderManager && typeof orderManager.getOrderItems === 'function') {
                     const orderItems = await orderManager.getOrderItems(order.orderId);
-                    
+
                     if (orderItems && orderItems.length > 0) {
                         order.products = orderItems.map(item => ({
                             id: item.productId || item.productName,
@@ -1417,28 +1637,28 @@
                             image: item.productImage,
                             type: item.productType || 'product'
                         }));
-                        
+
                         // Calculate subtotal properly from order items
                         order.subtotal = orderItems.reduce((sum, item) => {
                             const price = parseFloat(item.productPrice) || 0;
                             const qty = parseInt(item.productQty) || 1;
                             return sum + (price * qty);
                         }, 0);
-                        
+
                         // Calculate service fee: GHS0.10 per item
                         order.serviceFee = orderItems.reduce((sum, item) => {
                             const qty = parseInt(item.productQty) || 1;
                             return sum + (0.10 * qty);
                         }, 0);
-                        
+
                         // Calculate total
                         order.total = order.subtotal + order.serviceFee;
                         order.price = `GH₵${order.total.toFixed(2)}`;
-                        
+
                         console.log(`💰 Order ${order.orderId}: Subtotal: ${order.subtotal.toFixed(2)}, Service Fee: ${order.serviceFee.toFixed(2)}, Total: ${order.total.toFixed(2)}`);
                     }
                 }
-                
+
                 if (orderManager && typeof orderManager.getPurchaseRecipientInfo === 'function') {
                     const recipientInfo = await orderManager.getPurchaseRecipientInfo(order.orderId);
                     if (recipientInfo) {
@@ -1453,7 +1673,7 @@
                         };
                     }
                 }
-                
+
             } catch (error) {
                 console.warn('Could not enrich order details:', order.orderId, error);
             }
@@ -1461,7 +1681,7 @@
 
         function getCustomerId() {
             console.log('🔍 Getting customer ID from localStorage...');
-            
+
             // Debug: Log all localStorage keys
             console.log('📋 All localStorage keys:');
             for (let i = 0; i < localStorage.length; i++) {
@@ -1469,17 +1689,17 @@
                 const value = localStorage.getItem(key);
                 console.log(`  ${key}: ${value.substring(0, 100)}${value.length > 100 ? '...' : ''}`);
             }
-            
+
             const sources = [
                 () => {
                     const customerData = JSON.parse(localStorage.getItem('customerData') || '{}');
-                    const id = customerData.$id || customerData.uid || customerData.id;
+                    const id = customerData.uid || customerData.userId || customerData.id || customerData.$id;
                     console.log('🔍 customerData source:', id);
                     return id;
                 },
                 () => {
                     const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-                    const id = userProfile.$id || userProfile.uid || userProfile.id;
+                    const id = userProfile.uid || userProfile.userId || userProfile.id || userProfile.$id;
                     console.log('🔍 userProfile source:', id);
                     return id;
                 },
@@ -1493,7 +1713,7 @@
                     if (userStr) {
                         try {
                             const user = JSON.parse(userStr);
-                            const id = user.$id || user.uid || user.id || user.userId;
+                            const id = user.uid || user.userId || user.id || user.$id;
                             console.log('🔍 user source:', id);
                             return id;
                         } catch (e) {
@@ -1509,13 +1729,14 @@
                         if (key.includes('id') || key.includes('user') || key.includes('customer')) {
                             try {
                                 const value = JSON.parse(localStorage.getItem(key));
-                                if (value && (value.$id || value.uid || value.id || value.userId)) {
-                                    console.log('🔍 Found customer ID in key', key, ':', value.$id || value.uid || value.id || value.userId);
-                                    return value.$id || value.uid || value.id || value.userId;
+                                if (value && (value.uid || value.userId || value.id || value.$id)) {
+                                    const id = value.uid || value.userId || value.id || value.$id;
+                                    console.log('🔍 Found customer ID in key', key, ':', id);
+                                    return id;
                                 }
                             } catch (e) {
                                 const value = localStorage.getItem(key);
-                                if (value && value.length > 10 && value.length < 50) {
+                                if (value && value.length > 5 && value.length < 50) {
                                     console.log('🔍 Found customer ID as string in key', key, ':', value);
                                     return value;
                                 }
@@ -1525,7 +1746,7 @@
                     return null;
                 }
             ];
-            
+
             for (const source of sources) {
                 const id = source();
                 if (id) {
@@ -1533,35 +1754,85 @@
                     return id;
                 }
             }
-            
-            console.log('❌ No customer ID found in any source');
+
+            console.log('❌ No customer ID found in localStorage');
             return null;
+        }
+
+        // Get customer ID from Appwrite session (async version)
+        async function getCustomerIdFromSession() {
+            try {
+                console.log('🔍 Attempting to get customer ID from Appwrite session...');
+                const user = await window.account.get();
+                console.log('✅ Found user in Appwrite session:', user.$id);
+
+                // Save to localStorage for future use
+                localStorage.setItem('currentUserId', user.$id);
+
+                return user.$id;
+            } catch (error) {
+                console.log('⚠️ No active Appwrite session:', error.message);
+                return null;
+            }
+        }
+
+        // Combined function to get customer ID from any source
+        async function getCustomerIdAsync() {
+            // Try localStorage first (faster)
+            let customerId = getCustomerId();
+
+            if (customerId) {
+                return customerId;
+            }
+
+            // If not in localStorage, try Appwrite session
+            console.log('💡 Customer ID not in localStorage, checking Appwrite session...');
+            customerId = await getCustomerIdFromSession();
+
+            if (!customerId) {
+                console.error('❌ No customer ID found in localStorage or Appwrite session');
+                console.log('💡 User may not be logged in. Redirect to signin page?');
+            }
+
+            return customerId;
         }
 
         // Fetch customer data from database
         async function fetchCustomerData() {
             try {
-                const customerId = getCustomerId();
+                const customerId = await getCustomerIdAsync();
                 if (!customerId) {
                     console.warn('⚠️ No customer ID found, cannot fetch customer data');
                     return null;
                 }
-                
+
                 console.log('🔍 Fetching customer data for:', customerId);
-                
+
                 const response = await window.databases.listDocuments(
                     window.appwriteConfig.DATABASE_ID,
                     window.appwriteConfig.CUSTOMER_TABLE,
                     [Query.equal('uid', customerId)]
                 );
-                
+
                 if (response.documents.length > 0) {
                     const customer = response.documents[0];
                     console.log('✅ Found customer:', customer.full_name);
                     return customer;
                 } else {
-                    console.warn('⚠️ No customer found with ID:', customerId);
-                    return null;
+                    console.warn('⚠️ No customer found with UID:', customerId, 'Trying as Document ID...');
+                    // Fallback: Try to get document directly (in case customerId is the Doc ID)
+                    try {
+                        const directDoc = await window.databases.getDocument(
+                            window.appwriteConfig.DATABASE_ID,
+                            window.appwriteConfig.CUSTOMER_TABLE,
+                            customerId
+                        );
+                        console.log('✅ Found customer by Document ID:', directDoc.full_name);
+                        return directDoc;
+                    } catch (docError) {
+                        console.warn('⚠️ Could not fetch customer by Document ID either:', docError.message);
+                        return null;
+                    }
                 }
             } catch (error) {
                 console.error('❌ Error fetching customer data:', error);
@@ -1579,7 +1850,7 @@
                     if (userNameElement) {
                         userNameElement.textContent = customer.full_name || 'User';
                     }
-                    
+
                     // Update user email
                     const userEmailElement = document.querySelector('.sliding-menu p[class*="text-[#808080]"]');
                     if (!userEmailElement) {
@@ -1594,7 +1865,7 @@
                     } else {
                         userEmailElement.textContent = customer.email || 'user@example.com';
                     }
-                    
+
                     console.log('✅ Updated user profile in menu');
                 } else {
                     console.warn('⚠️ Could not update user profile - no customer data found');
@@ -1658,14 +1929,14 @@
         function formatOrderSentTime(timestamp) {
             try {
                 if (!timestamp) return 'Order sent:\nN/A';
-                
+
                 const date = new Date(timestamp);
                 const now = new Date();
                 const diffMs = now - date;
                 const diffMins = Math.floor(diffMs / 60000);
                 const diffHours = Math.floor(diffMs / 3600000);
                 const diffDays = Math.floor(diffMs / 86400000);
-                
+
                 if (diffMins < 1) {
                     return 'Order sent:\nJust now';
                 } else if (diffMins < 60) {
@@ -1701,7 +1972,7 @@
                         orderId,
                         { orderStatus: newStatus }
                     );
-                } catch (error) {}
+                } catch (error) { }
 
                 renderOrders();
             }
@@ -1752,7 +2023,7 @@
                         hasNewOrders = true;
                     }
                 });
-                
+
                 if (hasNewOrders) {
                     console.log(' Removing NEW status from orders');
                     renderOrders();
@@ -1762,9 +2033,9 @@
 
         function renderOrders() {
             const container = document.getElementById('ordersList');
-            
+
             hideLoadingSkeleton();
-            
+
             while (container.firstChild) {
                 container.removeChild(container.firstChild);
             }
@@ -1781,7 +2052,7 @@
                 }
                 return true;
             });
-            
+
             if (filteredOrders.length === 0) {
                 container.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full text-white text-center p-8">
@@ -1804,7 +2075,7 @@
                 `;
                 return;
             }
-            
+
             filteredOrders.forEach((order, index) => {
                 const card = document.createElement('button');
                 card.className = 'w-full flex items-center justify-center px-4 mb-3 animate-slide-up relative';
@@ -1815,7 +2086,7 @@
                 if (order.isNew) {
                     card.style.border = '2px solid #10b981';
                     card.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.3)';
-                    
+
                     const newBadge = document.createElement('div');
                     newBadge.className = 'absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse';
                     newBadge.textContent = 'NEW';
@@ -1837,14 +2108,14 @@
                     <div class="flex flex-row w-full items-center gap-2">
                         <!-- Company Image Container -->
                         <div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                            ${displayImage ? 
-                                `<img src="${displayImage}" class="w-full h-full object-cover" alt="${order.company}" loading="lazy">` :
-                                `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
+                            ${displayImage ?
+                        `<img src="${displayImage}" class="w-full h-full object-cover" alt="${order.company}" loading="lazy">` :
+                        `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
                                     <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                     </svg>
                                 </div>`
-                            }
+                    }
                         </div>
                         
                         <!-- Info Section -->
@@ -1873,7 +2144,7 @@
                 `;
 
                 container.appendChild(card);
-                
+
                 if (index < 10) {
                     card.style.animationDelay = `${index * 0.05}s`;
                 }
@@ -1883,14 +2154,14 @@
         function updateFloatingButton() {
             const bottleBtn = document.getElementById('floatingBottleBtn');
             const counter = document.getElementById('bottleCounter');
-            
+
             // Initialize myBottles if not defined
             if (typeof myBottles === 'undefined') {
                 window.myBottles = [];
             }
-            
+
             const pendingBottles = myBottles.filter(bottle => bottle.status === 'pending').length;
-            
+
             if (pendingBottles > 0) {
                 bottleBtn.style.display = 'flex';
                 counter.textContent = pendingBottles;
@@ -1902,7 +2173,7 @@
 
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
-            
+
             const typeStyles = {
                 success: {
                     bg: 'bg-green-500/20',
@@ -1923,9 +2194,9 @@
                     icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
                 }
             };
-            
+
             const style = typeStyles[type] || typeStyles.info;
-            
+
             notification.className = `fixed top-4 right-4 glass border ${style.border} text-foreground px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-up max-w-sm`;
             notification.innerHTML = `
                 <div class="flex items-center gap-3">
@@ -1939,9 +2210,9 @@
                     </div>
                 </div>
             `;
-            
+
             document.body.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.style.opacity = '0';
                 notification.style.transition = 'opacity 0.3s';
@@ -2066,9 +2337,9 @@
 
                 updateOrderStatus(orderId, 'ongoing');
                 closeOrderModal();
-                
+
                 showNotification('✅ Order marked as complete! Bottle added to return tracker.', 'success');
-                
+
             } catch (error) {
                 if (completeButton) {
                     completeButton.disabled = false;
@@ -2079,7 +2350,7 @@
                         </div>
                     `;
                 }
-                
+
                 showNotification('❌ Failed to mark order as complete. Please try again.', 'error');
             }
         }
@@ -2087,7 +2358,7 @@
         async function fetchCompleteOrderDetails(orderId) {
             try {
                 console.log(`🔍 Fetching complete order details for: ${orderId}`);
-                
+
                 // Try Appwrite first, fallback to local API
                 let orderDetails;
                 try {
@@ -2098,26 +2369,13 @@
                     );
                     orderDetails = response;
                 } catch (appwriteError) {
-                    console.warn('⚠️ Appwrite fetch failed, trying local API:', appwriteError.message);
-                    
-                    // Fallback to local API
-                    try {
-                        const localResponse = await fetch(`${window.location.origin}/api/order-details?orderId=${orderId}`);
-                        if (localResponse.ok) {
-                            const localData = await localResponse.json();
-                            orderDetails = localData.order;
-                        } else {
-                            throw new Error('Local API also failed');
-                        }
-                    } catch (localError) {
-                        console.error('❌ Both Appwrite and local API failed:', localError);
-                        throw new Error(`Failed to fetch order details: ${appwriteError.message}`);
-                    }
+                    console.error('❌ Appwrite fetch failed:', appwriteError);
+                    throw new Error(`Failed to fetch order details: ${appwriteError.message}`);
                 }
-                
+
                 console.log('✅ Fetched complete order details:', orderDetails);
                 return orderDetails;
-                
+
             } catch (error) {
                 console.error('❌ Error fetching complete order details:', error);
                 throw error;
@@ -2127,9 +2385,9 @@
         async function fetchRelatedOrderData(orderDetails) {
             try {
                 console.log('🔍 Fetching related order data...');
-                
+
                 const enrichedData = { ...orderDetails };
-                
+
                 // Fetch customer details if customer_id exists
                 if (orderDetails.customer_id) {
                     try {
@@ -2138,7 +2396,7 @@
                             window.appwriteConfig.CUSTOMER_TABLE || 'customer_tb',
                             [Query.equal('uid', orderDetails.customer_id)]
                         );
-                        
+
                         if (customerResponse.documents.length > 0) {
                             enrichedData.customerDetails = customerResponse.documents[0];
                             console.log('✅ Found customer details');
@@ -2147,7 +2405,7 @@
                         console.warn('⚠️ Could not fetch customer details:', error);
                     }
                 }
-                
+
                 // Fetch recipient details if order has recipient info
                 if (orderDetails.recipient_id || orderDetails.purchase_recipient_id) {
                     try {
@@ -2157,7 +2415,7 @@
                             'purchase_recipient_info',
                             [Query.equal('order_id', orderDetails.$id)]
                         );
-                        
+
                         if (recipientResponse.documents.length > 0) {
                             enrichedData.recipientDetails = recipientResponse.documents[0];
                             console.log('✅ Found recipient details');
@@ -2166,23 +2424,38 @@
                         console.warn('⚠️ Could not fetch recipient details:', error);
                     }
                 }
-                
+
                 // Fetch order items if available
                 try {
-                    const orderItemsResponse = await window.databases.listDocuments(
+                    console.log(`🔍 Fetching order items for order: ${orderDetails.$id}`);
+
+                    // Try with 'orderId' first
+                    let orderItemsResponse = await window.databases.listDocuments(
                         window.appwriteConfig.DATABASE_ID,
                         'order_items',
-                        [Query.equal('orderId', orderDetails.$id)] // Use 'orderId' as confirmed by schema
+                        [Query.equal('orderId', orderDetails.$id)]
                     );
-                    
+
+                    // If no items found, try with 'order_id' (common variation)
+                    if (orderItemsResponse.documents.length === 0) {
+                        console.log('⚠️ No items found with orderId, trying order_id...');
+                        orderItemsResponse = await window.databases.listDocuments(
+                            window.appwriteConfig.DATABASE_ID,
+                            'order_items',
+                            [Query.equal('order_id', orderDetails.$id)]
+                        );
+                    }
+
                     if (orderItemsResponse.documents.length > 0) {
                         enrichedData.orderItems = orderItemsResponse.documents;
                         console.log(`✅ Found ${orderItemsResponse.documents.length} order items`);
+                    } else {
+                        console.warn('⚠️ No order items found with either orderId or order_id');
                     }
                 } catch (error) {
-                    console.warn('⚠️ Could not fetch order items (collection may not exist):', error.message);
+                    console.warn('⚠️ Could not fetch order items:', error.message);
                 }
-                
+
                 // Fetch ratings if available
                 try {
                     const ratingsResponse = await window.databases.listDocuments(
@@ -2190,7 +2463,7 @@
                         'ratings',
                         [Query.equal('order_id', orderDetails.$id)]
                     );
-                    
+
                     if (ratingsResponse.documents.length > 0) {
                         enrichedData.rating = ratingsResponse.documents[0];
                         console.log('✅ Found order rating');
@@ -2198,9 +2471,9 @@
                 } catch (error) {
                     console.warn('⚠️ Could not fetch rating:', error);
                 }
-                
+
                 return enrichedData;
-                
+
             } catch (error) {
                 console.error('❌ Error fetching related order data:', error);
                 return orderDetails; // Return basic order details if related data fetch fails
@@ -2233,7 +2506,7 @@
                         </div>
                     </div>
                 `;
-                
+
                 // Open the sheet with loading state
                 sheet.classList.remove('opacity-0', 'pointer-events-none');
                 sheet.classList.add('opacity-100', 'z-50');
@@ -2243,16 +2516,16 @@
                 const orderId = currentOrderForDetails.orderId || currentOrderForDetails.$id;
                 const completeOrderDetails = await fetchCompleteOrderDetails(orderId);
                 const enrichedOrderDetails = await fetchRelatedOrderData(completeOrderDetails);
-                
+
                 // Update currentOrderForDetails with complete data
                 currentOrderForDetails = enrichedOrderDetails;
-                
+
                 // Now render the complete order details
                 renderOrderDetailsSheet();
-                
+
             } catch (error) {
                 console.error('❌ Error loading order details:', error);
-                
+
                 // Show error state
                 detailsArea.innerHTML = `
                     <div class="flex items-center justify-center h-64">
@@ -2275,7 +2548,7 @@
 
         function renderOrderDetailsSheet() {
             const detailsArea = document.getElementById('orderDetailsContentArea');
-            
+
             // Debug: Log the entire order structure
             console.log('🔍 Full order structure:', JSON.stringify(currentOrderForDetails, null, 2));
             console.log('🔍 Order keys:', Object.keys(currentOrderForDetails));
@@ -2284,7 +2557,7 @@
             console.log('🔍 Products is array:', Array.isArray(currentOrderForDetails.products));
 
             const isNewOrderStructure = currentOrderForDetails.products && Array.isArray(currentOrderForDetails.products);
-            
+
             let productInfo = {
                 name: 'N/A',
                 image: null,
@@ -2296,11 +2569,11 @@
             if (currentOrderForDetails.orderItems && Array.isArray(currentOrderForDetails.orderItems) && currentOrderForDetails.orderItems.length > 0) {
                 const firstItem = currentOrderForDetails.orderItems[0];
                 const totalQuantity = currentOrderForDetails.orderItems.reduce((sum, item) => sum + (item.productQty || 1), 0);
-                
+
                 productInfo = {
-                    name: currentOrderForDetails.orderItems.length > 1 ? 
-                        `${currentOrderForDetails.orderItems.length} products` : 
-                        firstItem.productName || 'N/A',
+                    name: currentOrderForDetails.orderItems.length > 1 ?
+                        `${currentOrderForDetails.orderItems.length} products` :
+                        firstItem.productName || firstItem.product_name || 'N/A',
                     image: firstItem.productImage || null,
                     quantity: totalQuantity,
                     unitPrice: firstItem.productPrice || 0
@@ -2309,9 +2582,9 @@
             // Fallback to products array if it exists
             else if (isNewOrderStructure && currentOrderForDetails.products.length > 0) {
                 productInfo = {
-                    name: currentOrderForDetails.products.length > 1 ? 
-                        `${currentOrderForDetails.products.length} products` : 
-                        currentOrderForDetails.products[0].name || 'N/A',
+                    name: currentOrderForDetails.products.length > 1 ?
+                        `${currentOrderForDetails.products.length} products` :
+                        currentOrderForDetails.products[0].name || currentOrderForDetails.products[0].product_name || 'N/A',
                     image: currentOrderForDetails.products[0]?.image || null,
                     quantity: currentOrderForDetails.products.reduce((sum, p) => sum + (p.quantity || 0), 0),
                     unitPrice: currentOrderForDetails.products[0]?.price || 0
@@ -2319,7 +2592,7 @@
             }
 
             let displayImage = null;
-            
+
             // First try: product image from orderItems
             if (productInfo.image) {
                 displayImage = productInfo.image;
@@ -2329,12 +2602,12 @@
                     displayImage = displayImage.replace('/view?', '/preview?') + '&width=200&height=200&quality=80';
                 }
             }
-            
+
             // Second try: company image from enriched data
             if (!displayImage && currentOrderForDetails.companyImage) {
                 displayImage = currentOrderForDetails.companyImage;
             }
-            
+
             // Third try: get company image from original order list
             if (!displayImage) {
                 const originalOrder = orders.find(o => (o.orderId === currentOrderForDetails.orderId) || (o.$id === currentOrderForDetails.$id));
@@ -2342,14 +2615,14 @@
                     displayImage = originalOrder.companyImage;
                 }
             }
-            
+
             // Final fallback: placeholder based on product name (always use this for water products)
             if (!displayImage && productInfo.name) {
                 if (productInfo.name.toLowerCase().includes('water') || productInfo.name.toLowerCase().includes('bottle')) {
                     displayImage = 'images/products/large-bottle.jpg';
                 }
             }
-            
+
             // If still no image and it's a water product, use placeholder anyway
             if (!displayImage && productInfo.name && productInfo.name.toLowerCase().includes('water')) {
                 displayImage = 'images/products/large-bottle.jpg';
@@ -2358,11 +2631,11 @@
             const subtotal = parseFloat(currentOrderForDetails.subtotal) || 0;
             const serviceFee = parseFloat(currentOrderForDetails.serviceFee) || 0;
             const total = parseFloat(currentOrderForDetails.total) || 0;
-            
+
             // Calculate service fee if not already calculated
             let calculatedServiceFee = serviceFee;
             let calculatedSubtotal = subtotal;
-            
+
             // Always try to calculate from products if available
             if (currentOrderForDetails.products && Array.isArray(currentOrderForDetails.products) && currentOrderForDetails.products.length > 0) {
                 calculatedSubtotal = currentOrderForDetails.products.reduce((sum, product) => {
@@ -2370,7 +2643,7 @@
                     const qty = parseInt(product.quantity) || 1;
                     return sum + (price * qty);
                 }, 0);
-                
+
                 calculatedServiceFee = currentOrderForDetails.products.reduce((sum, product) => {
                     const qty = parseInt(product.quantity) || 1;
                     return sum + (0.10 * qty); // GHS0.10 per item
@@ -2384,14 +2657,14 @@
                     calculatedSubtotal = total - calculatedServiceFee;
                 }
             }
-            
+
             const calculatedTotal = calculatedSubtotal + calculatedServiceFee;
             const displayTotal = total > 0 ? total : calculatedTotal;
             const displaySubtotal = subtotal > 0 ? subtotal : calculatedSubtotal;
-            
+
             console.log(`🧮 Price Breakdown: Subtotal: ${displaySubtotal.toFixed(2)}, Service Fee: ${calculatedServiceFee.toFixed(2)}, Total: ${displayTotal.toFixed(2)}`);
             console.log(`🔍 Debug: isNewOrderStructure=${isNewOrderStructure}, products=${!!currentOrderForDetails.products}, products.length=${currentOrderForDetails.products?.length || 0}`);
-            
+
             // Debug company and image data
             console.log('🏢 Company Data Debug:');
             console.log('  - deliveryName:', currentOrderForDetails.deliveryName);
@@ -2405,9 +2678,9 @@
             let transformedStatus = 'pending';
             let statusText = 'Pending';
             let statusColor = '#F2A78C';
-            
+
             const orderStatus = currentOrderForDetails.orderStatus || currentOrderForDetails.status || 'pending';
-            
+
             if (orderStatus === 'confirmed' || orderStatus === 'accepted') {
                 transformedStatus = 'accepted';
                 statusText = 'Accepted';
@@ -2429,8 +2702,8 @@
                         <h3 class="text-white text-lg font-bold mb-3">Company</h3>
                         <div class="flex items-center space-x-4">
                             <div class="rounded-[10px] bg-[#808080] overflow-hidden flex-shrink-0" style="width: 80px; height: 80px;">
-                                ${displayImage ? 
-                                    `<img src="${displayImage}" class="w-full h-full object-cover" alt="${currentOrderForDetails.deliveryName || 'Product'}" loading="lazy" 
+                                ${displayImage ?
+                    `<img src="${displayImage}" class="w-full h-full object-cover" alt="${currentOrderForDetails.deliveryName || 'Product'}" loading="lazy" 
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                                      onload="console.log('✅ Image loaded successfully:', this.src);">
                                     <div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center" style="display:none;">
@@ -2438,15 +2711,15 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                                         </svg>
                                     </div>` :
-                                    `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
+                    `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
                                         <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                                         </svg>
                                     </div>`
-                                }
+                }
                             </div>
                             <div class="flex-1">
-                                <h4 class="text-white text-lg font-semibold">${currentOrderForDetails.deliveryName || currentOrderForDetails.company || 'N/A'}<span class="material-symbols-outlined verified-checkmark" style="font-size: 16px; margin-left: 2px;">verified</span></h4>
+                                <h4 class="text-white text-lg font-semibold">${currentOrderForDetails.company || currentOrderForDetails.deliveryName || 'N/A'}<span class="material-symbols-outlined verified-checkmark" style="font-size: 16px; margin-left: 2px;">verified</span></h4>
                                 <p class="text-gray-400 text-sm">${productInfo.name}</p>
                                 <p class="text-gray-400 text-sm">Quantity: ${productInfo.quantity}</p>
                             </div>
@@ -2461,7 +2734,7 @@
                             ${currentOrderForDetails.orderItems.map((item, index) => `
                                 <div class="flex justify-between items-center py-2 border-b border-gray-700">
                                     <div class="flex-1">
-                                        <p class="text-white font-medium">${item.productName || 'Unknown Product'}</p>
+                                        <p class="text-white font-medium">${item.productName || item.product_name || 'Unknown Product'}</p>
                                         <p class="text-gray-400 text-sm">Qty: ${item.productQty || 1}</p>
                                         <p class="text-gray-400 text-sm">Type: ${item.productType || 'N/A'}</p>
                                     </div>
@@ -2481,11 +2754,11 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Company:</span>
-                                <span class="text-white font-medium">${currentOrderForDetails.deliveryName || 'N/A'}<span class="material-symbols-outlined verified-checkmark" style="font-size: 14px; margin-left: 2px;">verified</span></span>
+                                <span class="text-white font-medium">${currentOrderForDetails.company || currentOrderForDetails.deliveryName || 'N/A'}<span class="material-symbols-outlined verified-checkmark" style="font-size: 14px; margin-left: 2px;">verified</span></span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Product:</span>
-                                <span class="text-white font-medium">${currentOrderForDetails.orderItems && currentOrderForDetails.orderItems.length > 0 ? currentOrderForDetails.orderItems[0].productName : productInfo.name}</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.orderItems && currentOrderForDetails.orderItems.length > 0 ? (currentOrderForDetails.orderItems[0].productName || currentOrderForDetails.orderItems[0].product_name) : productInfo.name}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Quantity:</span>
@@ -2586,7 +2859,7 @@
             // Get the sheet and content elements from the DOM
             const sheet = document.getElementById('orderDetailsSheet');
             const content = document.getElementById('orderDetailsContent');
-            
+
             if (sheet && content) {
                 sheet.classList.remove('opacity-0', 'pointer-events-none');
                 sheet.classList.add('opacity-100', 'z-50');
@@ -2627,17 +2900,17 @@
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+
             doc.setFontSize(18);
             doc.text('Order Details', 20, 20);
-            
+
             doc.setFontSize(12);
             let yPosition = 40;
-            
+
             doc.setFontSize(14);
             doc.text('Order Summary', 20, yPosition);
             yPosition += 10;
-            
+
             doc.setFontSize(11);
             doc.text(`Order ID: ${currentOrderForDetails.orderId || 'N/A'}`, 20, yPosition);
             yPosition += 8;
@@ -2645,23 +2918,23 @@
             yPosition += 8;
             doc.text(`Status: ${currentOrderForDetails.statusText || 'Pending'}`, 20, yPosition);
             yPosition += 8;
-            
+
             if (currentOrderForDetails.deliveryDate) {
                 doc.text(`Delivery Date: ${currentOrderForDetails.deliveryDate}`, 20, yPosition);
                 yPosition += 8;
             }
-            
+
             if (currentOrderForDetails.deliveryTime) {
                 doc.text(`Delivery Time: ${currentOrderForDetails.deliveryTime}`, 20, yPosition);
                 yPosition += 8;
             }
-            
+
             yPosition += 5;
-            
+
             doc.setFontSize(14);
             doc.text('Price Breakdown', 20, yPosition);
             yPosition += 10;
-            
+
             doc.setFontSize(11);
             const subtotal = currentOrderForDetails.subtotal || 0;
             const serviceFee = currentOrderForDetails.serviceFee || 0;
@@ -2671,7 +2944,7 @@
             doc.text(`Service Fee: GHS${serviceFee.toFixed(2)}`, 20, yPosition);
             yPosition += 8;
             doc.text(`Total: GHS${total.toFixed(2)}`, 20, yPosition);
-            
+
             doc.save(`order_${currentOrderForDetails.orderId || Date.now()}.pdf`);
         }
 
@@ -2755,7 +3028,7 @@
             // Get the logout button and show loading state
             const logoutBtn = document.querySelector('button[onclick="logout()"]');
             const originalContent = logoutBtn.innerHTML;
-            
+
             // Show loading indicator
             logoutBtn.innerHTML = `
                 <div class="flex flex-row items-center gap-[30px]">
@@ -2769,14 +3042,14 @@
                 </div>
             `;
             logoutBtn.disabled = true;
-            
+
             try {
                 // Clear all local storage data
                 localStorage.removeItem('customerSession');
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('userName');
                 localStorage.removeItem('userEmail');
-                
+
                 // Try to clear Appwrite session if available
                 if (typeof account !== 'undefined') {
                     try {
@@ -2786,7 +3059,7 @@
                         console.log('Appwrite session already cleared or error:', appwriteError);
                     }
                 }
-                
+
                 // Show success briefly before redirect
                 logoutBtn.innerHTML = `
                     <div class="flex flex-row items-center gap-[30px]">
@@ -2799,15 +3072,15 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                 `;
-                
+
                 // Redirect to signin page after brief delay
                 setTimeout(() => {
                     window.location.href = 'signin.html';
                 }, 500);
-                
+
             } catch (error) {
                 console.error('Logout error:', error);
-                
+
                 // Show error state
                 logoutBtn.innerHTML = `
                     <div class="flex flex-row items-center gap-[30px]">
@@ -2820,7 +3093,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 `;
-                
+
                 // Even if there's an error, clear storage and redirect after brief delay
                 setTimeout(() => {
                     localStorage.removeItem('customerSession');
@@ -2855,18 +3128,18 @@
         });
 
         // Show Coming Soon Modal for Bottle Returns
-        window.showComingSoonModal = function() {
+        window.showComingSoonModal = function () {
             // Create modal overlay following the existing pattern
             const modalOverlay = document.createElement('div');
             modalOverlay.id = 'comingSoonModal';
             modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
             modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
-            
+
             // Create modal content following existing modal pattern
             const modalContent = document.createElement('div');
             modalContent.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]';
             modalContent.style.cssText = 'background-color: var(--modal-bg); border-color: var(--modal-border);';
-            
+
             modalContent.innerHTML = `
                 <div class="flex flex-col items-center justify-center w-full h-full">
                     <!-- Bottle Icon Section -->
@@ -2925,12 +3198,12 @@
                     </div>
                 </div>
             `;
-            
+
             modalOverlay.appendChild(modalContent);
             document.body.appendChild(modalOverlay);
-            
+
             // Close modal when clicking overlay
-            modalOverlay.addEventListener('click', function(e) {
+            modalOverlay.addEventListener('click', function (e) {
                 if (e.target === modalOverlay) {
                     closeComingSoonModal();
                 }
@@ -2938,7 +3211,7 @@
         };
 
         // Close coming soon modal function
-        window.closeComingSoonModal = function() {
+        window.closeComingSoonModal = function () {
             const modal = document.getElementById('comingSoonModal');
             if (modal) {
                 modal.remove();
@@ -2947,49 +3220,23 @@
     </script>
     <script src="js/notifications.js"></script>
 
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration);
-                        
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New content is available
-                                    if (confirm('New version available! Reload to update?')) {
-                                        window.location.reload();
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
-        }
-    </script>
 
-<script>
-    // Delete Account Confirmation function
-    window.showDeleteConfirm = function() {
-        // Create modal overlay following the existing pattern
-        const modalOverlay = document.createElement('div');
-        modalOverlay.id = 'deleteAccountModal';
-        modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
-        modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
-        
-        // Create modal content following existing modal pattern
-        const modalContent = document.createElement('div');
-        modalContent.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]';
-        modalContent.style.cssText = 'background-color: var(--modal-bg); border-color: var(--modal-border);';
-        
-        modalContent.innerHTML = `
+
+    <script>
+        // Delete Account Confirmation function
+        window.showDeleteConfirm = function () {
+            // Create modal overlay following the existing pattern
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'deleteAccountModal';
+            modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
+            modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
+
+            // Create modal content following existing modal pattern
+            const modalContent = document.createElement('div');
+            modalContent.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]';
+            modalContent.style.cssText = 'background-color: var(--modal-bg); border-color: var(--modal-border);';
+
+            modalContent.innerHTML = `
             <div class="flex flex-col items-center justify-center w-full h-full">
                 <!-- Warning Icon Section -->
                 <div class="flex flex-col items-center justify-center mb-6">
@@ -3054,38 +3301,38 @@
                 </div>
             </div>
         `;
-        
-        modalOverlay.appendChild(modalContent);
-        document.body.appendChild(modalOverlay);
-        
-        // Close modal when clicking overlay
-        modalOverlay.addEventListener('click', function(e) {
-            if (e.target === modalOverlay) {
-                cancelDeleteAccount();
-            }
-        });
-    };
 
-    // Show delete success modal
-    window.showDeleteSuccessModal = function() {
-        // Close the delete confirmation modal first
-        const deleteModal = document.getElementById('deleteAccountModal');
-        if (deleteModal) {
-            deleteModal.remove();
-        }
-        
-        // Create success modal overlay
-        const modalOverlay = document.createElement('div');
-        modalOverlay.id = 'deleteSuccessModal';
-        modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
-        modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
-        
-        // Create modal content
-        const modalContent = document.createElement('div');
-        modalContent.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]';
-        modalContent.style.cssText = 'background-color: var(--modal-bg); border-color: var(--modal-border);';
-        
-        modalContent.innerHTML = `
+            modalOverlay.appendChild(modalContent);
+            document.body.appendChild(modalOverlay);
+
+            // Close modal when clicking overlay
+            modalOverlay.addEventListener('click', function (e) {
+                if (e.target === modalOverlay) {
+                    cancelDeleteAccount();
+                }
+            });
+        };
+
+        // Show delete success modal
+        window.showDeleteSuccessModal = function () {
+            // Close the delete confirmation modal first
+            const deleteModal = document.getElementById('deleteAccountModal');
+            if (deleteModal) {
+                deleteModal.remove();
+            }
+
+            // Create success modal overlay
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'deleteSuccessModal';
+            modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
+            modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
+
+            // Create modal content
+            const modalContent = document.createElement('div');
+            modalContent.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]';
+            modalContent.style.cssText = 'background-color: var(--modal-bg); border-color: var(--modal-border);';
+
+            modalContent.innerHTML = `
             <div class="flex flex-col items-center justify-center w-full h-full">
                 <!-- Success Icon Section -->
                 <div class="flex flex-col items-center justify-center mb-6">
@@ -3114,105 +3361,105 @@
                 </div>
             </div>
         `;
-        
-        modalOverlay.appendChild(modalContent);
-        document.body.appendChild(modalOverlay);
-        
-        // Auto-remove modal after redirect (backup cleanup)
-        setTimeout(() => {
-            const modal = document.getElementById('deleteSuccessModal');
+
+            modalOverlay.appendChild(modalContent);
+            document.body.appendChild(modalOverlay);
+
+            // Auto-remove modal after redirect (backup cleanup)
+            setTimeout(() => {
+                const modal = document.getElementById('deleteSuccessModal');
+                if (modal) {
+                    modal.remove();
+                }
+            }, 3000);
+        };
+
+        // Cancel delete account
+        window.cancelDeleteAccount = function () {
+            const modal = document.getElementById('deleteAccountModal');
             if (modal) {
                 modal.remove();
             }
-        }, 3000);
-    };
+        };
 
-    // Cancel delete account
-    window.cancelDeleteAccount = function() {
-        const modal = document.getElementById('deleteAccountModal');
-        if (modal) {
-            modal.remove();
-        }
-    };
-
-    // Confirm delete account
-    window.confirmDeleteAccount = async function() {
-        try {
-            // Show loading state
-            const deleteBtn = document.querySelector('#deleteAccountModal button[onclick="confirmDeleteAccount()"] span');
-            const originalText = deleteBtn.textContent;
-            deleteBtn.textContent = 'Deleting...';
-            deleteBtn.parentElement.disabled = true;
-            
-            // Get current user
-            const user = await window.account.get();
-            const userEmail = user.email;
-            
-            // Delete from customer_tb first
+        // Confirm delete account
+        window.confirmDeleteAccount = async function () {
             try {
-                const customerDocs = await window.databases.listDocuments(
-                    window.appwriteConfig.DATABASE_ID,
-                    window.appwriteConfig.CUSTOMER_TABLE,
-                    [window.Query.equal('email', userEmail.toLowerCase())]
-                );
-                
-                // Delete customer records
-                for (const doc of customerDocs.documents) {
-                    await window.databases.deleteDocument(
+                // Show loading state
+                const deleteBtn = document.querySelector('#deleteAccountModal button[onclick="confirmDeleteAccount()"] span');
+                const originalText = deleteBtn.textContent;
+                deleteBtn.textContent = 'Deleting...';
+                deleteBtn.parentElement.disabled = true;
+
+                // Get current user
+                const user = await window.account.get();
+                const userEmail = user.email;
+
+                // Delete from customer_tb first
+                try {
+                    const customerDocs = await window.databases.listDocuments(
                         window.appwriteConfig.DATABASE_ID,
                         window.appwriteConfig.CUSTOMER_TABLE,
-                        doc.$id
+                        [window.Query.equal('email', userEmail.toLowerCase())]
                     );
+
+                    // Delete customer records
+                    for (const doc of customerDocs.documents) {
+                        await window.databases.deleteDocument(
+                            window.appwriteConfig.DATABASE_ID,
+                            window.appwriteConfig.CUSTOMER_TABLE,
+                            doc.$id
+                        );
+                    }
+                    console.log('✅ Customer data deleted from database');
+                } catch (dbError) {
+                    console.warn('⚠️ Could not delete customer data:', dbError.message);
                 }
-                console.log('✅ Customer data deleted from database');
-            } catch (dbError) {
-                console.warn('⚠️ Could not delete customer data:', dbError.message);
-            }
-            
-            // Immediately logout user by deleting all sessions
-            console.log('🔒 Logging out user...');
-            try {
-                const sessions = await window.account.listSessions();
-                for (const session of sessions.sessions) {
-                    await window.account.deleteSession(session.$id);
-                }
-                console.log('✅ User logged out - all sessions deleted');
-            } catch (sessionError) {
-                console.warn('⚠️ Could not delete sessions:', sessionError.message);
-                // Try to delete current session as fallback
+
+                // Immediately logout user by deleting all sessions
+                console.log('🔒 Logging out user...');
                 try {
-                    await window.account.deleteSession('current');
-                    console.log('✅ User logged out - current session deleted');
-                } catch (fallbackError) {
-                    console.warn('⚠️ Could not delete current session:', fallbackError.message);
+                    const sessions = await window.account.listSessions();
+                    for (const session of sessions.sessions) {
+                        await window.account.deleteSession(session.$id);
+                    }
+                    console.log('✅ User logged out - all sessions deleted');
+                } catch (sessionError) {
+                    console.warn('⚠️ Could not delete sessions:', sessionError.message);
+                    // Try to delete current session as fallback
+                    try {
+                        await window.account.deleteSession('current');
+                        console.log('✅ User logged out - current session deleted');
+                    } catch (fallbackError) {
+                        console.warn('⚠️ Could not delete current session:', fallbackError.message);
+                    }
                 }
+
+                // Clear local storage immediately after logout
+                localStorage.clear();
+                console.log('🧹 Local storage cleared');
+
+                // Show success modal
+                showDeleteSuccessModal();
+
+                // Redirect to sign-in page after delay
+                setTimeout(() => {
+                    window.location.href = 'signin.html';
+                }, 2500);
+
+            } catch (error) {
+                console.error('❌ Error deleting account:', error);
+
+                // Reset button
+                const deleteBtn = document.querySelector('#deleteAccountModal button[onclick="confirmDeleteAccount()"] span');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.parentElement.disabled = false;
+
+                // Show error message
+                alert('Failed to delete account. Please try again or contact support. Error: ' + error.message);
             }
-            
-            // Clear local storage immediately after logout
-            localStorage.clear();
-            console.log('🧹 Local storage cleared');
-            
-            // Show success modal
-            showDeleteSuccessModal();
-            
-            // Redirect to sign-in page after delay
-            setTimeout(() => {
-                window.location.href = 'signin.html';
-            }, 2500);
-            
-        } catch (error) {
-            console.error('❌ Error deleting account:', error);
-            
-            // Reset button
-            const deleteBtn = document.querySelector('#deleteAccountModal button[onclick="confirmDeleteAccount()"] span');
-            deleteBtn.textContent = 'Delete';
-            deleteBtn.parentElement.disabled = false;
-            
-            // Show error message
-            alert('Failed to delete account. Please try again or contact support. Error: ' + error.message);
-        }
-    };
-</script>
+        };
+    </script>
 
 </body>
 

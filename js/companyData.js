@@ -19,7 +19,7 @@ class CompanyDataManager {
     // Fetch all companies and their branches from database
     async fetchCompanyData() {
         if (this.isLoading) return this.companies;
-        
+
         // Check cache
         if (this.lastFetchTime && (Date.now() - this.lastFetchTime < this.cacheTimeout)) {
             console.log('📦 Using cached company data');
@@ -27,10 +27,10 @@ class CompanyDataManager {
         }
 
         this.isLoading = true;
-        
+
         try {
             console.log('🔄 Fetching company data from database...');
-            
+
             // Fetch companies, branches, working days, products, social media, verification, user settings and ratings in parallel
             const [companiesResponse, branchesResponse, workingDaysResponse, productsResponse, socialMediaResponse, verificationResponse, userSettingsResponse, ratingsResponse] = await Promise.all([
                 this.fetchCompanies(),
@@ -55,7 +55,7 @@ class CompanyDataManager {
 
             // Process and merge data
             const mergedData = this.mergeCompanyAndBranchData();
-            
+
             console.log(`✅ Successfully loaded ${mergedData.length} companies with branches, working days, products, social media, and ratings`);
             return mergedData;
 
@@ -87,7 +87,7 @@ class CompanyDataManager {
                     window.Query.orderDesc('$createdAt')
                 ]
             );
-            
+
             console.log(`📋 Found ${response.documents.length} companies`);
             return response.documents;
         } catch (error) {
@@ -117,7 +117,7 @@ class CompanyDataManager {
                     window.Query.orderDesc('$createdAt')
                 ]
             );
-            
+
             console.log('📍 Found', response.documents.length, 'active branches');
             return response.documents;
         } catch (error) {
@@ -163,17 +163,17 @@ class CompanyDataManager {
     getVerificationTier(companyId, branchId = null) {
         console.log(`🔍 [DEBUG] Getting verification tier for company: ${companyId}, branch: ${branchId}`);
         console.log(`🔍 [DEBUG] Available user settings:`, this.userSettings);
-        
+
         // Find user settings for this company/branch
         const userSetting = this.userSettings.find(setting => {
             // user_settings table uses branch_id and user_id fields
             const settingBranchId = setting.branch_id || setting.branchId || setting.branchID || setting.branch;
             const settingUserId = setting.user_id || setting.userId || setting.userID || setting.user;
-            
+
             // Only match by branch_id for verification tier determination
             const matchesBranch = settingBranchId === branchId;
             // Note: We don't match by user_id for verification tiers to avoid conflicts
-            
+
             console.log(`🔍 [DEBUG] Checking setting:`, {
                 settingBranchId,
                 settingUserId,
@@ -221,20 +221,20 @@ class CompanyDataManager {
         this.branches.forEach(branch => {
             // Find the corresponding company
             const company = this.companies.find(c => c.company_id === branch.company_id);
-            
+
             if (company) {
                 // Get working days for this branch
-                const branchWorkingDays = this.workingDays.filter(wd => 
+                const branchWorkingDays = this.workingDays.filter(wd =>
                     wd.branch_id === branch.branch_id || wd.company_id === branch.company_id
                 );
 
                 // Get products for this branch/company
-                const branchProducts = this.products.filter(product => 
+                const branchProducts = this.products.filter(product =>
                     product.branch_id === branch.branch_id || product.company_id === branch.company_id
                 );
 
                 // Get social media for this branch/company
-                const branchSocialMedia = this.socialMedia.filter(sm => 
+                const branchSocialMedia = this.socialMedia.filter(sm =>
                     sm.branch_id === branch.branch_id || sm.company_id === branch.company_id
                 );
 
@@ -244,21 +244,25 @@ class CompanyDataManager {
                     const verificationUserId = v.userId || v.user_id || v.company_id || v.companyId || v.companyID || v.company;
                     return verificationUserId === branch.company_id;
                 });
-                const verificationStatus = verification ? 
-                    (verification.status || verification.verification_status || verification.verificationStatus) : 
+                const verificationStatus = verification ?
+                    (verification.status || verification.verification_status || verification.verificationStatus) :
                     null;
                 const isVerified = verificationStatus === 'verified';
-                
+
                 // Get verification tier for this company/branch
                 const verificationTier = this.getVerificationTier(branch.company_id, branch.branch_id);
-                
+
+                // Get company rating for this branch
+                const companyRating = this.getCompanyRating(branch.company_id, branch.branch_id);
+
                 console.log(`🔍 Checking verification for company ${branch.company_id}:`);
                 console.log('- Found verification:', verification);
                 console.log('- Verification status:', verificationStatus || 'N/A');
                 console.log('- isVerified:', isVerified);
                 console.log('- Verification tier:', verificationTier);
+                console.log('- Company rating:', companyRating);
                 console.log('- Branch name:', branch.branch_name);
-                
+
                 // Debug: Show all verification records for troubleshooting
                 if (this.verifications.length > 0) {
                     console.log('🔍 All verification records:');
@@ -288,6 +292,8 @@ class CompanyDataManager {
                     branch_type: branch.branch_type,
                     is_verified: isVerified, // Add verification status
                     verification_tier: verificationTier, // Add verification tier
+                    company_rating: companyRating.average, // Add company average rating
+                    rating_count: companyRating.count, // Add rating count
                     coordinates: this.generateCoordinates(branch.location),
                     working_days: branchWorkingDays, // Add working days
                     products: branchProducts.map(product => ({
@@ -304,7 +310,7 @@ class CompanyDataManager {
                     time: this.generateTimeText(branch.location),
                     distance: null
                 };
-                
+
                 mergedData.push(mergedCompany);
             }
         });
@@ -328,7 +334,7 @@ class CompanyDataManager {
             'Koforidua, Ghana': { lat: 6.0833, lng: -0.2567 },
             'Wa, Ghana': { lat: 10.0625, lng: -2.5093 },
             'Bolgatanga, Ghana': { lat: 10.7855, lng: -0.8476 },
-            
+
             // Accra neighborhoods and districts
             'Osu, Accra': { lat: 5.5600, lng: -0.1850 },
             'Labone, Accra': { lat: 5.5580, lng: -0.1920 },
@@ -349,7 +355,7 @@ class CompanyDataManager {
             'Airport, Accra': { lat: 5.6000, lng: -0.1700 },
             'Dzorwulu, Accra': { lat: 5.5900, lng: -0.1900 },
             'Roman Ridge, Accra': { lat: 5.5800, lng: -0.2000 },
-            
+
             // Kumasi neighborhoods
             'Adum, Kumasi': { lat: 6.6885, lng: -1.6244 },
             'Kejetia, Kumasi': { lat: 6.6900, lng: -1.6200 },
@@ -358,7 +364,7 @@ class CompanyDataManager {
             'Ahodwo, Kumasi': { lat: 6.7000, lng: -1.6100 },
             'Patasi, Kumasi': { lat: 6.6950, lng: -1.6000 },
             'Santasi, Kumasi': { lat: 6.6750, lng: -1.5900 },
-            
+
             // Tema neighborhoods
             'Tema Community 1': { lat: 5.6800, lng: -0.0100 },
             'Tema Community 2': { lat: 5.6700, lng: -0.0150 },
@@ -383,7 +389,7 @@ class CompanyDataManager {
             'Tema Community 21': { lat: 5.5750, lng: -0.1100 },
             'Tema Community 22': { lat: 5.5700, lng: -0.1150 },
             'Tema Industrial Area': { lat: 5.6900, lng: -0.0050 },
-            
+
             // Other major towns
             'Obuasi, Ghana': { lat: 5.9544, lng: -1.8813 },
             'Techiman, Ghana': { lat: 7.5833, lng: -1.9333 },
@@ -489,22 +495,22 @@ class CompanyDataManager {
             'Ayawaso Central': { lat: 5.6100, lng: -0.1800 },
             'Ayawaso North': { lat: 5.6400, lng: -0.2000 }
         };
-        
+
         // Try exact match first
         if (locationCoords[location]) {
             console.log(`📍 Found exact coordinates for: ${location}`);
             return locationCoords[location];
         }
-        
+
         // Try partial match (contains)
         for (const [key, coords] of Object.entries(locationCoords)) {
-            if (key.toLowerCase().includes(location.toLowerCase()) || 
+            if (key.toLowerCase().includes(location.toLowerCase()) ||
                 location.toLowerCase().includes(key.toLowerCase())) {
                 console.log(`📍 Found partial match for ${location}: ${key}`);
                 return coords;
             }
         }
-        
+
         // Try to extract city name from location string
         const cities = ['Accra', 'Kumasi', 'Tema', 'Takoradi', 'Cape Coast', 'Ho', 'Tamale', 'Sunyani', 'Koforidua', 'Wa', 'Bolgatanga'];
         for (const city of cities) {
@@ -516,19 +522,19 @@ class CompanyDataManager {
                 }
             }
         }
-        
+
         // Fallback: Try to geocode using a simple pattern matching
         console.log(`⚠️ Location not found in database: ${location}`);
-        
+
         // Extract any numeric patterns or common landmarks
         const numericMatch = location.match(/\d+/);
         const landmarkMatch = location.match(/(market|station|mall|plaza|square|park|church|mosque|school|hospital)/i);
-        
+
         // Default to Accra Central if no specific location can be determined
         console.log(`📍 Defaulting to Accra Central for: ${location}`);
-        return { 
-            lat: 5.6037, 
-            lng: -0.1870 
+        return {
+            lat: 5.6037,
+            lng: -0.1870
         };
     }
 
@@ -537,15 +543,15 @@ class CompanyDataManager {
         const coords = this.generateCoordinates(location);
         const accraCenter = { lat: 5.6037, lng: -0.1870 };
         const distance = this.calculateDistance(accraCenter, coords);
-        
+
         // Generate realistic time based on distance
         const avgSpeed = 30; // km/h average city driving speed
         const timeMinutes = Math.round((distance / avgSpeed) * 60);
-        
+
         if (timeMinutes < 5) return 'Less than 5 min';
         if (timeMinutes < 15) return `${timeMinutes} min`;
         if (timeMinutes < 60) return `${timeMinutes} min`;
-        
+
         const hours = Math.floor(timeMinutes / 60);
         const minutes = timeMinutes % 60;
         return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
@@ -588,7 +594,7 @@ class CompanyDataManager {
     // Search companies
     searchCompanies(query) {
         const searchTerm = query.toLowerCase();
-        return this.companies.filter(company => 
+        return this.companies.filter(company =>
             company.name.toLowerCase().includes(searchTerm) ||
             company.email.toLowerCase().includes(searchTerm)
         );
@@ -606,7 +612,7 @@ class CompanyDataManager {
 
     // Get working days for a specific branch
     getWorkingDaysForBranch(branchId) {
-        return this.workingDays.filter(wd => 
+        return this.workingDays.filter(wd =>
             wd.branch_id === branchId || wd.company_id === branchId
         );
     }
@@ -618,7 +624,7 @@ class CompanyDataManager {
 
     // Get products for a specific branch
     getProductsForBranch(branchId) {
-        return this.products.filter(product => 
+        return this.products.filter(product =>
             product.branch_id === branchId || product.company_id === branchId
         );
     }
@@ -698,26 +704,79 @@ class CompanyDataManager {
         }
     }
 
-    // Get rating for a product based on product tags
+    // Get rating for a specific product
     getProductRating(product) {
-        // Get product tags from various possible field names
-        const productTags = product.tags || product.product_tags || product.tag || [];
-        
-        if (!productTags || productTags.length === 0) {
-            return 0; // Return 0 if no tags
+        if (!product) return 0;
+
+        const productId = product.$id;
+        const productName = product.name || product.product_name || '';
+
+        // Debug first product to see structure
+        if (this.debugProductCount === undefined) {
+            this.debugProductCount = 0;
+        }
+        if (this.debugProductCount < 3) {
+            console.log(`🔍 [DEBUG] Checking rating for product: ${productName} (${productId})`);
+            console.log(`   - Product Tags:`, product.tags || product.product_tags);
+            this.debugProductCount++;
         }
 
-        // Find ratings that match any of the product tags
+        const companyId = product.company_id || product.companyId;
+
+        // Get product tags from various possible field names
+        let productTags = product.tags || product.product_tags || product.tag || [];
+        if (typeof productTags === 'string') {
+            try {
+                productTags = JSON.parse(productTags);
+            } catch (e) {
+                productTags = productTags.split(',').map(t => t.trim());
+            }
+        }
+
+        // Filter ratings to find matches for this product
         const matchingRatings = this.ratings.filter(rating => {
-            const ratingTags = rating.tags || rating.product_tags || rating.tag || [];
-            if (!ratingTags || ratingTags.length === 0) return false;
-            
-            // Check if any product tag matches any rating tag
-            return productTags.some(productTag => 
-                ratingTags.some(ratingTag => 
-                    productTag.toLowerCase() === ratingTag.toLowerCase()
-                )
+            // 1. Check if rating belongs to same company/branch
+            const ratingCompanyId = rating.company_id || rating.companyId;
+
+            if (companyId && ratingCompanyId && companyId !== ratingCompanyId) {
+                return false;
+            }
+
+            // 2. Try Exact match by product ID (if column existed, but useful to keep)
+            let ratingProductId = rating.product_id || rating.productId;
+            if (!ratingProductId && rating.product) {
+                // Handle expanded relationship
+                ratingProductId = typeof rating.product === 'object' ? rating.product.$id : rating.product;
+            }
+
+            if (ratingProductId && productId && ratingProductId === productId) {
+                console.log(`   ✅ Match found by ID for ${productName}`);
+                return true;
+            }
+
+            // 3. Match by Tags or Name
+            // The ratings table has 'product_tags' as a string column
+            let ratingTagsStr = rating.product_tags || rating.tags || rating.tag || '';
+            const ratingTagsLower = String(ratingTagsStr).toLowerCase();
+
+            // A. Check if Product Name is in the rating tags (Robust fallback)
+            if (productName && ratingTagsLower.includes(productName.toLowerCase())) {
+                if (this.debugProductCount <= 3) console.log(`   ✅ Match found by NAME in tags for ${productName}`);
+                return true;
+            }
+
+            // B. Check standard tag matching
+            if (!productTags || productTags.length === 0) return false;
+
+            const hasTagMatch = productTags.some(productTag =>
+                ratingTagsLower.includes(String(productTag).toLowerCase().trim())
             );
+
+            if (hasTagMatch) {
+                if (this.debugProductCount <= 3) console.log(`   ✅ Match found by TAG for ${productName}`);
+            }
+
+            return hasTagMatch;
         });
 
         if (matchingRatings.length === 0) {
@@ -731,9 +790,43 @@ class CompanyDataManager {
         }, 0);
 
         const averageRating = totalStars / matchingRatings.length;
-        
+
         // Round to 1 decimal place and ensure it's between 0 and 5
         return Math.round(Math.max(0, Math.min(5, averageRating)) * 10) / 10;
+    }
+
+    // Get average rating for a company/branch based on all ratings
+    getCompanyRating(companyId, branchId) {
+        // Find all ratings for this company/branch
+        const companyRatings = this.ratings.filter(rating => {
+            const ratingCompanyId = rating.company_id || rating.companyId;
+            const ratingBranchId = rating.branch_id || rating.branchId;
+
+            // Match by both company_id and branch_id for more accurate results
+            if (branchId) {
+                return ratingCompanyId === companyId && ratingBranchId === branchId;
+            }
+            // If no branch_id provided, match by company_id only
+            return ratingCompanyId === companyId;
+        });
+
+        if (companyRatings.length === 0) {
+            return { average: 0, count: 0 }; // Return 0 if no ratings
+        }
+
+        // Calculate average rating from all company ratings
+        const totalStars = companyRatings.reduce((sum, rating) => {
+            const stars = parseFloat(rating.stars || rating.rating || rating.star || 0);
+            return sum + stars;
+        }, 0);
+
+        const averageRating = totalStars / companyRatings.length;
+
+        // Round to 1 decimal place and ensure it's between 0 and 5
+        return {
+            average: Math.round(Math.max(0, Math.min(5, averageRating)) * 10) / 10,
+            count: companyRatings.length
+        };
     }
 
     // Get products for a specific company
@@ -743,7 +836,7 @@ class CompanyDataManager {
 
     // Get social media for a specific branch
     getSocialMediaForBranch(branchId) {
-        return this.socialMedia.filter(sm => 
+        return this.socialMedia.filter(sm =>
             sm.branch_id === branchId || sm.company_id === branchId
         );
     }
@@ -756,18 +849,18 @@ class CompanyDataManager {
     // Convert product image path to full Appwrite URL
     getProductImageUrl(imagePath) {
         if (!imagePath) return '';
-        
+
         // If it's already a full URL, return as-is
         if (imagePath.startsWith('http')) {
             return imagePath;
         }
-        
+
         // Convert relative path to full Appwrite URL
         const { PROJECT_ID, DATABASE_ID, BUCKETS } = window.appwriteConfig;
         if (BUCKETS && BUCKETS.PRODUCTS) {
             return `https://nyc.cloud.appwrite.io/v1/storage/buckets/${BUCKETS.PRODUCTS}/files/${imagePath}/view?project=${PROJECT_ID}`;
         }
-        
+
         // Fallback if bucket config not available
         return `https://nyc.cloud.appwrite.io/v1/storage/buckets/68b1c57b001542be7fbe/files/${imagePath}/view?project=${PROJECT_ID}`;
     }
@@ -781,11 +874,11 @@ try {
     console.error('❌ Failed to initialize CompanyDataManager:', error);
     // Create a fallback instance with basic functionality
     window.companyDataManager = {
-        fetchCompanyData: async function() {
+        fetchCompanyData: async function () {
             console.log('🔄 Using fallback fetchCompanyData');
             return this.getFallbackData();
         },
-        getFallbackData: function() {
+        getFallbackData: function () {
             console.log('🔄 Using fallback company data - returning empty array for professional empty state');
             return []; // Return empty array to show professional empty state instead of fallback data
         }
