@@ -9,6 +9,7 @@ class CompanyDataManager {
         this.products = [];
         this.socialMedia = [];
         this.verifications = [];
+        this.userSettings = [];
         this.ratings = [];
         this.isLoading = false;
         this.lastFetchTime = null;
@@ -30,14 +31,15 @@ class CompanyDataManager {
         try {
             console.log('🔄 Fetching company data from database...');
             
-            // Fetch companies, branches, working days, products, social media, verification and ratings in parallel
-            const [companiesResponse, branchesResponse, workingDaysResponse, productsResponse, socialMediaResponse, verificationResponse, ratingsResponse] = await Promise.all([
+            // Fetch companies, branches, working days, products, social media, verification, user settings and ratings in parallel
+            const [companiesResponse, branchesResponse, workingDaysResponse, productsResponse, socialMediaResponse, verificationResponse, userSettingsResponse, ratingsResponse] = await Promise.all([
                 this.fetchCompanies(),
                 this.fetchBranches(),
                 this.fetchWorkingDays(),
                 this.fetchProducts(),
                 this.fetchSocialMedia(),
                 this.fetchVerifications(),
+                this.fetchUserSettings(),
                 this.fetchRatings()
             ]);
 
@@ -47,6 +49,7 @@ class CompanyDataManager {
             this.products = productsResponse;
             this.socialMedia = socialMediaResponse;
             this.verifications = verificationResponse;
+            this.userSettings = userSettingsResponse;
             this.ratings = ratingsResponse;
             this.lastFetchTime = Date.now();
 
@@ -156,6 +159,61 @@ class CompanyDataManager {
         }
     }
 
+    // Determine verification tier for a company based on user settings
+    getVerificationTier(companyId, branchId = null) {
+        console.log(`🔍 [DEBUG] Getting verification tier for company: ${companyId}, branch: ${branchId}`);
+        console.log(`🔍 [DEBUG] Available user settings:`, this.userSettings);
+        
+        // Find user settings for this company/branch
+        const userSetting = this.userSettings.find(setting => {
+            // user_settings table uses branch_id and user_id fields
+            const settingBranchId = setting.branch_id || setting.branchId || setting.branchID || setting.branch;
+            const settingUserId = setting.user_id || setting.userId || setting.userID || setting.user;
+            
+            // Only match by branch_id for verification tier determination
+            const matchesBranch = settingBranchId === branchId;
+            // Note: We don't match by user_id for verification tiers to avoid conflicts
+            
+            console.log(`🔍 [DEBUG] Checking setting:`, {
+                settingBranchId,
+                settingUserId,
+                targetBranchId: branchId,
+                targetCompanyId: companyId,
+                matchesBranch,
+                allFields: Object.keys(setting)
+            });
+            return matchesBranch;
+        });
+
+        console.log(`🔍 [DEBUG] Found user setting:`, userSetting);
+
+        if (!userSetting) {
+            // No user settings found - default to tier2
+            console.log(`🔍 [DEBUG] No user settings found for company ${companyId} - defaulting to tier2`);
+            return 2;
+        }
+
+        const verificationLevel = userSetting.verification_level;
+        console.log(`🔍 [DEBUG] Verification level for company ${companyId}: ${verificationLevel}`);
+        console.log(`🔍 [DEBUG] Full user setting object:`, userSetting);
+
+        // Map verification_level to tier
+        switch (verificationLevel) {
+            case 'tier1':
+                console.log(`🔍 [DEBUG] Mapped 'tier1' to tier 1`);
+                return 1;
+            case 'tier2':
+                console.log(`🔍 [DEBUG] Mapped 'tier2' to tier 2`);
+                return 2;
+            case 'tier3':
+                console.log(`🔍 [DEBUG] Mapped 'tier3' to tier 3`);
+                return 3;
+            default:
+                console.log(`⚠️ [DEBUG] Unknown verification level '${verificationLevel}' for company ${companyId} - defaulting to tier2`);
+                return 2;
+        }
+    }
+
     // Merge company and branch data
     mergeCompanyAndBranchData() {
         const mergedData = [];
@@ -182,28 +240,32 @@ class CompanyDataManager {
 
                 // Get verification status for this company
                 const verification = this.verifications.find(v => {
-                    // Try all possible field names for company ID
-                    const companyId = v.company_id || v.companyId || v.companyID || v.company;
-                    return companyId === branch.company_id;
+                    // Verification table uses userId field
+                    const verificationUserId = v.userId || v.user_id || v.company_id || v.companyId || v.companyID || v.company;
+                    return verificationUserId === branch.company_id;
                 });
                 const verificationStatus = verification ? 
                     (verification.status || verification.verification_status || verification.verificationStatus) : 
                     null;
                 const isVerified = verificationStatus === 'verified';
                 
+                // Get verification tier for this company/branch
+                const verificationTier = this.getVerificationTier(branch.company_id, branch.branch_id);
+                
                 console.log(`🔍 Checking verification for company ${branch.company_id}:`);
                 console.log('- Found verification:', verification);
                 console.log('- Verification status:', verificationStatus || 'N/A');
                 console.log('- isVerified:', isVerified);
+                console.log('- Verification tier:', verificationTier);
                 console.log('- Branch name:', branch.branch_name);
                 
                 // Debug: Show all verification records for troubleshooting
                 if (this.verifications.length > 0) {
                     console.log('🔍 All verification records:');
                     this.verifications.forEach((v, i) => {
-                        const companyId = v.company_id || v.companyId || v.companyID;
+                        const verificationUserId = v.userId || v.user_id || v.company_id || v.companyId || v.companyID || v.company;
                         const status = v.status || v.verification_status || v.verificationStatus;
-                        console.log(`  ${i + 1}. company_id: ${companyId}, status: ${status}, $id: ${v.$id}`);
+                        console.log(`  ${i + 1}. userId: ${verificationUserId}, status: ${status}, $id: ${v.$id}, allFields: ${Object.keys(v)}`);
                     });
                 }
 
@@ -225,6 +287,7 @@ class CompanyDataManager {
                     header_image: branch.header_image,
                     branch_type: branch.branch_type,
                     is_verified: isVerified, // Add verification status
+                    verification_tier: verificationTier, // Add verification tier
                     coordinates: this.generateCoordinates(branch.location),
                     working_days: branchWorkingDays, // Add working days
                     products: branchProducts.map(product => ({
@@ -571,6 +634,21 @@ class CompanyDataManager {
             return response.documents;
         } catch (error) {
             console.error('❌ Error fetching social media:', error);
+            return [];
+        }
+    }
+
+    // Fetch user settings from user_settings table
+    async fetchUserSettings() {
+        try {
+            const response = await window.databases.listDocuments(
+                window.appwriteConfig.DATABASE_ID,
+                'user_settings'
+            );
+            console.log(`⚙️ Found ${response.documents.length} user settings records`);
+            return response.documents;
+        } catch (error) {
+            console.error('❌ Error fetching user settings:', error);
             return [];
         }
     }

@@ -168,6 +168,30 @@
             vertical-align: middle;
         }
 
+        .verified-checkmark-tier2 {
+            color: #3B74FF;
+            font-size: 20px;
+            margin-left: 4px;
+            vertical-align: middle;
+            font-variation-settings:
+                'FILL' 1,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+
+        .verified-checkmark-tier3 {
+            color: #FFD700;
+            font-size: 20px;
+            margin-left: 4px;
+            vertical-align: middle;
+            font-variation-settings:
+                'FILL' 1,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+
         .search-container:focus-within {
             border-color: #3B74FF !important;
             box-shadow: 0 0 0 1px #3B74FF !important;
@@ -1803,8 +1827,8 @@
                 </div>
 
                 <!-- User Name -->
-                <h2 id="menuUserName" class="text-white text-xl font-semibold">Phluowiser</h2>
-                <p id="menuUserEmail" class="text-[#808080] text-base">loading...</p>
+                <h2 id="menuUserName" class="text-white text-xl font-semibold">John Doe</h2>
+                <p id="menuUserEmail" class="text-[#808080] text-base">john@example.com</p>
             </div>
 
             <!-- Menu Content -->
@@ -2748,7 +2772,28 @@
         // Load service data from database
         let loadRetryCount = 0;
         const MAX_RETRIES = 10;
-        
+
+        // Get verified icon CSS class based on verification tier
+        function getVerifiedIconClass(tier) {
+            console.log(`🔍 [DEBUG] Getting icon class for tier: ${tier}`);
+            let cssClass;
+            switch (tier) {
+                case 2:
+                    cssClass = 'verified-checkmark-tier2'; // Blue icon
+                    console.log(`🔍 [DEBUG] Tier 2 -> Blue icon: ${cssClass}`);
+                    break;
+                case 3:
+                    cssClass = 'verified-checkmark-tier3'; // Gold icon
+                    console.log(`🔍 [DEBUG] Tier 3 -> Gold icon: ${cssClass}`);
+                    break;
+                default:
+                    cssClass = 'verified-checkmark-tier2'; // Default to blue (tier2)
+                    console.log(`🔍 [DEBUG] Default tier (${tier}) -> Blue icon: ${cssClass}`);
+                    break;
+            }
+            return cssClass;
+        }
+
         async function loadServiceData() {
             console.log('🔄 Loading services with web2app cache-first strategy...');
             
@@ -2816,9 +2861,12 @@
                 console.log('🔄 Background refresh - checking for new service data...');
                 const freshData = await window.companyDataManager.fetchCompanyData();
                 
-                // Check if data has changed
-                if (hasServicesChanged(freshData, services)) {
-                    console.log('🆕 New service data detected - updating cache and UI');
+                // Always check for verification tier changes, even if timestamps haven't changed
+                const verificationTiersChanged = hasVerificationTiersChanged(freshData, services);
+                
+                // Check if data has changed OR verification tiers changed
+                if (hasServicesChanged(freshData, services) || verificationTiersChanged) {
+                    console.log('🆕 New service data or verification tiers detected - updating cache and UI');
                     services = freshData;
                     servicesDataLoaded = true;
                     
@@ -2845,6 +2893,30 @@
                 console.error('❌ Background refresh for services failed:', error);
                 // Don't show error to user - UI already working with cache
             }
+        }
+
+        // Check if verification tiers have changed between old and new data
+        function hasVerificationTiersChanged(newData, oldData) {
+            if (!oldData || oldData.length === 0) return true;
+            if (!newData || newData.length === 0) return false;
+            
+            for (let i = 0; i < newData.length; i++) {
+                const newService = newData[i];
+                const oldService = oldData.find(s => s.company_id === newService.company_id);
+                
+                if (!oldService) return true; // New service found
+                
+                // Check if verification tier changed
+                const newTier = newService.verification_tier || 2;
+                const oldTier = oldService.verification_tier || 2;
+                
+                if (newTier !== oldTier) {
+                    console.log(`🔄 Verification tier changed for ${newService.name}: ${oldTier} → ${newTier}`);
+                    return true;
+                }
+            }
+            
+            return false;
         }
 
         // Check if services data has changed
@@ -2940,10 +3012,15 @@
 
         // Render service cards dynamically
         function renderServices() {
+            console.log('🔍 [DEBUG] renderServices() called');
+            console.log('🔍 [DEBUG] Total services array length:', services.length);
+            console.log('🔍 [DEBUG] Services array:', services);
+            
             const listView = document.getElementById('listView');
             listView.innerHTML = '';
             
             if (services.length === 0) {
+                console.log('🔍 [DEBUG] No services found - showing empty state');
                 // Show professional empty state when no companies are available
                 listView.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full text-white text-center p-8" style="min-height: 400px;">
@@ -2975,7 +3052,19 @@
                 return;
             }
             
-            services.forEach((service, index) => {
+            // Apply verification tier filtering - hide tier1 companies, show tier2 and tier3
+            const filteredServices = services.filter(service => {
+                const tier = service.verification_tier || 2; // Default to tier2 if not set
+                console.log(`🔍 [DEBUG] Service: ${service.name}, Tier: ${tier}, verification_tier field: ${service.verification_tier}`);
+                const shouldShow = tier !== 1; // Hide tier1 companies
+                console.log(`🔍 [DEBUG] Should show ${service.name}: ${shouldShow} (tier ${tier})`);
+                return shouldShow;
+            });
+            
+            console.log(`🔍 [DEBUG] Filtered services: ${filteredServices.length} out of ${services.length}`);
+            
+            filteredServices.forEach((service, index) => {
+                console.log(`🔍 [DEBUG] Creating card for service: ${service.name}`);
                 const serviceCard = createServiceCard(service, index);
                 listView.appendChild(serviceCard);
             });
@@ -3039,8 +3128,7 @@
                         `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
                             <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                            </svg>
-                        </div>`
+                            </div>`
                     }
                 </div>
 
@@ -3048,7 +3136,7 @@
                 <div class="flex flex-col mt-12 px-5">
                     <h3 class="text-white text-lg font-medium">
                         <a href="schedule.html?branch_id=${service.branch_id}" class="hover:text-blue-400 transition-colors">${service.name}</a>
-                        <span class="material-symbols-outlined verified-checkmark">verified</span>
+                        <span class="material-symbols-outlined ${getVerifiedIconClass(service.verification_tier)}">verified</span>
                     </h3>
                     <div class="flex flex-row gap-2">
                         <span class="text-white text-lg font-medium">${service.location}</span>
@@ -3116,18 +3204,8 @@
             });
         }
 
-        // Enhanced distance calculation with road network factors
+        // Calculate distance between two coordinates using Haversine formula
         function calculateDistance(lat1, lng1, lat2, lng2) {
-            // Calculate straight-line distance using Haversine
-            const straightDistance = haversineDistance(lat1, lng1, lat2, lng2);
-            
-            // Apply road network factor (1.3 for urban areas)
-            const roadFactor = 1.3;
-            return straightDistance * roadFactor;
-        }
-
-        // Haversine distance calculation (base calculation)
-        function haversineDistance(lat1, lng1, lat2, lng2) {
             const R = 6371; // Earth's radius in kilometers
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLng = (lng2 - lng1) * Math.PI / 180;
@@ -3341,7 +3419,7 @@
                     }
                 </div>
                 <div class="flex flex-col mt-12 px-5">
-                    <h3 class="text-white text-lg font-medium">${service.name}<span class="material-symbols-outlined verified-checkmark">verified</span></h3>
+                    <h3 class="text-white text-lg font-medium">${service.name}<span class="material-symbols-outlined ${getVerifiedIconClass(service.verification_tier)}">verified</span></h3>
                     <div class="flex flex-row gap-2">
                         <span class="text-white text-lg font-medium">${service.location}</span>
                         <span class="text-[#2C9043] text-lg font-medium">${service.time}</span>
@@ -3400,13 +3478,35 @@
 
         // Navigate to previous card
         function prevCard() {
-            currentCardIndex = (currentCardIndex - 1 + services.length) % services.length;
+            // Get filtered services (excluding tier1)
+            const filteredServices = services.filter(service => {
+                const tier = service.verification_tier || 2;
+                return tier !== 1; // Hide tier1 companies
+            });
+            
+            if (filteredServices.length === 0) return;
+            
+            do {
+                currentCardIndex = (currentCardIndex - 1 + services.length) % services.length;
+            } while (services[currentCardIndex].verification_tier === 1); // Skip tier1 companies
+            
             renderSwipeCard(currentCardIndex);
         }
 
         // Navigate to next card
         function nextCard() {
-            currentCardIndex = (currentCardIndex + 1) % services.length;
+            // Get filtered services (excluding tier1)
+            const filteredServices = services.filter(service => {
+                const tier = service.verification_tier || 2;
+                return tier !== 1; // Hide tier1 companies
+            });
+            
+            if (filteredServices.length === 0) return;
+            
+            do {
+                currentCardIndex = (currentCardIndex + 1) % services.length;
+            } while (services[currentCardIndex].verification_tier === 1); // Skip tier1 companies
+            
             renderSwipeCard(currentCardIndex);
         }
 
