@@ -1,10 +1,7 @@
 const CACHE_NAME = 'phluowise-v1';
 const urlsToCache = [
   '/',
-  '/offline.html',
-  '/css/native-like-experience.css',
-  'https://cdn.tailwindcss.com',
-  'https://cdn.jsdelivr.net/npm/appwrite@13.0.0/dist/appwrite.min.js'
+  '/offline.html'
 ];
 
 // Install event - cache resources
@@ -13,7 +10,12 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        // Use addAll with error handling to gracefully handle missing files
+        return cache.addAll(urlsToCache).catch((err) => {
+          console.log('Some cache files failed to load:', err);
+          // Continue installation even if some files fail
+          return Promise.resolve();
+        });
       })
   );
   self.skipWaiting();

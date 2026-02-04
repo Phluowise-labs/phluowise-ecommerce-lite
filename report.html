@@ -4,16 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-TRV3R43NQZ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-TRV3R43NQZ');
-</script>
-    <title>Phluowise - Report</title>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRV3R43NQZ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-TRV3R43NQZ');
+    </script>
+    <title>Phluowise - Report Issue</title>
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <!-- PWA Meta Tags -->
@@ -29,6 +31,7 @@
                 extend: {
                     colors: {
                         primary: '#007ACC',
+                        tabActive: '#3B74FF',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -42,22 +45,66 @@
 
         :root {
             --bg-color: #060606;
+            --bg-second: #1D1D1DF2;
             --bg-third: #101010;
+            --header-bg: #101010;
+            --tab-bg: #101010;
+            --input-field-second: #40444B66;
+            --input-field-second-border: #808080;
+            --btn-color: #007ACC66;
+            --btn-border: #3B74FF;
+            --btn-second-color: #F57D7D4D;
+            --btn-second-border: #F57D7D;
+            --modal-bg: #101010;
+            --modal-border: #DADADA;
         }
 
         body.dark-theme {
             --bg-color: #060606;
+            --bg-second: #1D1D1DF2;
             --bg-third: #101010;
+            --header-bg: #101010;
+            --tab-bg: #101010;
+            --input-field-second: #40444B66;
+            --input-field-second-border: #808080;
+            --btn-color: #007ACC66;
+            --btn-border: #3B74FF;
+            --btn-second-color: #F57D7D4D;
+            --btn-second-border: #F57D7D;
+            --modal-bg: #101010;
+            --modal-border: #DADADA;
         }
 
         body.gray-theme {
             --bg-color: #202225;
+            --bg-second: #40444B;
             --bg-third: #292B2F;
+            --header-bg: #292B2F;
+            --tab-bg: #292B2F;
+            --input-field-second: #40444B;
+            --input-field-second-border: #40444B;
+            --btn-color: #007ACC;
+            --btn-border: #007ACC;
+            --btn-second-color: #F57D7D;
+            --btn-second-border: #F57D7D;
+            --modal-bg: #40444B;
+            --modal-border: #40444B;
         }
 
         body.light-theme {
             --bg-color: #202225;
+            --bg-second: #40444B;
             --bg-third: #292B2F;
+            --header-bg: #292B2F;
+            --tab-bg: #292B2F;
+            --input-field-second: #40444B;
+            --input-field-second-border: #40444B;
+            --btn-color: #007ACC;
+            --btn-border: #007ACC;
+            --btn-second-color: #F57D7D;
+            --btn-second-border: #F57D7D;
+            --modal-bg: #40444B;
+            --modal-border: #40444B;
         }
 
         body {
@@ -68,140 +115,529 @@
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
+
+        .header-bar {
+            background-color: var(--header-bg);
+        }
+
+        .card-bg {
+            background-color: var(--bg-second);
+        }
+
+        /* Form Styles */
+        .form-input {
+            background-color: var(--input-field-second);
+            border: 1px solid var(--input-field-second-border);
+            border-radius: 12px;
+            color: white;
+            padding: 12px 16px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--btn-border);
+            background-color: var(--input-field-second);
+            box-shadow: 0 0 0 3px rgba(59, 116, 255, 0.1);
+        }
+
+        .form-input::-webkit-outer-spin-button,
+        .form-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--btn-color) 0%, rgba(59, 116, 255, 0.3) 100%);
+            border: 1px solid var(--btn-border);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, rgba(59, 116, 255, 0.8) 0%, rgba(59, 116, 255, 0.5) 100%);
+            box-shadow: 0 0 20px rgba(59, 116, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, rgba(59, 116, 255, 0.1) 0%, rgba(59, 116, 255, 0.05) 100%);
+            border: 1px solid rgba(59, 116, 255, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .success-message {
+            background-color: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: #4CAF50;
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .error-message {
+            background-color: rgba(245, 125, 125, 0.1);
+            border: 1px solid rgba(245, 125, 125, 0.3);
+            color: #F57D7D;
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 16px;
+            color: var(--btn-border);
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: var(--modal-bg);
+            border: 1px solid var(--modal-border);
+            border-radius: 20px;
+            padding: 32px 24px;
+            width: 85%;
+            max-width: 320px;
+            text-align: center;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.05) 100%);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.1);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+
+        .modal-message {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+
+        .modal-btn {
+            background: linear-gradient(135deg, var(--btn-border) 0%, rgba(59, 116, 255, 0.8) 100%);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 16px;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(59, 116, 255, 0.3);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 116, 255, 0.4);
+        }
+        
+        .modal-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 
 <body class="dark-theme h-screen flex flex-col overflow-hidden">
 
     <!-- Header with Back Button -->
-    <div class="w-full h-[60px] flex items-center px-5" style="background-color: var(--bg-color);">
+    <div class="w-full h-[60px] flex items-center px-5 header-bar" style="background-color: var(--header-bg);">
         <button onclick="goBack()" class="w-10 h-10 flex items-center justify-center">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
         </button>
-        <h1 class="flex-1 text-center text-white text-xl font-medium pr-10">Report a Problem</h1>
+        <h1 class="flex-1 text-center text-white text-xl font-semibold pr-10">Report Issue</h1>
     </div>
 
     <!-- Main Content -->
     <div class="flex-1 overflow-y-auto hide-scrollbar" style="background-color: var(--bg-color);">
-        <div class="p-6 flex flex-col gap-6">
+        <div class="p-5 pb-24">
 
-            <!-- Description -->
-            <p class="text-white text-base text-center opacity-80">
-                Help us improve Phluowise by reporting any issues you encounter.
-            </p>
-
-            <!-- Report Type Selection -->
-            <div class="flex flex-col gap-2">
-                <label class="text-white text-lg font-medium">Issue Type</label>
-                <select id="issueType"
-                    class="h-[56px] rounded-2xl px-6 bg-[#292B2F] border border-[#292B2F] text-white text-lg outline-none">
-                    <option value="bug">Bug / Error</option>
-                    <option value="feature">Feature Request</option>
-                    <option value="payment">Payment Issue</option>
-                    <option value="delivery">Delivery Problem</option>
-                    <option value="account">Account Issue</option>
-                    <option value="other">Other</option>
-                </select>
+            <!-- Info Section -->
+            <div class="mt-6 mb-6">
+                <h2 class="text-lg font-semibold mb-2">Help us improve Phluowise</h2>
+                <p class="text-sm text-gray-400">Report any issues you encounter. For urgent issues, contact us at <span class="text-primary">info@phluowise.com</span></p>
             </div>
 
-            <!-- Subject -->
-            <div class="flex flex-col gap-2">
-                <label class="text-white text-lg font-medium">Subject</label>
-                <input type="text" id="subject" placeholder="Brief description of the issue"
-                    class="h-[56px] rounded-2xl px-6 bg-[#292B2F] border border-[#292B2F] text-white text-lg placeholder-white/50 outline-none">
+            <!-- Info Box -->
+            <div class="info-box">
+                <div class="flex gap-3">
+                    <svg class="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                    <div>
+                        <p class="text-sm font-medium">Provide detailed information</p>
+                        <p class="text-xs text-gray-400 mt-1">Include steps to reproduce the issue and any error messages you received.</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Description -->
-            <div class="flex flex-col gap-2">
-                <label class="text-white text-lg font-medium">Description</label>
-                <textarea id="description" rows="5" placeholder="Please describe the issue in detail..."
-                    class="rounded-2xl px-6 py-4 bg-[#292B2F] border border-[#292B2F] text-white text-lg placeholder-white/50 outline-none resize-none"></textarea>
+            <!-- Status Messages -->
+            <div id="successMessage" class="success-message">
+                ✓ Thank you! Your report has been submitted successfully. We'll review it shortly.
+            </div>
+            <div id="errorMessage" class="error-message">
+                ✗ There was an error submitting your report. Please try again.
             </div>
 
-            <!-- Email (optional) -->
-            <div class="flex flex-col gap-2">
-                <label class="text-white text-lg font-medium">Email (for follow-up)</label>
-                <input type="email" id="email" placeholder="your@email.com"
-                    class="h-[56px] rounded-2xl px-6 bg-[#292B2F] border border-[#292B2F] text-white text-lg placeholder-white/50 outline-none">
-            </div>
+            <!-- Report Form -->
+            <form id="reportForm" action="https://submit-form.com/NPjqf7tZD" method="POST" enctype="multipart/form-data">
+                <!-- Formspark required hidden fields -->
+                <input type="hidden" name="_redirect" value="false">
+                <input type="hidden" name="_subject" value="Phluowise Report Issue Submission">
+                <input type="hidden" name="_format" value="plain">
+                <input type="text" name="_gotcha" autocomplete="off" style="display:none" />
+                
+                <!-- Name Field -->
+                <div class="form-group">
+                    <label for="name" class="form-label">Your Name *</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        class="form-input w-full" 
+                        placeholder="Enter your full name"
+                        required 
+                    />
+                </div>
 
-            <!-- Submit Button -->
-            <button onclick="submitReport()"
-                class="h-[56px] w-full mt-4 rounded-2xl flex items-center justify-center border border-[#007ACC] bg-[#007ACC] shadow-lg active:scale-95 transition-transform">
-                <span class="text-white text-xl font-medium capitalize">Submit Report</span>
-            </button>
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address *</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input w-full" 
+                        placeholder="Enter your email address"
+                        required 
+                    />
+                </div>
+
+                <!-- Issue Type Field -->
+                <div class="form-group">
+                    <label for="issueType" class="form-label">Issue Type</label>
+                    <select 
+                        id="issueType" 
+                        name="issueType" 
+                        class="form-input w-full"
+                    >
+                        <option value="">Select an issue type</option>
+                        <option value="bug">Bug Report</option>
+                        <option value="feature">Feature Request</option>
+                        <option value="performance">Performance Issue</option>
+                        <option value="ui_ux">UI/UX Feedback</option>
+                        <option value="payment">Payment Issue</option>
+                        <option value="authentication">Authentication Issue</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Subject Field -->
+                <div class="form-group">
+                    <label for="subject" class="form-label">Subject *</label>
+                    <input 
+                        type="text" 
+                        id="subject" 
+                        name="subject" 
+                        class="form-input w-full" 
+                        placeholder="Brief description of the issue"
+                        required 
+                    />
+                </div>
+
+                <!-- Message Field -->
+                <div class="form-group">
+                    <label for="message" class="form-label">Detailed Description *</label>
+                    <textarea 
+                        id="message" 
+                        name="message" 
+                        class="form-input w-full" 
+                        placeholder="Please provide detailed information about the issue, including:&#10;- Steps to reproduce&#10;- What you expected to happen&#10;- What actually happened&#10;- Device and browser information"
+                        required 
+                    ></textarea>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loadingSpinner" class="loading">
+                    <p class="text-sm">Submitting your report...</p>
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    id="submitBtn" 
+                    class="submit-btn"
+                >
+                    Send Report
+                </button>
+            </form>
 
             <!-- Contact Info -->
-            <div class="mt-4 p-4 rounded-[15px] text-center" style="background-color: var(--bg-third);">
-                <p class="text-white/60 text-sm">For urgent issues, contact us at:</p>
-                <p class="text-[#007ACC] text-base font-medium mt-1">info@phluowise.com</p>
+            <div class="mt-8 pt-6 border-t border-gray-700">
+                <p class="text-xs text-gray-500 text-center">
+                    For urgent issues, please contact us directly at <span class="text-primary font-medium">info@phluowise.com</span>
+                </p>
             </div>
 
         </div>
     </div>
 
-    <script src="js/theme.js"></script>
+    <!-- Success Modal -->
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h3 class="modal-title">Success!</h3>
+            <p class="modal-message">Your report has been submitted successfully. We'll review it shortly.</p>
+            <button onclick="closeModalAndRedirect()" class="modal-btn">Back to Home</button>
+        </div>
+    </div>
+
     <script>
-        // Navigation State Management
+        // Theme initialization
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark-theme';
+            document.body.className = savedTheme;
+        }
+
+        // Initialize theme on page load
+        document.addEventListener('DOMContentLoaded', initializeTheme);
+
+        // Go back function
         function goBack() {
-            const previousPage = localStorage.getItem('previousPage');
-            if (previousPage) {
-                window.location.href = previousPage;
+            if (window.history.length > 1) {
+                window.history.back();
             } else {
-                // Fallback to home if no previous page is stored
                 window.location.href = 'home.html';
             }
         }
 
-        function submitReport() {
-            const issueType = document.getElementById('issueType').value;
-            const subject = document.getElementById('subject').value;
-            const description = document.getElementById('description').value;
-            const email = document.getElementById('email').value;
+        // Modal functions
+        function showSuccessModal() {
+            const modal = document.getElementById('successModal');
+            if (!modal) return;
+            
+            modal.style.display = 'flex';
+            // Trigger reflow
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+        }
 
-            if (!subject || !description) {
-                alert('Please fill in the subject and description fields.');
+        function closeModalAndRedirect() {
+            const modal = document.getElementById('successModal');
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    window.location.href = 'home.html';
+                }, 300);
+            } else {
+                window.location.href = 'home.html';
+            }
+        }
+
+        // Form submission handler
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            console.log('Form submission intercepted');
+            
+            const form = document.getElementById('reportForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Validate form
+            if (!form.checkValidity()) {
+                form.reportValidity();
                 return;
             }
 
-            // Here you would typically send to an API
-            alert('Thank you for your report! We will review it shortly.');
+            // Hide previous messages
+            if (errorMessage) errorMessage.style.display = 'none';
 
-            // Clear form
-            document.getElementById('subject').value = '';
-            document.getElementById('description').value = '';
-            document.getElementById('email').value = '';
-        }
-    </script>
+            // Show loading state
+            if (submitBtn) submitBtn.disabled = true;
+            if (loadingSpinner) loadingSpinner.style.display = 'block';
 
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration);
+            try {
+                // Create FormData from the form
+                const formData = new FormData(form);
+                
+                // Add timestamp for tracking
+                const timestamp = new Date().toISOString();
+                formData.append('_timestamp', timestamp);
+                formData.append('_source', 'Phluowise Web App');
+                
+                console.log('Form data prepared, sending to Formspark...');
+                
+                // Send to Formspark with proper headers
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                console.log('Response status:', response.status);
+                
+                if (response.ok) {
+                    try {
+                        const result = await response.json();
+                        console.log('Formspark response:', result);
                         
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New content is available
-                                    if (confirm('New version available! Reload to update?')) {
-                                        window.location.reload();
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
+                        if (result.success) {
+                            // Show Success Modal
+                            showSuccessModal();
+                            form.reset();
+                        } else {
+                            throw new Error('Formspark returned success: false');
+                        }
+                    } catch (jsonError) {
+                        console.log('Non-JSON response, checking for success...');
+                        // Even if not JSON, if status is 200, consider it success
+                        showSuccessModal();
+                        form.reset();
+                    }
+                } else {
+                    const errorText = await response.text();
+                    console.error('Formspark submission failed:', response.status, errorText);
+                    throw new Error(`Submission failed with status: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                if (errorMessage) {
+                    errorMessage.style.display = 'block';
+                    errorMessage.textContent = 'There was an error submitting your report. Please try again or contact info@phluowise.com';
+                }
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+                if (loadingSpinner) loadingSpinner.style.display = 'none';
+            }
         }
+
+        // Attach event listener immediately
+        const form = document.getElementById('reportForm');
+        if (form) {
+            form.addEventListener('submit', handleFormSubmit);
+            console.log('Form submit listener attached');
+        }
+
+        // Pre-fill email if user is logged in
+        function prefillUserData() {
+            try {
+                const userEmail = localStorage.getItem('userEmail');
+                const userName = localStorage.getItem('userName');
+                
+                if (userEmail) {
+                    const emailInput = document.getElementById('email');
+                    if (emailInput) emailInput.value = userEmail;
+                }
+                if (userName) {
+                    const nameInput = document.getElementById('name');
+                    if (nameInput) nameInput.value = userName;
+                }
+            } catch (error) {
+                console.log('Could not prefill user data');
+            }
+        }
+
+        // Call prefill on page load
+        window.addEventListener('load', prefillUserData);
     </script>
 
 </body>

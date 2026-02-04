@@ -3115,12 +3115,6 @@
                         `}
                     </div>
                     <span class="text-white text-sm font-semibold">GHS ${(parseFloat(product.price) || 0).toFixed(2)}</span>
-                    <div class="flex flex-row items-center justify-center">
-                        <svg class="w-4 h-4 mt-1" fill="${product.rating > 0 ? '#FCD34D' : 'white'}" viewBox="0 0 24 24">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                        <span class="${product.rating > 0 ? 'text-yellow-400' : 'text-white'} text-base font-medium">${product.rating > 0 ? product.rating.toFixed(1) : '0.0'}</span>
-                    </div>
                 </div>
             `).join('');
 
@@ -3830,9 +3824,9 @@
                     }
 
                     if (recipientType !== 'you') {
-                        const name = document.getElementById('recipientName').value;
-                        const phone = document.getElementById('recipientPhone').value;
-                        const email = document.getElementById('recipientEmail').value;
+                        const name = document.getElementById('recipientName').value?.trim();
+                        const phone = document.getElementById('recipientPhone').value?.trim();
+                        const email = document.getElementById('recipientEmail').value?.trim();
 
                         if (!name || !phone || !email) {
                             showError('Please fill in all recipient information');
@@ -3856,9 +3850,19 @@
                         orderData.recipient.email = email;
                     } else {
                         // For "You" type, get data from profile
-                        orderData.recipient.name = document.getElementById('youNameDisplay').textContent;
-                        orderData.recipient.phone = document.getElementById('youPhoneDisplay').textContent;
-                        orderData.recipient.email = document.getElementById('youEmailDisplay').textContent;
+                        const youName = document.getElementById('youNameDisplay').textContent?.trim();
+                        const youPhone = document.getElementById('youPhoneDisplay').textContent?.trim();
+                        const youEmail = document.getElementById('youEmailDisplay').textContent?.trim();
+                        
+                        // Ensure no empty values
+                        if (!youName || !youPhone || !youEmail) {
+                            showError('Your profile information is incomplete. Please update your profile first.');
+                            return false;
+                        }
+                        
+                        orderData.recipient.name = youName;
+                        orderData.recipient.phone = youPhone;
+                        orderData.recipient.email = youEmail;
                     }
 
                     if (!address) {
@@ -3914,8 +3918,9 @@
                         return false;
                     }
 
-                    // Save products data
-                    orderData.products = selectedProducts;
+                    // Save products data with a deep copy to prevent loss due to array mutations
+                    orderData.products = JSON.parse(JSON.stringify(selectedProducts));
+                    console.log('✅ Products saved to orderData in step 4:', orderData.products);
                     orderData.deliveryInstructions = document.getElementById('deliveryInstructions').value;
                     break;
                 case 6: // Select Payment
@@ -4512,7 +4517,9 @@
                             uid: customerProfile.uid,
                             email: customerProfile.email,
                             name: customerProfile.full_name,
+                            full_name: customerProfile.full_name,
                             phone: customerProfile.phone_number,
+                            phone_number: customerProfile.phone_number,
                             type: customerProfile.user_type
                         };
 
@@ -5725,12 +5732,25 @@
             document.getElementById('finalRatingStars').textContent = stars;
         }
 
-        function completeOrderFlow() {
+        async function completeOrderFlow() {
             // console.log('📝 Order completed with rating:', userRating);
             // console.log('💾 Order data to save:', orderData);
 
-            // Save order to localStorage
-            saveOrderToHistory();
+            // CRITICAL: Ensure products are preserved before saving
+            console.log('🔍 completeOrderFlow - selectedProducts before save:', selectedProducts);
+            console.log('🔍 completeOrderFlow - orderData.products before save:', orderData.products);
+            
+            // Make sure products are set in orderData
+            if (!orderData.products || orderData.products.length === 0) {
+                console.log('⚠️ Products missing in orderData, copying from selectedProducts');
+                orderData.products = [...selectedProducts]; // Create a copy
+                console.log('✅ Products copied to orderData:', orderData.products);
+            }
+
+            // CRITICAL: Save order to database and AWAIT completion before clearing products
+            console.log('⏳ About to save order... waiting for completion');
+            await saveOrderToHistory();
+            console.log('✅ Order save completed');
 
             // Show success message (GREEN)
             showSuccess(`Thank you for your order! Order ID: ${orderData.orderId}. Your order has been confirmed and will be processed.`);
@@ -5738,7 +5758,7 @@
             setTimeout(() => {
                 closeScheduleFlow();
 
-                // Reset selected products for this company
+                // NOW it's safe to reset products after the save is complete
                 serviceProducts[selectedCompany] = [];
                 selectedProducts = [];
                 updateServiceProductCount(selectedCompany);
@@ -5768,6 +5788,21 @@
             try {
                 console.log('🚀 Starting to save order to database...');
                 console.log('📦 Order data to save:', orderData);
+                console.log('📦 selectedProducts at save time:', selectedProducts);
+
+                // CRITICAL: Ensure products are set - use selectedProducts as ultimate fallback
+                if (!orderData.products || orderData.products.length === 0) {
+                    console.log('⚠️ orderData.products is empty, using selectedProducts as fallback');
+                    orderData.products = selectedProducts || [];
+                    console.log('📦 Products set from selectedProducts:', orderData.products);
+                    
+                    // Double-check that we have products
+                    if (!orderData.products || orderData.products.length === 0) {
+                        console.error('❌ CRITICAL: No products available to save!');
+                        showError('No products selected. Please select at least one product and try again.');
+                        throw new Error('Cannot save order without products');
+                    }
+                }
 
                 // Ensure customer data is loaded before proceeding
                 if (!orderData.customer || !orderData.customer.id) {
@@ -5807,6 +5842,7 @@
                             customer_id: orderData.customer.id,
 
                             // Order details (other customer details to be added later when columns exist)
+                            company_id: selectedCompanyData?.id || '',
                             branch_id: selectedCompanyData?.branch_id || '',
                             deliveryTime: orderData.deliveryTime,
                             deliveryDate: orderData.deliveryDate,
@@ -5826,10 +5862,27 @@
                         const createdOrder = await orderManager.createOrder(dbOrderData);
 
                         // Create purchase recipient information
+                        // Ensure recipient name and phone are not empty
+                        let recipientName = orderData.purchase_recipient_type === 'you' ? (orderData.customer?.full_name || '') : (orderData.recipient.name || '');
+                        let recipientPhone = orderData.purchase_recipient_type === 'you' ? (orderData.customer?.phone_number || '') : (orderData.recipient.phone || '');
+                        
+                        // Validate that both are not empty
+                        if (!recipientName || !recipientName.trim()) {
+                            console.error('❌ Recipient name is empty!');
+                            showError('Recipient name is required. Please check your profile or recipient information.');
+                            throw new Error('Recipient name cannot be empty');
+                        }
+                        
+                        if (!recipientPhone || !recipientPhone.trim()) {
+                            console.error('❌ Recipient phone is empty!');
+                            showError('Recipient phone is required. Please check your profile or recipient information.');
+                            throw new Error('Recipient phone cannot be empty');
+                        }
+                        
                         const recipientData = {
                             purchase_recipient_type: orderData.purchase_recipient_type,
-                            recipient_name: orderData.purchase_recipient_type === 'you' ? (orderData.customer?.full_name || '') : (orderData.recipient.name || ''),
-                            recipient_phone: orderData.purchase_recipient_type === 'you' ? (orderData.customer?.phone_number || '') : (orderData.recipient.phone || ''),
+                            recipient_name: recipientName.trim(),
+                            recipient_phone: recipientPhone.trim(),
                             recipient_email: orderData.purchase_recipient_type === 'you' ? (orderData.customer?.email || '') : (orderData.recipient.email || ''),
                             recipient_address: orderData.recipient.address || '',
                             recipient_type: orderData.recipient.type || '',
@@ -5838,12 +5891,33 @@
                             self_pickup: orderData.purchase_recipient_type === 'you',
                             self_delivery_address: orderData.purchase_recipient_type === 'you' ? orderData.recipient.address : ''
                         };
+                        
+                        console.log('🔍 Recipient data being saved:', recipientData);
 
                         await orderManager.createPurchaseRecipientInfo(createdOrder.$id, recipientData);
 
-                        // Create order items
-                        if (orderData.products && orderData.products.length > 0) {
-                            await orderManager.createOrderItems(createdOrder.$id, orderData.products, dbOrderData);
+                        // Create order items - ensure products are properly populated
+                        console.log('🔍 About to create order items...');
+                        console.log('🔍 orderData.products:', orderData.products);
+                        console.log('🔍 selectedProducts:', selectedProducts);
+                        console.log('🔍 orderData.products length:', orderData.products?.length);
+                        
+                        // Use selectedProducts as fallback if orderData.products is empty
+                        const productsToSave = (orderData.products && orderData.products.length > 0) ? orderData.products : selectedProducts;
+                        
+                        console.log('🔍 Final products to save:', productsToSave);
+                        console.log('🔍 Products count:', productsToSave?.length);
+                        
+                        if (productsToSave && productsToSave.length > 0) {
+                            console.log('✅ Creating order items for', productsToSave.length, 'products');
+                            await orderManager.createOrderItems(createdOrder.$id, productsToSave, dbOrderData);
+                            console.log('✅ Order items created successfully');
+                        } else {
+                            console.error('❌ No order items to create. Both orderData.products and selectedProducts are empty!');
+                            console.error('❌ orderData.products:', orderData.products);
+                            console.error('❌ selectedProducts:', selectedProducts);
+                            showError('No products selected. Please select at least one product.');
+                            throw new Error('No order items to create - products list is empty');
                         }
 
                         console.log('✅ Order saved to database:', createdOrder.$id);

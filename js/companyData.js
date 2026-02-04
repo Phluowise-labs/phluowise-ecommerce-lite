@@ -496,17 +496,25 @@ class CompanyDataManager {
             'Ayawaso North': { lat: 5.6400, lng: -0.2000 }
         };
 
+        // Normalize and validate input
+        if (!location || (typeof location !== 'string' && typeof location !== 'number')) {
+            console.warn(`⚠️ generateCoordinates called with invalid location: ${location}`);
+            return { lat: 5.6037, lng: -0.1870 };
+        }
+
+        const locStr = String(location).trim();
+
         // Try exact match first
-        if (locationCoords[location]) {
-            console.log(`📍 Found exact coordinates for: ${location}`);
-            return locationCoords[location];
+        if (locationCoords[locStr]) {
+            console.log(`📍 Found exact coordinates for: ${locStr}`);
+            return locationCoords[locStr];
         }
 
         // Try partial match (contains)
         for (const [key, coords] of Object.entries(locationCoords)) {
-            if (key.toLowerCase().includes(location.toLowerCase()) ||
-                location.toLowerCase().includes(key.toLowerCase())) {
-                console.log(`📍 Found partial match for ${location}: ${key}`);
+            if (key.toLowerCase().includes(locStr.toLowerCase()) ||
+                locStr.toLowerCase().includes(key.toLowerCase())) {
+                console.log(`📍 Found partial match for ${locStr}: ${key}`);
                 return coords;
             }
         }
@@ -514,24 +522,24 @@ class CompanyDataManager {
         // Try to extract city name from location string
         const cities = ['Accra', 'Kumasi', 'Tema', 'Takoradi', 'Cape Coast', 'Ho', 'Tamale', 'Sunyani', 'Koforidua', 'Wa', 'Bolgatanga'];
         for (const city of cities) {
-            if (location.toLowerCase().includes(city.toLowerCase())) {
+            if (locStr.toLowerCase().includes(city.toLowerCase())) {
                 const cityKey = `${city}, Ghana`;
                 if (locationCoords[cityKey]) {
-                    console.log(`📍 Extracted city coordinates for ${location}: ${cityKey}`);
+                    console.log(`📍 Extracted city coordinates for ${locStr}: ${cityKey}`);
                     return locationCoords[cityKey];
                 }
             }
         }
 
         // Fallback: Try to geocode using a simple pattern matching
-        console.log(`⚠️ Location not found in database: ${location}`);
+        console.log(`⚠️ Location not found in database: ${locStr}`);
 
         // Extract any numeric patterns or common landmarks
-        const numericMatch = location.match(/\d+/);
-        const landmarkMatch = location.match(/(market|station|mall|plaza|square|park|church|mosque|school|hospital)/i);
+        const numericMatch = locStr.match(/\d+/);
+        const landmarkMatch = locStr.match(/(market|station|mall|plaza|square|park|church|mosque|school|hospital)/i);
 
         // Default to Accra Central if no specific location can be determined
-        console.log(`📍 Defaulting to Accra Central for: ${location}`);
+        console.log(`📍 Defaulting to Accra Central for: ${locStr}`);
         return {
             lat: 5.6037,
             lng: -0.1870

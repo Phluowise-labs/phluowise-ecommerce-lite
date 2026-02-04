@@ -87,6 +87,7 @@ class OrderManager {
 
         // Order details
         buyerId: orderData.customer_id || orderData.buyerId,
+        company_id: orderData.company_id || "",
         branch_id: orderData.branch_id || orderData.branchId,
         deliveryTime: orderData.deliveryTime,
         deliveryDate: orderData.deliveryDate,
@@ -128,11 +129,20 @@ class OrderManager {
       console.log("🔍 Table:", this.config.PURCHASE_RECIPIENT_TABLE);
       console.log("🔍 Database:", this.config.DATABASE_ID);
 
+      // Validate required fields
+      if (!recipientData.recipient_name || !recipientData.recipient_name.trim()) {
+        throw new Error('Recipient name is required and cannot be empty');
+      }
+      
+      if (!recipientData.recipient_phone || !recipientData.recipient_phone.trim()) {
+        throw new Error('Recipient phone is required and cannot be empty');
+      }
+
       const recipientInfo = {
         order_id: orderId,
         purchase_recipient_type: recipientData.purchase_recipient_type || "you",
-        recipient_name: recipientData.recipient_name || "",
-        recipient_phone: recipientData.recipient_phone || "",
+        recipient_name: (recipientData.recipient_name || "").trim(),
+        recipient_phone: (recipientData.recipient_phone || "").trim(),
         recipient_email:
           recipientData.recipient_email &&
           recipientData.recipient_email.trim() !== ""
@@ -167,6 +177,11 @@ class OrderManager {
   // Create order items for a specific order
   async createOrderItems(orderId, items, orderData) {
     try {
+      // Validate that items array is not empty
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        throw new Error('Order items array is empty or invalid');
+      }
+
       const createdItems = [];
 
       for (const item of items) {
@@ -288,13 +303,78 @@ class OrderManager {
   // Get order items for an order
   async getOrderItems(orderId) {
     try {
-      const items = await this.databases.listDocuments(
-        this.config.DATABASE_ID,
-        this.config.ORDER_ITEMS_TABLE,
-        [this.Query.equal("orderId", orderId)]
-      );
+      // Try multiple common field names to support different schemas
+      const candidates = [
+        [this.Query.equal("orderId", orderId)],
+        [this.Query.equal("order_id", orderId)],
+        [this.Query.equal("order", orderId)],
+      ];
 
-      return items.documents;
+      for (const filters of candidates) {
+        try {
+          const items = await this.databases.listDocuments(
+            this.config.DATABASE_ID,
+            this.config.ORDER_ITEMS_TABLE,
+            filters
+          );
+
+          if (items && Array.isArray(items.documents) && items.documents.length > 0) {
+            // Normalize common fields for consumer code
+            return items.documents.map(it => {
+              const parsedProduct = (it.product && typeof it.product === 'string') ? (() => {
+                try { return JSON.parse(it.product); } catch(e) { return it.product; }
+              })() : it.product;
+
+              return {
+                ...it,
+                productName: it.productName || it.product_name || it.name || (parsedProduct && (parsedProduct.name || parsedProduct.title)) || it.title || null,
+                productPrice: it.productPrice || it.product_price || it.price || (parsedProduct && (parsedProduct.price || parsedProduct.unitPrice)) || 0,
+                productQty: it.productQty || it.product_qty || it.quantity || it.qty || 1,
+                productImage: it.productImage || it.product_image || (parsedProduct && (parsedProduct.image || (parsedProduct.images && parsedProduct.images[0]))) || null,
+                productType: it.productType || it.product_type || it.type || (parsedProduct && parsedProduct.type) || 'product'
+              };
+            });
+          }
+        } catch (innerErr) {
+          console.warn('OrderManager.getOrderItems attempt failed with filters', filters, innerErr.message);
+        }
+      }
+
+      // If nothing found via indexed queries, fetch a page of order_items and filter client-side as a last resort
+      try {
+        const allItems = await this.databases.listDocuments(
+          this.config.DATABASE_ID,
+          this.config.ORDER_ITEMS_TABLE
+        );
+
+        if (allItems && Array.isArray(allItems.documents)) {
+          const filtered = allItems.documents.filter(it => {
+            try {
+              const text = JSON.stringify(it);
+              if (text.includes(orderId)) return true;
+            } catch (e) {}
+
+            const candidates = [it.orderId, it.order_id, it.order, (it.order && it.order.$id), (it.order && it.orderId)];
+            return candidates.some(v => v === orderId);
+          });
+
+          if (filtered.length > 0) {
+            return filtered.map(it => ({
+              ...it,
+              productName: it.productName || it.product_name || it.name || null,
+              productPrice: it.productPrice || it.product_price || it.price || 0,
+              productQty: it.productQty || it.product_qty || it.quantity || 1,
+              productImage: it.productImage || it.product_image || null,
+              productType: it.productType || it.product_type || it.type || 'product'
+            }));
+          }
+        }
+      } catch (fallbackErr) {
+        console.warn('OrderManager.getOrderItems fallback failed:', fallbackErr.message);
+      }
+
+      // If still nothing, return empty array
+      return [];
     } catch (error) {
       console.error("❌ Error fetching order items:", error);
       throw error;

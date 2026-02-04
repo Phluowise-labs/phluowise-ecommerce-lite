@@ -25,6 +25,8 @@
     <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Capacitor for mobile support -->
+    <script src="capacitor.js"></script>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=verified" />
     <link rel="stylesheet" href="css/notifications.css" />
@@ -1016,6 +1018,17 @@
         let isLoadingMore = false;
         let hasMoreOrders = true;
         let lastOrderId = null;
+        let customerDocId = null; // Store customer document ID for validation
+
+        function resolveImageUrl(value) {
+            if (!value || typeof value !== 'string') return null;
+            const v = value.trim();
+            if (!v) return null;
+            if (v.toLowerCase().startsWith('http')) return v;
+            const bucket = (window.appwriteConfig && (window.appwriteConfig.STORAGE_BUCKET_ID || window.appwriteConfig.BUCKETS?.DEFAULT)) || '68b1c57b001542be7fbe';
+            const project = (window.appwriteConfig && window.appwriteConfig.PROJECT_ID) || '695f826500067c381616';
+            return `https://nyc.cloud.appwrite.io/v1/storage/buckets/${bucket}/files/${v}/view?project=${project}`;
+        }
 
         // Direct function to fetch company/branch data from database
         async function fetchCompanyBranchData(branchId) {
@@ -1033,10 +1046,17 @@
 
                 if (branchResponse.documents.length > 0) {
                     const branch = branchResponse.documents[0];
+                    const profileImageRaw = branch.profile_image ?? branch.profileImage;
+                    const headerImageRaw = branch.header_image ?? branch.headerImage;
+                    if (profileImageRaw === undefined && headerImageRaw === undefined) {
+                        console.log(`🖼️ Branch image fields (raw): profile_image=${branch.profile_image}, header_image=${branch.header_image}`);
+                    }
+
                     let branchName = branch.branch_name || branch.name || 'Unknown Branch';
                     let companyName = branchName; // Default to branch name
+                    let resolvedImage = resolveImageUrl(profileImageRaw) || resolveImageUrl(headerImageRaw);
 
-                    // Fetch parent company to get the real company name
+                    // Fetch parent company to get the real company name and optional profile image
                     if (branch.company_id) {
                         try {
                             const parentCompany = await window.databases.listDocuments(
@@ -1046,7 +1066,12 @@
                             );
 
                             if (parentCompany.documents.length > 0) {
-                                companyName = parentCompany.documents[0].name;
+                                const parent = parentCompany.documents[0];
+                                companyName = parent.name;
+                                if (!resolvedImage) {
+                                    const companyImg = parent.profile_image ?? parent.profileImage;
+                                    resolvedImage = resolveImageUrl(companyImg);
+                                }
                                 console.log(`✅ Found parent company: ${companyName} for branch: ${branchName}`);
                             }
                         } catch (e) {
@@ -1054,15 +1079,49 @@
                         }
                     }
 
-                    console.log(`✅ Found branch: ${branchName}, resolved to Company: ${companyName}`);
+                    // If this branch has no image, try another branch of the same company that has one (e.g. "One piece HQ" has images while "God is good" is null)
+                    if (!resolvedImage && branch.company_id) {
+                        try {
+                            const siblingBranches = await window.databases.listDocuments(
+                                window.appwriteConfig.DATABASE_ID,
+                                window.appwriteConfig.BRANCHES_TABLE,
+                                [Query.equal('company_id', branch.company_id)]
+                            );
+                            for (const s of siblingBranches.documents || []) {
+                                const sImg = resolveImageUrl(s.profile_image ?? s.profileImage) || resolveImageUrl(s.header_image ?? s.headerImage);
+                                if (sImg) {
+                                    resolvedImage = sImg;
+                                    console.log(`🖼️ Using image from sibling branch: ${s.branch_name || s.name}`);
+                                    break;
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Could not get image from sibling branches:', e);
+                        }
+                    }
+
+                    if (!resolvedImage) {
+                        try {
+                            const cacheKey = Object.keys(localStorage).find(k => k.includes('phluowise') && k.includes('companies'));
+                            if (cacheKey) {
+                                const cached = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+                                const list = cached.data || cached;
+                                const cachedBranch = Array.isArray(list) && list.find(c => (c.branch_id || c.id) === branchId);
+                                if (cachedBranch) {
+                                    const img = cachedBranch.profile_image ?? cachedBranch.header_image;
+                                    resolvedImage = img && (typeof img === 'string' && img.trim()) ? (img.toLowerCase().startsWith('http') ? img : resolveImageUrl(img)) : null;
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Could not get image from cache:', e);
+                        }
+                    }
+
+                    console.log(`✅ Found branch: ${branchName}, resolved to Company: ${companyName}, Image: ${resolvedImage ? 'Yes' : 'No'}`);
                     return {
                         name: companyName, // Use the resolved company name
                         branchName: branchName,
-                        profile_image: branch.profile_image ?
-                            (branch.profile_image.startsWith('http') ?
-                                branch.profile_image :
-                                `https://nyc.cloud.appwrite.io/v1/storage/buckets/68b1c57b001542be7fbe/files/${branch.profile_image}/view?project=68b17582003582da69c8`) :
-                            null
+                        profile_image: resolvedImage
                     };
                 }
 
@@ -1075,14 +1134,12 @@
 
                 if (companyResponse.documents.length > 0) {
                     const company = companyResponse.documents[0];
-                    console.log(`✅ Found company: ${company.name}`);
+                    const companyImg = company.profile_image ?? company.profileImage ?? company.header_image ?? company.headerImage;
+                    const resolvedImage = resolveImageUrl(companyImg);
+                    console.log(`✅ Found company: ${company.name}, Image: ${resolvedImage ? 'Yes' : 'No'}`);
                     return {
                         name: company.name || 'Unknown Company',
-                        profile_image: company.profile_image ?
-                            (company.profile_image.startsWith('http') ?
-                                company.profile_image :
-                                `https://nyc.cloud.appwrite.io/v1/storage/buckets/68b1c57b001542be7fbe/files/${company.profile_image}/view?project=68b17582003582da69c8`) :
-                            null
+                        profile_image: resolvedImage
                     };
                 }
 
@@ -1127,7 +1184,7 @@
             console.log('🔧 === DIAGNOSTIC MODE ===');
 
             // Check 1: Customer ID
-            const customerId = getCustomerId();
+            const customerId = await getCustomerIdAsync();
             console.log('1️⃣ Customer ID:', customerId || '❌ NOT FOUND');
 
             if (!customerId) {
@@ -1143,13 +1200,17 @@
                     window.appwriteConfig.ORDERS_TABLE,
                     [Query.limit(10)]
                 );
-                console.log(`   ✅ Total orders in database: ${allOrdersResponse.total}`);
-                console.log(`   📄 Sample orders (first 10):`, allOrdersResponse.documents.map(o => ({
-                    id: o.$id,
-                    customer_id: o.customer_id,
-                    buyerId: o.buyerId,
-                    status: o.orderStatus
-                })));
+                if (allOrdersResponse.documents.length > 0) {
+                    const sampleOrder = allOrdersResponse.documents[0];
+                    console.log(`   📄 Sample order customer_id: ${sampleOrder.customer_id}`);
+
+                    if (sampleOrder.customer_id !== customerId && sampleOrder.buyerId !== customerId) {
+                        const msg = `⚠️ ID MISMATCH DETECTED!\nLogged in as: ${customerId}\nOrder Owner: ${sampleOrder.customer_id}`;
+                        console.warn(msg);
+                        console.log('🔄 Automatically attempting to sync orders...');
+                        await claimDetectedOrders(allOrdersResponse.documents, customerId);
+                    }
+                }
             } catch (error) {
                 console.error('   ❌ Failed to fetch all orders:', error.message);
             }
@@ -1195,6 +1256,40 @@
         // Expose diagnostic function globally for console access
         window.diagnoseOrdersIssue = diagnoseOrdersIssue;
 
+        async function claimDetectedOrders(orders, currentId) {
+            console.log(`🔧 Auto-syncing ${orders.length} orders for ${currentId}...`);
+            let successCount = 0;
+
+            for (const order of orders) {
+                // Only claim if it's not already ours
+                if (order.customer_id === currentId) continue;
+
+                try {
+                    await window.databases.updateDocument(
+                        window.appwriteConfig.DATABASE_ID,
+                        window.appwriteConfig.ORDERS_TABLE,
+                        order.$id,
+                        {
+                            customer_id: currentId,
+                            buyerId: currentId
+                        }
+                    );
+                    successCount++;
+                    console.log(`✅ Synced order: ${order.$id}`);
+                } catch (e) {
+                    console.error(`❌ Failed to sync order ${order.$id}:`, e.message);
+                }
+            }
+
+            if (successCount > 0) {
+                console.log(`✅ Successfully synced ${successCount} orders. Reloading...`);
+                // Reload data to show the new orders
+                setTimeout(() => {
+                    loadInitialData();
+                }, 1000);
+            }
+        }
+
 
 
         async function fetchOrdersFromDatabase(loadMore = false) {
@@ -1221,15 +1316,30 @@
                     return;
                 }
 
-                console.log(`🔍 Fetching orders for customer_id: "${customerId}"`);
+                // Also get customer document ID for database queries (orders are created with customer doc ID)
+                const customerDataStr = localStorage.getItem('customerData');
+                const customerDocIdFromStorage = customerDataStr ? JSON.parse(customerDataStr).$id : null;
+                const effectiveCustomerId = customerDocIdFromStorage || customerId; // Prefer document ID
+                
+                // Update global customerDocId for use in processOrderMinimal
+                customerDocId = customerDocIdFromStorage || null;
+                
+                if (customerDocIdFromStorage) {
+                    console.log(`🔍 Using customer document ID: "${customerDocIdFromStorage}" (orders are stored with this)`);
+                } else {
+                    console.log(`🔍 Using account ID: "${customerId}" (customer document ID not found)`);
+                }
                 console.log(`📄 Page: ${currentPage}, LoadMore: ${loadMore}`);
 
-                // Try Appwrite first, fallback to local API if network fails
+                // Fetch only orders that belong to this user (orders table has customer_id = who placed the order)
                 let response;
+                let allOrders = []; // Collect all orders
                 try {
+                    // First query: by customer document ID
+                    console.log(`🔎 Query 1: customer_id = "${effectiveCustomerId}"`);
                     const queries = [
-                        Query.equal('customer_id', customerId),
-                        Query.orderDesc('$createdAt'),
+                        Query.equal('customer_id', effectiveCustomerId),
+                        Query.orderDesc('deliveryDate'),
                         Query.limit(ORDERS_PER_PAGE)
                     ];
 
@@ -1240,7 +1350,7 @@
                     console.log('🔎 Executing query with filters:', {
                         database: window.appwriteConfig.DATABASE_ID,
                         collection: window.appwriteConfig.ORDERS_TABLE,
-                        customer_id: customerId,
+                        customer_id: effectiveCustomerId,
                         limit: ORDERS_PER_PAGE
                     });
 
@@ -1250,7 +1360,38 @@
                         queries
                     );
 
-                    console.log(`✅ Query executed successfully. Total documents: ${response.total}, Retrieved: ${response.documents.length}`);
+                    console.log(`✅ Query 1 executed. Retrieved: ${response.documents.length}`);
+                    allOrders = [...response.documents];
+                    
+                    // Second query: by account ID (in case some orders were created with account ID)
+                    if (customerId && customerId !== effectiveCustomerId) {
+                        console.log(`🔎 Query 2: customer_id = "${customerId}" (account ID)`);
+                        const accountIdQueries = [
+                            Query.equal('customer_id', customerId),
+                            Query.orderDesc('deliveryDate'),
+                            Query.limit(ORDERS_PER_PAGE)
+                        ];
+                        
+                        const accountResponse = await window.databases.listDocuments(
+                            window.appwriteConfig.DATABASE_ID,
+                            window.appwriteConfig.ORDERS_TABLE,
+                            accountIdQueries
+                        );
+                        
+                        console.log(`✅ Query 2 executed. Retrieved: ${accountResponse.documents.length}`);
+                        
+                        // Merge results, avoiding duplicates
+                        const existingIds = new Set(allOrders.map(o => o.$id));
+                        for (const order of accountResponse.documents) {
+                            if (!existingIds.has(order.$id)) {
+                                allOrders.push(order);
+                            }
+                        }
+                    }
+                    
+                    // Set response for further processing
+                    response.documents = allOrders;
+                    console.log(`🏆 Total unique orders after both queries: ${response.documents.length}`);
                 } catch (appwriteError) {
                     console.error('❌ Appwrite query failed:', appwriteError);
                     console.error('❌ Error details:', {
@@ -1270,7 +1411,7 @@
                     try {
                         const buyerQueries = [
                             Query.equal('buyerId', customerId),
-                            Query.orderDesc('$createdAt'),
+                            Query.orderDesc('deliveryDate'),
                             Query.limit(ORDERS_PER_PAGE)
                         ];
 
@@ -1304,45 +1445,31 @@
                                 const customerDataStr = localStorage.getItem('customerData');
                                 if (customerDataStr) {
                                     const customerData = JSON.parse(customerDataStr);
-                                    const customerDocId = customerData.$id;
+                                    customerDocId = customerData.$id; // Store globally for validation
+                                    const docIdQueries = [
+                                        Query.equal('buyerId', customerDocId),
+                                        Query.orderDesc('$createdAt'),
+                                        Query.limit(ORDERS_PER_PAGE)
+                                    ];
 
-                                    if (customerDocId && customerDocId !== customerId) {
-                                        console.log(`🔎 Trying with customer document ID: ${customerDocId}`);
+                                    if (lastOrderId && loadMore) {
+                                        docIdQueries.push(Query.cursorAfter(lastOrderId));
+                                    }
 
-                                        const docIdQueries = [
-                                            Query.equal('buyerId', customerDocId),
-                                            Query.orderDesc('$createdAt'),
-                                            Query.limit(ORDERS_PER_PAGE)
-                                        ];
+                                    const docIdResponse = await window.databases.listDocuments(
+                                        window.appwriteConfig.DATABASE_ID,
+                                        window.appwriteConfig.ORDERS_TABLE,
+                                        docIdQueries
+                                    );
 
-                                        if (lastOrderId && loadMore) {
-                                            docIdQueries.push(Query.cursorAfter(lastOrderId));
-                                        }
+                                    console.log(`✅ Query with customer doc ID executed. Total: ${docIdResponse.total}, Retrieved: ${docIdResponse.documents.length}`);
 
-                                        const docIdResponse = await window.databases.listDocuments(
-                                            window.appwriteConfig.DATABASE_ID,
-                                            window.appwriteConfig.ORDERS_TABLE,
-                                            docIdQueries
-                                        );
-
-                                        console.log(`✅ Query with customer doc ID executed. Total: ${docIdResponse.total}, Retrieved: ${docIdResponse.documents.length}`);
-
-                                        if (docIdResponse.documents.length > 0) {
-                                            console.log('🎯 SUCCESS! Found orders using customer document $id!');
-                                            response = docIdResponse;
-                                        } else {
-                                            hasMoreOrders = false;
-                                            console.log('🏁 No orders found with any ID variation');
-
-                                            if (!loadMore && currentPage === 0) {
-                                                console.log('🔧 Running automatic diagnostic...');
-                                                setTimeout(() => diagnoseOrdersIssue(), 1000);
-                                            }
-                                            return;
-                                        }
+                                    if (docIdResponse.documents.length > 0) {
+                                        console.log('🎯 SUCCESS! Found orders using customer document $id!');
+                                        response = docIdResponse;
                                     } else {
                                         hasMoreOrders = false;
-                                        console.log('🏁 No orders found with customer_id OR buyerId');
+                                        console.log('🏁 No orders found with any ID variation');
 
                                         if (!loadMore && currentPage === 0) {
                                             console.log('🔧 Running automatic diagnostic...');
@@ -1485,7 +1612,7 @@
                     window.appwriteConfig.ORDERS_TABLE,
                     [
                         Query.equal('customer_id', customerId),
-                        Query.orderDesc('$createdAt'),
+                        Query.orderDesc('deliveryDate'),
                         Query.limit(200)
                     ]
                 );
@@ -1514,6 +1641,18 @@
             try {
                 if (!order.$id || !order.customer_id) {
                     console.warn('⚠️ Skipping invalid order (missing $id or customer_id):', order);
+                    return null;
+                }
+
+                // Verify that the order belongs to the current logged-in user
+                const loggedInUserId = getCustomerId();
+                const isValidOrder = (order.customer_id === loggedInUserId) || 
+                                     (order.buyerId === loggedInUserId) ||
+                                     (customerDocId && order.customer_id === customerDocId) ||
+                                     (customerDocId && order.buyerId === customerDocId);
+                
+                if (!isValidOrder) {
+                    console.warn(`⚠️ Skipping order from different user. Order customer_id: ${order.customer_id}, buyerId: ${order.buyerId}, Current user: ${loggedInUserId}, Customer doc: ${customerDocId}`);
                     return null;
                 }
 
@@ -1546,33 +1685,42 @@
                 }
 
                 let companyImage = null;
-                let finalCompanyName = null; // Do not default to deliveryName as it may be customer name
+                let finalCompanyName = null; // Always show the company the user ordered from (e.g. One Piece), not branch name (e.g. God is good)
 
-                const branchId = order.branchId || order.branch_id || order.company_id;
+                const branchId = order.branchId || order.branch_id;
+                const companyId = order.company_id;
 
-                if (branchId) {
+                // Prefer company_id for display: user ordered from the COMPANY (One Piece), not the branch name (God is good)
+                if (companyId) {
                     try {
-                        console.log(`🔍 Looking up company/branch for order ${orderId}, branchId: ${branchId}`);
-
-                        const companyData = await fetchCompanyBranchData(branchId);
-
+                        console.log(`🔍 Looking up company for order ${orderId}, company_id: ${companyId}`);
+                        const companyData = await fetchCompanyBranchData(companyId);
                         if (companyData) {
                             finalCompanyName = companyData.name;
                             companyImage = companyData.profile_image;
-
-                            console.log(`🔍 Found company data for order ${orderId}:`, finalCompanyName, 'Image:', companyImage ? 'Yes' : 'No');
-                        } else {
-                            console.warn(`⚠️ No company/branch data found for branchId: ${branchId}`);
+                            console.log(`🔍 Found company for order ${orderId}:`, finalCompanyName, '(company the user ordered from), Image:', companyImage ? 'Yes' : 'No');
                         }
                     } catch (error) {
-                        console.warn('Could not fetch company/branch data:', error);
+                        console.warn('Could not fetch company data by company_id:', error);
                     }
-                } else {
-                    console.warn(`⚠️ No branchId found for order ${orderId}. Available fields:`, Object.keys(order));
+                }
+
+                // If no company name yet, try branch_id (branch has parent company; we use company name, not branch name)
+                if ((!finalCompanyName || finalCompanyName === 'Unknown Company') && branchId) {
+                    try {
+                        console.log(`🔍 Looking up branch for order ${orderId}, branch_id: ${branchId}`);
+                        const branchData = await fetchCompanyBranchData(branchId);
+                        if (branchData) {
+                            finalCompanyName = finalCompanyName || branchData.name;
+                            if (!companyImage && branchData.profile_image) companyImage = branchData.profile_image;
+                            console.log(`🔍 Found branch/company for order ${orderId}:`, finalCompanyName, 'Image:', companyImage ? 'Yes' : 'No');
+                        }
+                    } catch (error) {
+                        console.warn('Could not fetch branch/company data:', error);
+                    }
                 }
 
                 if (!finalCompanyName || finalCompanyName === 'Unknown Company') {
-                    // One last check: if we have a companyName or branchName field on the order directly
                     finalCompanyName = order.company || order.companyName || order.branchName || 'Company';
                 }
 
@@ -1581,6 +1729,7 @@
                     orderId: orderId,
                     company: finalCompanyName,
                     companyImage: companyImage,
+                    profile_image: companyImage,
                     location: deliveryAddress,
                     payment: paymentMethod,
                     time: deliveryTime,
@@ -1630,12 +1779,12 @@
 
                     if (orderItems && orderItems.length > 0) {
                         order.products = orderItems.map(item => ({
-                            id: item.productId || item.productName,
-                            name: item.productName || 'Unknown Product',
-                            price: item.productPrice || 0,
-                            quantity: item.productQty || 1,
-                            image: item.productImage,
-                            type: item.productType || 'product'
+                            id: item.productId || item.productName || item.id || item.name,
+                            name: item.productName || item.product_name || item.name || (item.product && (item.product.name || item.product.title)) || 'Unknown Product',
+                            price: item.productPrice || item.product_price || item.price || 0,
+                            quantity: item.productQty || item.product_qty || item.quantity || 1,
+                            image: item.productImage || item.product_image || (item.product && item.product.image) || null,
+                            type: item.productType || item.product_type || item.type || 'product'
                         }));
 
                         // Calculate subtotal properly from order items
@@ -1776,19 +1925,66 @@
             }
         }
 
+        // Helper to update ID display
+        function updateUserIdDisplay(id) {
+            const display = document.getElementById('currentUserIdDisplay');
+            if (display && id) {
+                display.textContent = `ID: ${id}`;
+                display.classList.remove('hidden');
+                console.log('✅ Displaying User ID in header:', id);
+            }
+        }
+
+        function confirmCopyId(text) {
+            if (text) {
+                const id = text.replace('ID: ', '');
+                navigator.clipboard.writeText(id).then(() => {
+                    alert('User ID copied to clipboard: ' + id);
+                }).catch(err => {
+                    console.error('Failed to copy', err);
+                    alert('ID: ' + id);
+                });
+            }
+        }
+
         // Combined function to get customer ID from any source
         async function getCustomerIdAsync() {
-            // Try localStorage first (faster)
+            // Priority 1: Try Appwrite session (most reliable source of truth)
+            console.log('🔄 Checking Appwrite session for customer ID...');
+            const sessionId = await getCustomerIdFromSession();
+
+            if (sessionId) {
+                console.log('✅ Used Appwrite session ID:', sessionId);
+                updateUserIdDisplay(sessionId);
+
+                // Sync localStorage if different (self-healing)
+                const localId = getCustomerId();
+                if (localId && localId !== sessionId) {
+                    console.warn(`⚠️ ID Mismatch! Session: ${sessionId}, Local: ${localId}. Updating localStorage...`);
+                    localStorage.setItem('currentUserId', sessionId);
+
+                    // Update other keys if they exist and are simple
+                    const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                    if (userProfile.id || userProfile.$id) {
+                        userProfile.id = sessionId;
+                        userProfile.$id = sessionId;
+                        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                    }
+                }
+
+                return sessionId;
+            }
+
+            // Priority 2: Fallback to localStorage
+            console.log('⚠️ Appwrite session check failed/empty. Falling back to localStorage...');
             let customerId = getCustomerId();
 
             if (customerId) {
+                updateUserIdDisplay(customerId);
                 return customerId;
             }
 
-            // If not in localStorage, try Appwrite session
-            console.log('💡 Customer ID not in localStorage, checking Appwrite session...');
-            customerId = await getCustomerIdFromSession();
-
+            // Priority 3: No ID found
             if (!customerId) {
                 console.error('❌ No customer ID found in localStorage or Appwrite session');
                 console.log('💡 User may not be logged in. Redirect to signin page?');
@@ -2096,20 +2292,15 @@
 
                 card.onclick = () => openOrderModal(order.status, order);
 
-                // Use company/branch profile image instead of customer image
-                let displayImage = null;
-                if (order.companyImage) {
-                    displayImage = order.companyImage;
-                } else if (order.profile_image) {
-                    displayImage = order.profile_image;
-                }
+                // Use company/branch profile_image or header_image from DB (branches/company_tb). If both are null in Appwrite, placeholder shows.
+                let displayImage = order.companyImage || order.profile_image || null;
 
                 card.innerHTML = `
                     <div class="flex flex-row w-full items-center gap-2">
                         <!-- Company Image Container -->
                         <div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
                             ${displayImage ?
-                        `<img src="${displayImage}" class="w-full h-full object-cover" alt="${order.company}" loading="lazy">` :
+                        `<img src="${displayImage}" class="w-full h-full object-cover" alt="${order.company}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='flex');"><div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center" style="display:none"><svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg></div>` :
                         `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
                                     <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
@@ -2332,10 +2523,10 @@
                     window.appwriteConfig.DATABASE_ID,
                     window.appwriteConfig.ORDERS_TABLE,
                     orderId,
-                    { orderStatus: 'ongoing' }
+                    { orderStatus: 'completed' }
                 );
 
-                updateOrderStatus(orderId, 'ongoing');
+                updateOrderStatus(orderId, 'completed');
                 closeOrderModal();
 
                 showNotification('✅ Order marked as complete! Bottle added to return tracker.', 'success');
@@ -2373,6 +2564,45 @@
                     throw new Error(`Failed to fetch order details: ${appwriteError.message}`);
                 }
 
+                // Also fetch order items (if available via OrderManager) to ensure product data is present
+                try {
+                    const manager = (typeof orderManager !== 'undefined') ? orderManager : (window.orderManager || null);
+                    if (manager && typeof manager.getOrderItems === 'function') {
+                        const items = await manager.getOrderItems(orderId);
+                        const itemsArray = Array.isArray(items) ? items : (items && items.documents ? items.documents : []);
+
+                        // Normalize item fields to expected keys used in rendering
+                        orderDetails.orderItems = itemsArray.map(it => {
+                            let parsedProduct = it.product;
+                            if (typeof parsedProduct === 'string') {
+                                try { parsedProduct = JSON.parse(parsedProduct); } catch (e) { /* ignore */ }
+                            }
+
+                            const name = it.productName || it.product_name || it.name || (parsedProduct && (parsedProduct.name || parsedProduct.title)) || it.title || it.label || null;
+                            const price = it.productPrice || it.product_price || it.price || (parsedProduct && (parsedProduct.price || parsedProduct.unitPrice)) || 0;
+                            const qty = it.productQty || it.product_qty || it.quantity || it.qty || 1;
+                            const image = it.productImage || it.product_image || (parsedProduct && (parsedProduct.image || parsedProduct.images && parsedProduct.images[0])) || null;
+                            const type = it.productType || it.product_type || it.type || (parsedProduct && parsedProduct.type) || 'product';
+
+                            return {
+                                ...it,
+                                productName: name,
+                                product_price: price,
+                                productPrice: price,
+                                productQty: qty,
+                                product_qty: qty,
+                                productImage: image,
+                                product_image: image,
+                                productType: type
+                            };
+                        });
+
+                        console.log('✅ Fetched and normalized order items count:', orderDetails.orderItems.length);
+                    }
+                } catch (itemsError) {
+                    console.warn('⚠️ Failed to fetch/normalize order items via OrderManager:', itemsError);
+                }
+
                 console.log('✅ Fetched complete order details:', orderDetails);
                 return orderDetails;
 
@@ -2388,72 +2618,147 @@
 
                 const enrichedData = { ...orderDetails };
 
-                // Fetch customer details if customer_id exists
-                if (orderDetails.customer_id) {
-                    try {
-                        const customerResponse = await window.databases.listDocuments(
-                            window.appwriteConfig.DATABASE_ID,
-                            window.appwriteConfig.CUSTOMER_TABLE || 'customer_tb',
-                            [Query.equal('uid', orderDetails.customer_id)]
-                        );
-
-                        if (customerResponse.documents.length > 0) {
-                            enrichedData.customerDetails = customerResponse.documents[0];
-                            console.log('✅ Found customer details');
-                        }
-                    } catch (error) {
-                        console.warn('⚠️ Could not fetch customer details:', error);
-                    }
-                }
-
-                // Fetch recipient details if order has recipient info
-                if (orderDetails.recipient_id || orderDetails.purchase_recipient_id) {
-                    try {
-                        const recipientId = orderDetails.recipient_id || orderDetails.purchase_recipient_id;
-                        const recipientResponse = await window.databases.listDocuments(
-                            window.appwriteConfig.DATABASE_ID,
-                            'purchase_recipient_info',
-                            [Query.equal('order_id', orderDetails.$id)]
-                        );
-
-                        if (recipientResponse.documents.length > 0) {
-                            enrichedData.recipientDetails = recipientResponse.documents[0];
-                            console.log('✅ Found recipient details');
-                        }
-                    } catch (error) {
-                        console.warn('⚠️ Could not fetch recipient details:', error);
-                    }
-                }
-
-                // Fetch order items if available
+                // Fetch recipient details from purchase_recipient_info (PRIMARY SOURCE)
                 try {
-                    console.log(`🔍 Fetching order items for order: ${orderDetails.$id}`);
+                    const recipientResponse = await window.databases.listDocuments(
+                        window.appwriteConfig.DATABASE_ID,
+                        'purchase_recipient_info',
+                        [Query.equal('order_id', orderDetails.$id)]
+                    );
 
-                    // Try with 'orderId' first
+                    if (recipientResponse.documents.length > 0) {
+                        const recipientInfo = recipientResponse.documents[0];
+                        console.log('✅ Found recipient details from purchase_recipient_info');
+                        console.log('🔍 Recipient fields:', Object.keys(recipientInfo));
+                        console.log('🔍 Full recipient document:', recipientInfo);
+                        
+                        // If recipient_name is empty and type is "you", fetch actual customer details
+                        if ((!recipientInfo.recipient_name || recipientInfo.recipient_name.trim() === '') && 
+                            recipientInfo.purchase_recipient_type === 'you' && 
+                            orderDetails.customer_id) {
+                            try {
+                                const customerResponse = await window.databases.listDocuments(
+                                    window.appwriteConfig.DATABASE_ID,
+                                    window.appwriteConfig.CUSTOMER_TABLE || 'customer_tb',
+                                    [Query.equal('uid', orderDetails.customer_id)]
+                                );
+
+                                if (customerResponse.documents.length > 0) {
+                                    const customerDoc = customerResponse.documents[0];
+                                    // Merge customer info into recipient info (customer data takes precedence when recipient is empty)
+                                    enrichedData.customerDetails = {
+                                        ...recipientInfo,
+                                        recipient_name: customerDoc.full_name || customerDoc.name || recipientInfo.recipient_name,
+                                        recipient_phone: customerDoc.phone_number || recipientInfo.recipient_phone,
+                                        recipient_email: customerDoc.email || recipientInfo.recipient_email
+                                    };
+                                    console.log('✅ Merged customer details for self-delivery recipient');
+                                }
+                            } catch (error) {
+                                console.warn('⚠️ Could not fetch customer details for self-delivery:', error);
+                                enrichedData.customerDetails = recipientInfo;
+                            }
+                        } else {
+                            enrichedData.customerDetails = recipientInfo;
+                        }
+                        
+                        // Log which name field is being used
+                        const displayName = enrichedData.customerDetails.recipient_name || enrichedData.customerDetails.full_name || enrichedData.customerDetails.name || 'N/A';
+                        const nameSource = enrichedData.customerDetails.recipient_name ? 'recipient_name' : 
+                                          enrichedData.customerDetails.full_name ? 'full_name' :
+                                          enrichedData.customerDetails.name ? 'name' : 'fallback';
+                        console.log(`📝 Recipient/Customer name source: ${nameSource} = "${displayName}"`);
+                    } else {
+                        // Fallback to customer_tb if no recipient info found
+                        if (orderDetails.customer_id) {
+                            try {
+                                const customerResponse = await window.databases.listDocuments(
+                                    window.appwriteConfig.DATABASE_ID,
+                                    window.appwriteConfig.CUSTOMER_TABLE || 'customer_tb',
+                                    [Query.equal('uid', orderDetails.customer_id)]
+                                );
+
+                                if (customerResponse.documents.length > 0) {
+                                    enrichedData.customerDetails = customerResponse.documents[0];
+                                    console.log('✅ Found customer details from customer_tb (fallback)');
+                                }
+                            } catch (error) {
+                                console.warn('⚠️ Could not fetch customer details from customer_tb:', error);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Could not fetch recipient details from purchase_recipient_info:', error);
+                }
+
+                // Fetch order items using correct field name 'orderId'
+                try {
+                    const orderId = orderDetails.orderId || orderDetails.$id;
+                    console.log(`🔍 Fetching order items for orderId: ${orderId}`);
+
                     let orderItemsResponse = await window.databases.listDocuments(
                         window.appwriteConfig.DATABASE_ID,
                         'order_items',
-                        [Query.equal('orderId', orderDetails.$id)]
+                        [Query.equal('orderId', orderId)]
                     );
 
-                    // If no items found, try with 'order_id' (common variation)
-                    if (orderItemsResponse.documents.length === 0) {
-                        console.log('⚠️ No items found with orderId, trying order_id...');
-                        orderItemsResponse = await window.databases.listDocuments(
-                            window.appwriteConfig.DATABASE_ID,
-                            'order_items',
-                            [Query.equal('order_id', orderDetails.$id)]
-                        );
-                    }
-
-                    if (orderItemsResponse.documents.length > 0) {
+                    if (orderItemsResponse.documents && orderItemsResponse.documents.length > 0) {
                         enrichedData.orderItems = orderItemsResponse.documents;
                         console.log(`✅ Found ${orderItemsResponse.documents.length} order items`);
                     } else {
-                        console.warn('⚠️ No order items found with either orderId or order_id');
+                        console.log(`📭 No order_items found`);
                     }
                 } catch (error) {
-                    console.warn('⚠️ Could not fetch order items:', error.message);
+                    console.warn('⚠️ order_items query failed:', error.message);
+                }
+
+                // Product lookup fallback when no order items found
+                if (!enrichedData.orderItems || enrichedData.orderItems.length === 0) {
+                    try {
+                        const productsTable = window.appwriteConfig.PRODUCTS_TABLE || 'product';
+                        console.log('🔍 Running product lookup fallback');
+                        const productsResp = await window.databases.listDocuments(
+                            window.appwriteConfig.DATABASE_ID,
+                            productsTable,
+                            [],
+                            100
+                        );
+
+                        const products = productsResp.documents || [];
+                        const orderTotal = parseFloat(orderDetails.total || 0) || 0;
+
+                        const readPrice = (p) => parseFloat(p.price || p.productPrice || p.product_price || 0) || 0;
+
+                        let matched = products.find(p => Math.abs(readPrice(p) - orderTotal) < 0.001);
+                        if (!matched && orderTotal > 0) {
+                            matched = products.find(p => Math.abs(readPrice(p) - orderTotal) <= 1.5);
+                        }
+
+                        if (matched) {
+                            const orderId = orderDetails.orderId || orderDetails.$id;
+                            
+                            // Comprehensive name extraction with logging
+                            const name = matched.name || matched.productName || matched.product_name || matched.title || matched.label || matched.description || 'Unknown Product';
+                            const productType = matched.type || matched.productType || matched.product_type || 'product';
+                            
+                            console.log('🔍 Matched product fields:', Object.keys(matched).slice(0, 15));
+                            console.log('🔍 Extracted name:', name, 'Type:', productType);
+                            
+                            enrichedData.orderItems = [{
+                                $id: 'inferred-' + orderId,
+                                productName: name,
+                                productPrice: readPrice(matched),
+                                productQty: 1,
+                                productImage: matched.image || matched.productImage || matched.product_image || null,
+                                productType: productType
+                            }];
+                            console.log('✅ Matched product:', name, '| Price:', readPrice(matched), '| Type:', productType);
+                        } else {
+                            console.log('⚠️ No product match found for total:', orderTotal);
+                        }
+                    } catch (prodErr) {
+                        console.warn('⚠️ Product lookup error:', prodErr.message);
+                    }
                 }
 
                 // Fetch ratings if available
@@ -2511,14 +2816,25 @@
                 sheet.classList.remove('opacity-0', 'pointer-events-none');
                 sheet.classList.add('opacity-100', 'z-50');
                 setTimeout(() => content.classList.remove('translate-y-full'), 10);
-
                 // Fetch complete order details from database
                 const orderId = currentOrderForDetails.orderId || currentOrderForDetails.$id;
                 const completeOrderDetails = await fetchCompleteOrderDetails(orderId);
                 const enrichedOrderDetails = await fetchRelatedOrderData(completeOrderDetails);
 
-                // Update currentOrderForDetails with complete data
-                currentOrderForDetails = enrichedOrderDetails;
+                // Merging strategy:
+                // 1. Keep the minimal order details we already have (which has the correct company name from branch lookup)
+                // 2. Add the newly fetched enriched details (order items, customer info, etc.)
+                // 3. Ensure we don't overwrite the correctly resolved company name with raw data from the DB
+
+                const preserveCompany = currentOrderForDetails.company;
+                const preserveCompanyImage = currentOrderForDetails.companyImage;
+
+                currentOrderForDetails = {
+                    ...currentOrderForDetails, // minimal details (has 'company')
+                    ...enrichedOrderDetails,   // full details (has 'orderItems')
+                    company: preserveCompany || enrichedOrderDetails.company, // prioritize resolved name
+                    companyImage: preserveCompanyImage || enrichedOrderDetails.companyImage
+                };
 
                 // Now render the complete order details
                 renderOrderDetailsSheet();
@@ -2573,8 +2889,8 @@
                 productInfo = {
                     name: currentOrderForDetails.orderItems.length > 1 ?
                         `${currentOrderForDetails.orderItems.length} products` :
-                        firstItem.productName || firstItem.product_name || 'N/A',
-                    image: firstItem.productImage || null,
+                        firstItem.productName || firstItem.product_name || firstItem.name || (firstItem.product && (firstItem.product.name || firstItem.product.title)) || currentOrderForDetails.deliveryName || 'N/A',
+                    image: firstItem.productImage || firstItem.product_image || (firstItem.product && firstItem.product.image) || null,
                     quantity: totalQuantity,
                     unitPrice: firstItem.productPrice || 0
                 };
@@ -2703,8 +3019,8 @@
                         <div class="flex items-center space-x-4">
                             <div class="rounded-[10px] bg-[#808080] overflow-hidden flex-shrink-0" style="width: 80px; height: 80px;">
                                 ${displayImage ?
-                    `<img src="${displayImage}" class="w-full h-full object-cover" alt="${currentOrderForDetails.deliveryName || 'Product'}" loading="lazy" 
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                    `<img src="${displayImage}" class="w-full h-full object-cover" alt="${currentOrderForDetails.deliveryName || 'Product'}" loading="lazy" referrerpolicy="no-referrer"
+                                     onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';"
                                      onload="console.log('✅ Image loaded successfully:', this.src);">
                                     <div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center" style="display:none;">
                                         <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2719,7 +3035,7 @@
                 }
                             </div>
                             <div class="flex-1">
-                                <h4 class="text-white text-lg font-semibold">${currentOrderForDetails.company || currentOrderForDetails.deliveryName || 'N/A'}<span class="material-symbols-outlined verified-checkmark" style="font-size: 16px; margin-left: 2px;">verified</span></h4>
+                                <h4 class="text-white text-lg font-semibold">${currentOrderForDetails.company || 'Unknown Company'}<span class="material-symbols-outlined verified-checkmark" style="font-size: 16px; margin-left: 2px;">verified</span></h4>
                                 <p class="text-gray-400 text-sm">${productInfo.name}</p>
                                 <p class="text-gray-400 text-sm">Quantity: ${productInfo.quantity}</p>
                             </div>
@@ -2734,9 +3050,9 @@
                             ${currentOrderForDetails.orderItems.map((item, index) => `
                                 <div class="flex justify-between items-center py-2 border-b border-gray-700">
                                     <div class="flex-1">
-                                        <p class="text-white font-medium">${item.productName || item.product_name || 'Unknown Product'}</p>
+                                        <p class="text-white font-medium">${item.productName || item.product_name || item.name || (item.product && (item.product.name || item.product.title)) || 'Unknown Product'}</p>
                                         <p class="text-gray-400 text-sm">Qty: ${item.productQty || 1}</p>
-                                        <p class="text-gray-400 text-sm">Type: ${item.productType || 'N/A'}</p>
+                                        <p class="text-gray-400 text-sm">Type: ${item.productType || item.product_type || item.type || 'N/A'}</p>
                                     </div>
                                     <p class="text-white font-medium">GHS${((item.productPrice || 0) * (item.productQty || 1)).toFixed(2)}</p>
                                 </div>
@@ -2754,15 +3070,15 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Company:</span>
-                                <span class="text-white font-medium">${currentOrderForDetails.company || currentOrderForDetails.deliveryName || 'N/A'}<span class="material-symbols-outlined verified-checkmark" style="font-size: 14px; margin-left: 2px;">verified</span></span>
+                                <span class="text-white font-medium">${currentOrderForDetails.company || 'Unknown Company'}<span class="material-symbols-outlined verified-checkmark" style="font-size: 14px; margin-left: 2px;">verified</span></span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Product:</span>
-                                <span class="text-white font-medium">${currentOrderForDetails.orderItems && currentOrderForDetails.orderItems.length > 0 ? (currentOrderForDetails.orderItems[0].productName || currentOrderForDetails.orderItems[0].product_name) : productInfo.name}</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.orderItems && currentOrderForDetails.orderItems.length > 0 ? (currentOrderForDetails.orderItems[0].productName || currentOrderForDetails.orderItems[0].product_name || currentOrderForDetails.orderItems[0].name || (currentOrderForDetails.orderItems[0].product && (currentOrderForDetails.orderItems[0].product.name || currentOrderForDetails.orderItems[0].product.title))) : productInfo.name}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Quantity:</span>
-                                <span class="text-white font-medium">${currentOrderForDetails.orderItems ? currentOrderForDetails.orderItems.reduce((sum, item) => sum + (item.productQty || 0), 0) : productInfo.quantity}</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.orderItems && currentOrderForDetails.orderItems.length > 0 ? currentOrderForDetails.orderItems.reduce((sum, item) => sum + (item.productQty || 0), 0) : productInfo.quantity}</span>
                             </div>
                             ${currentOrderForDetails.deliveryDate ? `
                             <div class="flex justify-between">
@@ -2827,22 +3143,28 @@
                     <!-- Customer Information -->
                     ${currentOrderForDetails.customerDetails ? `
                     <div class="bg-gray-800/50 rounded-xl p-4">
-                        <h3 class="text-white text-lg font-bold mb-3">Customer Information</h3>
+                        <h3 class="text-white text-lg font-bold mb-3">Recipient Information</h3>
                         <div class="space-y-2">
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Name:</span>
-                                <span class="text-white font-medium">${currentOrderForDetails.customerDetails.full_name || 'N/A'}</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_name || currentOrderForDetails.customerDetails.full_name || currentOrderForDetails.customerDetails.name || 'N/A'}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Phone:</span>
-                                <span class="text-white font-medium">${currentOrderForDetails.customerDetails.phone_number || 'N/A'}</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_phone || currentOrderForDetails.customerDetails.phone_number || currentOrderForDetails.customerDetails.recipient_phone_number || 'N/A'}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Email:</span>
-                                <span class="text-white font-medium">${currentOrderForDetails.customerDetails.email || 'N/A'}</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_email || currentOrderForDetails.customerDetails.email || 'N/A'}</span>
                             </div>
+                            ${currentOrderForDetails.customerDetails.recipient_type ? `
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Type:</span>
+                                <span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_type}</span>
+                            </div>` : ''}
                         </div>
                     </div>` : ''}
+                    
                     
                     <!-- Actions -->
                     <div class="flex space-x-3">
@@ -2892,60 +3214,200 @@
             currentOrderForDetails = null;
         }
 
-        function downloadOrderPDF() {
+        async function downloadOrderPDF() {
             if (!currentOrderForDetails) {
                 alert('No order details available for PDF download');
                 return;
             }
 
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
 
-            doc.setFontSize(18);
-            doc.text('Order Details', 20, 20);
+                doc.setFontSize(18);
+                doc.text('Order Details', 20, 20);
 
-            doc.setFontSize(12);
-            let yPosition = 40;
+                doc.setFontSize(12);
+                let yPosition = 40;
 
-            doc.setFontSize(14);
-            doc.text('Order Summary', 20, yPosition);
-            yPosition += 10;
+                doc.setFontSize(14);
+                doc.text('Order Summary', 20, yPosition);
+                yPosition += 10;
 
-            doc.setFontSize(11);
-            doc.text(`Order ID: ${currentOrderForDetails.orderId || 'N/A'}`, 20, yPosition);
-            yPosition += 8;
-            doc.text(`Company: ${currentOrderForDetails.company || 'N/A'}`, 20, yPosition);
-            yPosition += 8;
-            doc.text(`Status: ${currentOrderForDetails.statusText || 'Pending'}`, 20, yPosition);
-            yPosition += 8;
-
-            if (currentOrderForDetails.deliveryDate) {
-                doc.text(`Delivery Date: ${currentOrderForDetails.deliveryDate}`, 20, yPosition);
+                doc.setFontSize(11);
+                doc.text(`Order ID: ${currentOrderForDetails.orderId || 'N/A'}`, 20, yPosition);
                 yPosition += 8;
-            }
-
-            if (currentOrderForDetails.deliveryTime) {
-                doc.text(`Delivery Time: ${currentOrderForDetails.deliveryTime}`, 20, yPosition);
+                doc.text(`Company: ${currentOrderForDetails.company || 'N/A'}`, 20, yPosition);
                 yPosition += 8;
+                doc.text(`Status: ${currentOrderForDetails.statusText || 'Pending'}`, 20, yPosition);
+                yPosition += 8;
+
+                if (currentOrderForDetails.deliveryDate) {
+                    doc.text(`Delivery Date: ${new Date(currentOrderForDetails.deliveryDate).toLocaleDateString()}`, 20, yPosition);
+                    yPosition += 8;
+                }
+
+                if (currentOrderForDetails.deliveryTime) {
+                    doc.text(`Delivery Time: ${currentOrderForDetails.deliveryTime}`, 20, yPosition);
+                    yPosition += 8;
+                }
+
+                // Add recipient info if available
+                if (currentOrderForDetails.customerDetails) {
+                    yPosition += 5;
+                    doc.setFontSize(14);
+                    doc.text('Recipient Information', 20, yPosition);
+                    yPosition += 10;
+
+                    doc.setFontSize(11);
+                    const recipientName = currentOrderForDetails.customerDetails.recipient_name || 
+                                         currentOrderForDetails.customerDetails.full_name || 
+                                         currentOrderForDetails.customerDetails.name || 'N/A';
+                    doc.text(`Recipient: ${recipientName}`, 20, yPosition);
+                    yPosition += 8;
+
+                    const recipientPhone = currentOrderForDetails.customerDetails.recipient_phone || 
+                                          currentOrderForDetails.customerDetails.phone_number || 'N/A';
+                    doc.text(`Phone: ${recipientPhone}`, 20, yPosition);
+                    yPosition += 8;
+
+                    const recipientEmail = currentOrderForDetails.customerDetails.recipient_email || 
+                                          currentOrderForDetails.customerDetails.email || 'N/A';
+                    doc.text(`Email: ${recipientEmail}`, 20, yPosition);
+                    yPosition += 8;
+                }
+
+                // Add order items if available
+                if (currentOrderForDetails.orderItems && currentOrderForDetails.orderItems.length > 0) {
+                    yPosition += 5;
+                    doc.setFontSize(14);
+                    doc.text('Order Items', 20, yPosition);
+                    yPosition += 10;
+
+                    doc.setFontSize(11);
+                    currentOrderForDetails.orderItems.forEach((item, index) => {
+                        const itemName = item.productName || item.name || 'Unknown Product';
+                        const qty = item.productQty || 1;
+                        const price = item.productPrice || 0;
+                        doc.text(`${index + 1}. ${itemName} (Qty: ${qty}) - GHS${(price * qty).toFixed(2)}`, 20, yPosition);
+                        yPosition += 8;
+
+                        if (yPosition > 270) {
+                            doc.addPage();
+                            yPosition = 20;
+                        }
+                    });
+                }
+
+                yPosition += 5;
+
+                doc.setFontSize(14);
+                doc.text('Price Breakdown', 20, yPosition);
+                yPosition += 10;
+
+                doc.setFontSize(11);
+                const subtotal = parseFloat(currentOrderForDetails.subtotal) || parseFloat(currentOrderForDetails.total) || 0;
+                const serviceFee = parseFloat(currentOrderForDetails.serviceFee) || 0.10;
+                const total = parseFloat(currentOrderForDetails.total) || 0;
+                doc.text(`Subtotal: GHS${subtotal.toFixed(2)}`, 20, yPosition);
+                yPosition += 8;
+                doc.text(`Service Fee: GHS${serviceFee.toFixed(2)}`, 20, yPosition);
+                yPosition += 8;
+                doc.text(`Total: GHS${total.toFixed(2)}`, 20, yPosition);
+
+                const fileName = `order_${currentOrderForDetails.orderId || Date.now()}.pdf`;
+                
+                // Check if running on mobile (Capacitor)
+                const isMobileApp = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+                console.log(`📱 Platform: ${isMobileApp ? 'Mobile (Capacitor)' : 'Web/Browser'}`);
+                
+                if (isMobileApp) {
+                    console.log('📱 Mobile platform detected, saving PDF to device...');
+                    await savePdfToMobile(doc, fileName);
+                } else {
+                    // Web fallback
+                    console.log('🌐 Web platform, downloading PDF...');
+                    doc.save(fileName);
+                }
+
+            } catch (error) {
+                console.error('❌ Error generating PDF:', error);
+                alert('Error generating PDF: ' + error.message);
             }
+        }
 
-            yPosition += 5;
+        async function savePdfToMobile(doc, fileName) {
+            try {
+                // Get PDF as base64
+                const pdfData = doc.output('datauristring');
+                const base64Data = pdfData.split(',')[1];
 
-            doc.setFontSize(14);
-            doc.text('Price Breakdown', 20, yPosition);
-            yPosition += 10;
+                console.log('📝 PDF size:', Math.round(base64Data.length / 1024), 'KB');
 
-            doc.setFontSize(11);
-            const subtotal = currentOrderForDetails.subtotal || 0;
-            const serviceFee = currentOrderForDetails.serviceFee || 0;
-            const total = currentOrderForDetails.total || 0;
-            doc.text(`Subtotal: GHS${subtotal.toFixed(2)}`, 20, yPosition);
-            yPosition += 8;
-            doc.text(`Service Fee: GHS${serviceFee.toFixed(2)}`, 20, yPosition);
-            yPosition += 8;
-            doc.text(`Total: GHS${total.toFixed(2)}`, 20, yPosition);
+                // Check if Capacitor Filesystem is available
+                if (!window.Capacitor || !window.Capacitor.Plugins || !window.Capacitor.Plugins.Filesystem) {
+                    throw new Error('Capacitor Filesystem plugin not available. Make sure @capacitor/filesystem is installed.');
+                }
 
-            doc.save(`order_${currentOrderForDetails.orderId || Date.now()}.pdf`);
+                const { Filesystem, Directory, Encoding } = window.Capacitor.Plugins.Filesystem;
+
+                console.log('💾 Saving PDF to device...');
+                
+                // Save to Documents directory
+                const result = await Filesystem.writeFile({
+                    path: `Phluowise_Orders/${fileName}`,
+                    data: base64Data,
+                    directory: Directory.Documents,
+                    encoding: Encoding.UTF8,
+                    recursive: true
+                });
+
+                console.log('✅ PDF saved to device:', result.uri);
+                alert(`✅ PDF saved successfully!\n\nFile: ${fileName}`);
+
+                // Try to open the PDF
+                if (window.Capacitor.Plugins && window.Capacitor.Plugins.FileOpener) {
+                    const { FileOpener } = window.Capacitor.Plugins.FileOpener;
+                    
+                    try {
+                        console.log('🔓 Opening PDF with FileOpener...');
+                        await FileOpener.open({
+                            filePath: result.uri,
+                            contentType: 'application/pdf'
+                        });
+                        console.log('✅ PDF opened successfully');
+                    } catch (openError) {
+                        console.warn('⚠️ Could not open PDF automatically:', openError.message);
+                        console.log('📂 PDF saved to: Phluowise_Orders/' + fileName);
+                    }
+                } else {
+                    console.log('ℹ️ FileOpener plugin not available, but PDF was saved successfully');
+                    console.log('📂 You can access it from: Phluowise_Orders/' + fileName);
+                }
+
+            } catch (error) {
+                console.error('❌ Error saving PDF to mobile:', error);
+                console.error('Error details:', {
+                    name: error.name,
+                    message: error.message,
+                    code: error.code
+                });
+
+                alert(`⚠️ Could not save PDF to device.\n\nError: ${error.message}\n\nAttempting web fallback...`);
+                
+                // Fallback to web download
+                console.log('📋 Attempting web fallback...');
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const fallbackDoc = new jsPDF();
+                    fallbackDoc.text('Order PDF', 20, 20);
+                    fallbackDoc.save(fileName);
+                    console.log('✅ Fallback download initiated');
+                } catch (fallbackError) {
+                    console.error('❌ Fallback also failed:', fallbackError);
+                    alert('Could not save or download PDF. Please try again later.');
+                }
+            }
         }
 
         function openReturnPickupsSheet(order) {
