@@ -26,6 +26,31 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     </style>
+    <style>
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(150px);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            font-size: 16px;
+            font-weight: 500;
+            z-index: 9999;
+            transition: transform 0.3s ease-in-out;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
     <script>
         tailwind.config = {
             theme: {
@@ -126,7 +151,7 @@
         </div>
 
         <!-- Google Sign In -->
-        <button class="border border-[#292B2F] bg-[#000000]/20 backdrop-blur-md h-[56px] rounded-2xl w-full flex items-center justify-center p-3 hover:bg-[#000000]/30 transition-all duration-300">
+        <button onclick="showComingSoon()" class="border border-[#292B2F] bg-[#000000]/20 backdrop-blur-md h-[56px] rounded-2xl w-full flex items-center justify-center p-3 hover:bg-[#000000]/30 transition-all duration-300">
             <div class="flex items-center gap-3">
                 <!-- Google Icon -->
                 <svg class="w-5 h-5" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -184,14 +209,8 @@
                     </button>
                 </div>
                 <!-- Modal Content -->
-                <div class="flex-1 overflow-hidden">
-                    <iframe src="https://concrete-aurora-836.notion.site/ebd//1c7c077ea6428075b4c6f68ad38d15c1" 
-                            width="100%" 
-                            height="100%" 
-                            frameborder="0" 
-                            allowfullscreen
-                            class="w-full h-full">
-                    </iframe>
+                <div class="flex-1 overflow-hidden flex flex-col items-center justify-center">
+                    <a href="https://pyrite-kicker-251.notion.site/Phluowise-Ecommerce-Regulations-2fd097f4f33c8064b37dd3071e6be2ee?source=copy_link" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">View Terms of Service</a>
                 </div>
             </div>
         </div>
@@ -212,17 +231,16 @@
                     </button>
                 </div>
                 <!-- Modal Content -->
-                <div class="flex-1 overflow-hidden">
-                    <iframe src="https://concrete-aurora-836.notion.site/ebd//1c7c077ea6428075b4c6f68ad38d15c1" 
-                            width="100%" 
-                            height="100%" 
-                            frameborder="0" 
-                            allowfullscreen
-                            class="w-full h-full">
-                    </iframe>
+                <div class="flex-1 overflow-hidden flex flex-col items-center justify-center">
+                    <a href="https://pyrite-kicker-251.notion.site/Phluowise-Ecommerce-Regulations-2fd097f4f33c8064b37dd3071e6be2ee?source=copy_link" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">View Privacy Policy</a>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        Coming Soon!
     </div>
 
     <!-- Appwrite Config & Auth Scripts -->
@@ -338,7 +356,13 @@
                     });
             });
         }
-    </script>
+        function showComingSoon() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }    </script>
 
 </body>
 

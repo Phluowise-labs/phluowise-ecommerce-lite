@@ -2341,7 +2341,7 @@
                             <span id="quantitySubtotal" class="price-value">GHS 0.00</span>
                         </div>
                         <div class="price-row">
-                            <span class="price-label">Service Fee (GHS 0.10 per item)</span>
+                            <span class="price-label">Service Fee (GHS 0.2 per item)</span>
                             <span id="serviceFeeDisplay" class="price-value">GHS 0.00</span>
                         </div>
                         <div class="price-row total">
@@ -2401,7 +2401,7 @@
                                 <span id="reviewSubtotal" class="review-value">GHS 0.00</span>
                             </div>
                             <div class="review-item">
-                                <span class="review-label">Service Fee (GHS 0.10 per item)</span>
+                                <span class="review-label">Service Fee (GHS 0.2 per item)</span>
                                 <span id="reviewServiceFee" class="review-value">GHS 0.00</span>
                             </div>
                             <div class="review-item"
@@ -2778,7 +2778,7 @@
         let userRating = 0;
         let selectedCompany = '';
         let recipientType = 'you';
-        const SERVICE_FEE_PER_ITEM = 0.10; // GHS 0.10 per bag/pack/bottle
+        const SERVICE_FEE_PER_ITEM = 0.2; // GHS 0.2 per bag/pack/bottle
         let savedRecipients = [];
         let selectedSavedRecipient = null;
         let selectedDate = '';
@@ -5226,7 +5226,7 @@
             });
         }
 
-        // Calculate service fee: GHS 0.10 per item
+        // Calculate service fee: GHS 0.2 per item
         function calculateServiceFee() {
             const totalItems = selectedProducts.reduce((sum, product) => sum + product.quantity, 0);
             return totalItems * SERVICE_FEE_PER_ITEM;
