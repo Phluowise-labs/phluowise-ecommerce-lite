@@ -370,11 +370,15 @@
             </div>
 
             <!-- Report Form -->
-            <form id="reportForm" action="https://submit-form.com/NPjqf7tZD" method="POST" enctype="multipart/form-data">
-                <!-- Formspark required hidden fields -->
+            <form id="reportForm" action="https://submit-form.com/NPjqf7tZD" method="POST">
+                <!-- Formspark hidden fields MUST be placed FIRST -->
                 <input type="hidden" name="_redirect" value="false">
-                <input type="hidden" name="_subject" value="Phluowise Report Issue Submission">
-                <input type="hidden" name="_format" value="plain">
+                <input type="hidden" name="_subject" id="formSubject" value="Phluowise Report Issue">
+                <input type="hidden" name="_append" value="no">
+                <input type="hidden" name="_honeypot" value="" style="display:none">
+                <input type="hidden" name="_template" value="table">
+                
+                <!-- Honeypot spam protection -->
                 <input type="text" name="_gotcha" autocomplete="off" style="display:none" />
                 
                 <!-- Name Field -->
@@ -554,33 +558,44 @@
             if (loadingSpinner) loadingSpinner.style.display = 'block';
 
             try {
-                // Create FormData from the form
+                // Create URL encoded form data (Formspark prefers this over FormData)
                 const formData = new FormData(form);
+                const data = {};
                 
-                // Add timestamp for tracking
-                const timestamp = new Date().toISOString();
-                formData.append('_timestamp', timestamp);
-                formData.append('_source', 'Phluowise Web App');
+                // Convert FormData to plain object
+                for (let [key, value] of formData.entries()) {
+                    data[key] = value;
+                }
                 
-                console.log('Form data prepared, sending to Formspark...');
+                // Add timestamp
+                data.timestamp = new Date().toISOString();
+                data.source = 'Phluowise Web App';
                 
-                // Send to Formspark with proper headers
+                // Convert to URL encoded string
+                const encodedData = Object.keys(data)
+                    .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
+                    .join('&');
+                
+                console.log('Sending data to Formspark:', encodedData);
+                
+                // Send to Formspark
                 const response = await fetch(form.action, {
                     method: 'POST',
-                    body: formData,
                     headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
                         'Accept': 'application/json'
-                    }
+                    },
+                    body: encodedData
                 });
 
-                console.log('Response status:', response.status);
+                console.log('Formspark response status:', response.status);
                 
                 if (response.ok) {
                     try {
                         const result = await response.json();
-                        console.log('Formspark response:', result);
+                        console.log('Formspark JSON response:', result);
                         
-                        if (result.success) {
+                        if (result.success || response.status === 200) {
                             // Show Success Modal
                             showSuccessModal();
                             form.reset();
@@ -588,13 +603,18 @@
                             throw new Error('Formspark returned success: false');
                         }
                     } catch (jsonError) {
-                        console.log('Non-JSON response, checking for success...');
-                        // Even if not JSON, if status is 200, consider it success
+                        console.log('Non-JSON response from Formspark, status was OK');
+                        // If response is OK (200) but not JSON, still consider it success
                         showSuccessModal();
                         form.reset();
                     }
                 } else {
-                    const errorText = await response.text();
+                    let errorText = 'Unknown error';
+                    try {
+                        errorText = await response.text();
+                    } catch (e) {
+                        // ignore
+                    }
                     console.error('Formspark submission failed:', response.status, errorText);
                     throw new Error(`Submission failed with status: ${response.status}`);
                 }
@@ -602,7 +622,12 @@
                 console.error('Error submitting form:', error);
                 if (errorMessage) {
                     errorMessage.style.display = 'block';
-                    errorMessage.textContent = 'There was an error submitting your report. Please try again or contact info@phluowise.com';
+                    errorMessage.textContent = 'There was an error submitting your report. Please try again.';
+                    
+                    // Scroll to error message
+                    setTimeout(() => {
+                        errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
                 }
             } finally {
                 if (submitBtn) submitBtn.disabled = false;
@@ -638,6 +663,24 @@
 
         // Call prefill on page load
         window.addEventListener('load', prefillUserData);
+
+        // Update subject field to include issue type
+        document.addEventListener('DOMContentLoaded', function() {
+            const subjectInput = document.getElementById('subject');
+            const issueTypeSelect = document.getElementById('issueType');
+            const formSubject = document.getElementById('formSubject');
+            
+            if (issueTypeSelect && formSubject) {
+                issueTypeSelect.addEventListener('change', function() {
+                    const issueType = this.value;
+                    if (issueType) {
+                        formSubject.value = `Phluowise Report - ${this.options[this.selectedIndex].text}`;
+                    } else {
+                        formSubject.value = 'Phluowise Report Issue';
+                    }
+                });
+            }
+        });
     </script>
 
 </body>
