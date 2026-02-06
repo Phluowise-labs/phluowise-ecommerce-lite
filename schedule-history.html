@@ -974,6 +974,12 @@
             setTimeout(() => {
                 updateUserProfile();
             }, 100);
+            
+            // Start auto-refresh to check for new orders every 30 seconds
+            setTimeout(() => {
+                startAutoRefresh();
+                console.log('✅ Auto-refresh started - checking every 30 seconds');
+            }, 150);
 
             // Preload essential functions
             preloadEssentialFunctions();
@@ -1018,22 +1024,245 @@
         let isLoadingMore = false;
         let hasMoreOrders = true;
         let lastOrderId = null;
+        let lastAutoRefreshTime = Date.now();
+        let autoRefreshInterval = null;
+        
+        // Auto-refresh every 30 seconds to check for new orders
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            
+            autoRefreshInterval = setInterval(async () => {
+                try {
+                    const now = new Date().toLocaleTimeString();
+                    console.log(`🔄 Auto-refresh check at ${now}`);
+                    
+                    // Reset to first page to fetch latest orders
+                    currentPage = 0;
+                    await loadInitialData();
+                    lastAutoRefreshTime = Date.now();
+                    
+                } catch (error) {
+                    console.warn('⚠️ Auto-refresh error:', error.message);
+                }
+            }, 30000); // 30 seconds
+        }
+        
+        // Stop auto-refresh
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                console.log('⏹️ Auto-refresh stopped');
+            }
+        }
+        
+        window.startAutoRefresh = startAutoRefresh;
+        window.stopAutoRefresh = stopAutoRefresh;
         let customerDocId = null; // Store customer document ID for validation
+        
+        // Company data cache to avoid repeated queries
+        const companyCache = {};
+        const branchCache = {};
+        
+        // Function to clear caches completely
+        function clearAllCaches() {
+            Object.keys(companyCache).forEach(key => delete companyCache[key]);
+            Object.keys(branchCache).forEach(key => delete branchCache[key]);
+            console.log('🧹 All caches cleared');
+        }
+        
+        // Function to validate cached data
+        function validateCache() {
+            let companyCount = 0;
+            let branchCount = 0;
+            let invalidEntries = 0;
+            
+            for (const [id, company] of Object.entries(companyCache)) {
+                if (company && company.name) {
+                    companyCount++;
+                } else {
+                    console.warn(`❌ Invalid company cache entry: ${id}`, company);
+                    invalidEntries++;
+                }
+            }
+            
+            for (const [id, branch] of Object.entries(branchCache)) {
+                if (branch && branch.name) {
+                    branchCount++;
+                } else {
+                    console.warn(`❌ Invalid branch cache entry: ${id}`, branch);
+                    invalidEntries++;
+                }
+            }
+            
+            console.log(`📊 Cache validation: ${companyCount} companies, ${branchCount} branches, ${invalidEntries} invalid`);
+            return invalidEntries === 0;
+        }
+        
+        window.clearAllCaches = clearAllCaches;
+        window.validateCache = validateCache;
 
         function resolveImageUrl(value) {
             if (!value || typeof value !== 'string') return null;
             const v = value.trim();
             if (!v) return null;
             if (v.toLowerCase().startsWith('http')) return v;
-            const bucket = (window.appwriteConfig && (window.appwriteConfig.STORAGE_BUCKET_ID || window.appwriteConfig.BUCKETS?.DEFAULT)) || '68b1c57b001542be7fbe';
+            if (v.toLowerCase().startsWith('data:')) return v;
+            // It's likely an Appwrite file ID - use the correct bucket for images
+            const bucket = '695fec72003b8ba4fb22'; // Primary image bucket
             const project = (window.appwriteConfig && window.appwriteConfig.PROJECT_ID) || '695f826500067c381616';
             return `https://nyc.cloud.appwrite.io/v1/storage/buckets/${bucket}/files/${v}/view?project=${project}`;
         }
+        
+        // Batch fetch company/branch data for multiple IDs to reduce DB calls
+        async function batchFetchCompanyBranchData(companyIds, branchIds) {
+            try {
+                const toFetch = { companies: [], branches: [] };
+                
+                // Identify what needs to be fetched from DB
+                if (companyIds && companyIds.length > 0) {
+                    for (const id of companyIds) {
+                        if (id && !companyCache[id]) {
+                            toFetch.companies.push(id);
+                        }
+                    }
+                }
+                
+                if (branchIds && branchIds.length > 0) {
+                    for (const id of branchIds) {
+                        if (id && !branchCache[id]) {
+                            toFetch.branches.push(id);
+                        }
+                    }
+                }
+                
+                if (toFetch.companies.length === 0 && toFetch.branches.length === 0) {
+                    console.log('✅ All data already cached');
+                    return;
+                }
+                
+                console.log(`⚡ Batch fetching: ${toFetch.companies.length} companies, ${toFetch.branches.length} branches`);
+                
+                // Fetch all companies in one query
+                if (toFetch.companies.length > 0) {
+                    try {
+                        const companyResponse = await window.databases.listDocuments(
+                            window.appwriteConfig.DATABASE_ID,
+                            window.appwriteConfig.COMPANY_TABLE,
+                            [Query.limit(100)]
+                        );
+                        
+                        for (const company of companyResponse.documents) {
+                            const id = company.company_id || company.$id;
+                            // Use prefix to avoid key collisions
+                            const cacheKey = `company_${id}`;
+                            // Resolve profile_image or profileImage to full URL
+                            const profileImg = company.profile_image || company.profileImage;
+                            const resolvedImg = resolveImageUrl(profileImg);
+                            if (profileImg) {
+                                console.log(`📸 Company ${company.name}: has image field = "${profileImg.substring(0,20)}..."`);
+                            }
+                            companyCache[cacheKey] = {
+                                name: company.name || 'Unknown Company',
+                                profile_image: resolvedImg,
+                                $id: company.$id,
+                                company_id: id
+                            };
+                        }
+                        console.log(`✅ Cached ${companyResponse.documents.length} companies`);
+                    } catch (err) {
+                        console.warn('Could not fetch companies:', err.message);
+                    }
+                }
+                
+                // Fetch all branches in one query
+                if (toFetch.branches.length > 0) {
+                    try {
+                        const branchResponse = await window.databases.listDocuments(
+                            window.appwriteConfig.DATABASE_ID,
+                            window.appwriteConfig.BRANCHES_TABLE,
+                            [Query.limit(100)]
+                        );
+                        
+                        for (const branch of branchResponse.documents) {
+                            const id = branch.branch_id || branch.$id;
+                            let displayName = branch.branch_name || branch.name || 'Unknown Branch';
+                            let displayImage = resolveImageUrl(branch.profile_image) || 
+                                              resolveImageUrl(branch.header_image);
+                            
+                            // Debug: show what we're caching
+                            if (branch.profile_image) {
+                                console.log(`  📸 ${displayName} has profile_image: ${branch.profile_image.substring(0,20)}...`);
+                            } else if (branch.header_image) {
+                                console.log(`  📸 ${displayName} has header_image: ${branch.header_image.substring(0,20)}...`);
+                            } else {
+                                console.log(`  📸 ${displayName} has NO images`);
+                            }
+                            
+                            if (branch.company_id && companyCache[`company_${branch.company_id}`]) {
+                                const parentCompany = companyCache[`company_${branch.company_id}`];
+                                displayName = parentCompany.name;
+                                // If branch has no image, use parent company image
+                                if (!displayImage) {
+                                    displayImage = parentCompany.profile_image;
+                                    if (displayImage) {
+                                        console.log(`    → Using parent company image for ${displayName}`);
+                                    }
+                                }
+                            }
+                            
+                            branchCache[id] = {
+                                name: displayName,
+                                profile_image: displayImage,
+                                company_id: branch.company_id,
+                                $id: branch.$id
+                            };
+                        }
+                        console.log(`✅ Cached ${branchResponse.documents.length} branches with company names & images`);
+                        
+                        // Second pass: for branches without images, find siblings with images
+                        for (const branch of branchResponse.documents) {
+                            const id = branch.branch_id || branch.$id;
+                            if (!branchCache[id].profile_image && branch.company_id) {
+                                // Find a sibling branch from same company with an image
+                                for (const sibling of branchResponse.documents) {
+                                    if (sibling.company_id === branch.company_id && 
+                                        (sibling.profile_image || sibling.header_image)) {
+                                        const siblingImage = resolveImageUrl(sibling.profile_image) || 
+                                                           resolveImageUrl(sibling.header_image);
+                                        if (siblingImage) {
+                                            branchCache[id].profile_image = siblingImage;
+                                            console.log(`📸 Found image for ${displayName} from sibling branch`);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('Could not fetch branches:', err.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Error in batch fetch:', error);
+            }
+        }
 
-        // Direct function to fetch company/branch data from database
+        // Direct function to fetch company/branch data from database (uses cache)
         async function fetchCompanyBranchData(branchId) {
             try {
                 if (!branchId) return null;
+
+                // Check cache first
+                if (companyCache[branchId]) {
+                    console.log(`✅ Cache hit for company ${branchId}`);
+                    return companyCache[branchId];
+                }
+                if (branchCache[branchId]) {
+                    console.log(`✅ Cache hit for branch ${branchId}`);
+                    // IMPORTANT: Return the cached branch data which should have the PARENT COMPANY name
+                    return branchCache[branchId];
+                }
 
                 console.log(`🔍 Fetching branch data for branchId: ${branchId}`);
 
@@ -1048,16 +1277,21 @@
                     const branch = branchResponse.documents[0];
                     const profileImageRaw = branch.profile_image ?? branch.profileImage;
                     const headerImageRaw = branch.header_image ?? branch.headerImage;
-                    if (profileImageRaw === undefined && headerImageRaw === undefined) {
-                        console.log(`🖼️ Branch image fields (raw): profile_image=${branch.profile_image}, header_image=${branch.header_image}`);
-                    }
 
                     let branchName = branch.branch_name || branch.name || 'Unknown Branch';
                     let companyName = branchName; // Default to branch name
                     let resolvedImage = resolveImageUrl(profileImageRaw) || resolveImageUrl(headerImageRaw);
 
-                    // Fetch parent company to get the real company name and optional profile image
-                    if (branch.company_id) {
+                    // Check parent company in cache first
+                    if (branch.company_id && companyCache[branch.company_id]) {
+                        const parent = companyCache[branch.company_id];
+                        companyName = parent.name;
+                        if (!resolvedImage) {
+                            resolvedImage = resolveImageUrl(parent.profile_image);
+                        }
+                        console.log(`✅ Found parent company (cached): ${companyName} for branch: ${branchName}`);
+                    } else if (branch.company_id) {
+                        // Fallback to fetch if not in cache
                         try {
                             const parentCompany = await window.databases.listDocuments(
                                 window.appwriteConfig.DATABASE_ID,
@@ -1072,14 +1306,24 @@
                                     const companyImg = parent.profile_image ?? parent.profileImage;
                                     resolvedImage = resolveImageUrl(companyImg);
                                 }
+                                // Cache it for next time
+                                const cacheId = parent.company_id || parent.$id;
+                                companyCache[cacheId] = { name: companyName, profile_image: resolvedImage };
                                 console.log(`✅ Found parent company: ${companyName} for branch: ${branchName}`);
                             }
                         } catch (e) {
                             console.warn('Could not fetch parent company:', e);
                         }
                     }
+                    
+                    // Cache the branch data
+                    branchCache[branchId] = {
+                        name: companyName,
+                        profile_image: resolvedImage,
+                        $id: branch.$id
+                    };
 
-                    // If this branch has no image, try another branch of the same company that has one (e.g. "One piece HQ" has images while "God is good" is null)
+                    // If this branch has no image, try another branch of the same company that has one
                     if (!resolvedImage && branch.company_id) {
                         try {
                             const siblingBranches = await window.databases.listDocuments(
@@ -1158,6 +1402,9 @@
 
             try {
                 console.log('🚀 Starting data fetch...');
+                
+                // Clear caches to prevent stale data
+                clearAllCaches();
 
                 orders = [];
                 currentPage = 0;
@@ -1403,6 +1650,20 @@
                 }
 
                 console.log(`📊 Retrieved ${response.documents.length} orders from database`);
+                
+                // Pre-fetch all company and branch data before processing orders
+                if (response.documents.length > 0) {
+                    const uniqueCompanyIds = new Set();
+                    const uniqueBranchIds = new Set();
+                    
+                    for (const order of response.documents) {
+                        if (order.company_id) uniqueCompanyIds.add(order.company_id);
+                        if (order.branchId || order.branch_id) uniqueBranchIds.add(order.branchId || order.branch_id);
+                    }
+                    
+                    console.log(`⚡ Pre-loading ${uniqueCompanyIds.size} unique companies and ${uniqueBranchIds.size} unique branches`);
+                    await batchFetchCompanyBranchData(Array.from(uniqueCompanyIds), Array.from(uniqueBranchIds));
+                }
 
                 if (response.documents.length === 0) {
                     console.log('⚠️ No orders found with customer_id, trying buyerId field...');
@@ -1685,12 +1946,10 @@
                 }
 
                 let companyImage = null;
-                let finalCompanyName = null; // Always show the company the user ordered from (e.g. One Piece), not branch name (e.g. God is good)
+                let finalCompanyName = null; // Display the company name from database
 
                 const branchId = order.branchId || order.branch_id;
                 const companyId = order.company_id;
-
-                // Prefer company_id for display: user ordered from the COMPANY (One Piece), not the branch name (God is good)
                 if (companyId) {
                     try {
                         console.log(`🔍 Looking up company for order ${orderId}, company_id: ${companyId}`);
@@ -1698,14 +1957,16 @@
                         if (companyData) {
                             finalCompanyName = companyData.name;
                             companyImage = companyData.profile_image;
-                            console.log(`🔍 Found company for order ${orderId}:`, finalCompanyName, '(company the user ordered from), Image:', companyImage ? 'Yes' : 'No');
+                            console.log(`✅ Found: "${finalCompanyName}", raw_image=${companyImage ? 'URL' : 'null'}`);
+                        } else {
+                            console.warn(`⚠️ No data returned for: ${companyId}`);
                         }
                     } catch (error) {
-                        console.warn('Could not fetch company data by company_id:', error);
+                        console.warn('Could not fetch company data:', error);
                     }
                 }
 
-                // If no company name yet, try branch_id (branch has parent company; we use company name, not branch name)
+                // If no company name yet, try branch_id
                 if ((!finalCompanyName || finalCompanyName === 'Unknown Company') && branchId) {
                     try {
                         console.log(`🔍 Looking up branch for order ${orderId}, branch_id: ${branchId}`);
@@ -1713,7 +1974,9 @@
                         if (branchData) {
                             finalCompanyName = finalCompanyName || branchData.name;
                             if (!companyImage && branchData.profile_image) companyImage = branchData.profile_image;
-                            console.log(`🔍 Found branch/company for order ${orderId}:`, finalCompanyName, 'Image:', companyImage ? 'Yes' : 'No');
+                            console.log(`✅ Found branch for order ${orderId}: "${finalCompanyName}", Image URL: ${companyImage ? 'Present' : 'None'}`);
+                        } else {
+                            console.warn(`⚠️ No branch data returned for branch_id: ${branchId}`);
                         }
                     } catch (error) {
                         console.warn('Could not fetch branch/company data:', error);
@@ -1722,14 +1985,17 @@
 
                 if (!finalCompanyName || finalCompanyName === 'Unknown Company') {
                     finalCompanyName = order.company || order.companyName || order.branchName || 'Company';
+                    console.log(`ℹ️ Using fallback company name for order ${orderId}: "${finalCompanyName}"`);
                 }
+
+                console.log(`✅ Final order data: name="${finalCompanyName}", image=${companyImage ? 'YES' : 'NO'}`);
 
                 return {
                     $id: orderId,
                     orderId: orderId,
                     company: finalCompanyName,
-                    companyImage: companyImage,
-                    profile_image: companyImage,
+                    companyImage: resolveImageUrl(companyImage),
+                    profile_image: resolveImageUrl(companyImage),
                     location: deliveryAddress,
                     payment: paymentMethod,
                     time: deliveryTime,
@@ -2294,6 +2560,12 @@
 
                 // Use company/branch profile_image or header_image from DB (branches/company_tb). If both are null in Appwrite, placeholder shows.
                 let displayImage = order.companyImage || order.profile_image || null;
+                
+                if (displayImage) {
+                    console.log(`📸 Card ${order.orderId}: Using image URL`);
+                } else {
+                    console.log(`📸 Card ${order.orderId}: No image - companyImage="${order.companyImage}", profile_image="${order.profile_image}"`);
+                }
 
                 card.innerHTML = `
                     <div class="flex flex-row w-full items-center gap-2">
@@ -2705,6 +2977,46 @@
                     if (orderItemsResponse.documents && orderItemsResponse.documents.length > 0) {
                         enrichedData.orderItems = orderItemsResponse.documents;
                         console.log(`✅ Found ${orderItemsResponse.documents.length} order items`);
+                        
+                        // Fetch full product details to get images
+                        try {
+                            const productsTable = window.appwriteConfig.PRODUCTS_TABLE || 'product';
+                            const productsResp = await window.databases.listDocuments(
+                                window.appwriteConfig.DATABASE_ID,
+                                productsTable,
+                                [Query.limit(100)]
+                            );
+                            const productsMap = {};
+                            productsResp.documents.forEach(p => {
+                                productsMap[p.$id] = p;
+                                productsMap[p.product_id || p.id] = p;
+                            });
+                            
+                            // Enrich order items with product images
+                            enrichedData.orderItems = enrichedData.orderItems.map(item => {
+                                const productId = item.product_id || item.productId || item.product || item.$id;
+                                const product = productsMap[productId];
+                                
+                                if (product) {
+                                    const productImage = product.image || product.productImage || product.product_image;
+                                    const resolvedImage = resolveImageUrl(productImage);
+                                    console.log(`📸 Product ${item.productName}: image = ${resolvedImage ? 'YES' : 'NO'}`);
+                                    
+                                    return {
+                                        ...item,
+                                        productImage: resolvedImage || resolveImageUrl(item.productImage),
+                                        productName: item.productName || product.name || product.productName || product.product_name
+                                    };
+                                }
+                                // If no product found in map, resolve the item's image anyway
+                                return {
+                                    ...item,
+                                    productImage: resolveImageUrl(item.productImage) || item.productImage
+                                };
+                            });
+                        } catch (prodLookupErr) {
+                            console.warn('⚠️ Could not fetch product details for images:', prodLookupErr.message);
+                        }
                     } else {
                         console.log(`📭 No order_items found`);
                     }
@@ -2749,7 +3061,7 @@
                                 productName: name,
                                 productPrice: readPrice(matched),
                                 productQty: 1,
-                                productImage: matched.image || matched.productImage || matched.product_image || null,
+                                productImage: resolveImageUrl(matched.image || matched.productImage || matched.product_image),
                                 productType: productType
                             }];
                             console.log('✅ Matched product:', name, '| Price:', readPrice(matched), '| Type:', productType);
@@ -2828,12 +3140,14 @@
 
                 const preserveCompany = currentOrderForDetails.company;
                 const preserveCompanyImage = currentOrderForDetails.companyImage;
+                const preserveProfileImage = currentOrderForDetails.profile_image;
 
                 currentOrderForDetails = {
                     ...currentOrderForDetails, // minimal details (has 'company')
                     ...enrichedOrderDetails,   // full details (has 'orderItems')
                     company: preserveCompany || enrichedOrderDetails.company, // prioritize resolved name
-                    companyImage: preserveCompanyImage || enrichedOrderDetails.companyImage
+                    companyImage: preserveCompanyImage || enrichedOrderDetails.companyImage,
+                    profile_image: preserveProfileImage || enrichedOrderDetails.profile_image // preserve resolved profile_image
                 };
 
                 // Now render the complete order details
@@ -2986,6 +3300,7 @@
             console.log('  - deliveryName:', currentOrderForDetails.deliveryName);
             console.log('  - company:', currentOrderForDetails.company);
             console.log('  - companyImage:', currentOrderForDetails.companyImage);
+            console.log('  - profile_image:', currentOrderForDetails.profile_image);
             console.log('  - productInfo.image:', productInfo.image);
             console.log('  - displayImage:', displayImage);
             console.log('  - orderItems:', currentOrderForDetails.orderItems);
@@ -3013,15 +3328,15 @@
 
             detailsArea.innerHTML = `
                 <div class="space-y-4">
-                    <!-- Company/Product Image -->
+                    <!-- Company Profile Image -->
                     <div class="bg-gray-800/50 rounded-xl p-4">
                         <h3 class="text-white text-lg font-bold mb-3">Company</h3>
                         <div class="flex items-center space-x-4">
                             <div class="rounded-[10px] bg-[#808080] overflow-hidden flex-shrink-0" style="width: 80px; height: 80px;">
-                                ${displayImage ?
-                    `<img src="${displayImage}" class="w-full h-full object-cover" alt="${currentOrderForDetails.deliveryName || 'Product'}" loading="lazy" referrerpolicy="no-referrer"
+                                ${currentOrderForDetails.profile_image ?
+                    `<img src="${currentOrderForDetails.profile_image}" class="w-full h-full object-cover" alt="${currentOrderForDetails.company || 'Company'}" loading="lazy" referrerpolicy="no-referrer"
                                      onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';"
-                                     onload="console.log('✅ Image loaded successfully:', this.src);">
+                                     onload="console.log('✅ Company profile_image loaded:', this.src);">
                                     <div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center" style="display:none;">
                                         <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
@@ -3040,6 +3355,37 @@
                                 <p class="text-gray-400 text-sm">Quantity: ${productInfo.quantity}</p>
                             </div>
                         </div>
+                        ${currentOrderForDetails.orderItems && currentOrderForDetails.orderItems.length > 0 ? `
+                        <div class="mt-4 pt-4 border-t border-gray-700">
+                            <p class="text-gray-400 text-xs mb-2">Product Images:</p>
+                            <div class="grid grid-cols-2 gap-3">
+                                ${currentOrderForDetails.orderItems.map((item, index) => {
+                                    const itemImage = item.productImage || item.product_image || (item.product && item.product.image);
+                                    console.log(`📸 Item ${index}: productImage="${itemImage}"`);
+                                    return `
+                                    <div class="rounded-lg bg-gray-900/50 overflow-hidden h-40">
+                                        ${itemImage ? `
+                                            <img src="${itemImage}" class="w-full h-full object-cover" alt="${item.productName || 'Product'}" loading="lazy" referrerpolicy="no-referrer"
+                                                 onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';console.log('❌ Image failed to load:', '${itemImage}');"
+                                                 onload="console.log('✅ Product image loaded:', this.src);">
+                                            <div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center" style="display:none;">
+                                                <svg class="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle>
+                                                </svg>
+                                            </div>
+                                        ` : `
+                                            <div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
+                                                <svg class="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle>
+                                                </svg>
+                                            </div>
+                                        `}
+                                        <p class="text-white text-xs text-center p-2 bg-gray-900/70">${item.productName || item.product_name || 'Product'}</p>
+                                    </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>` : ''}
                     </div>
                     
                     ${currentOrderForDetails.orderItems && currentOrderForDetails.orderItems.length > 0 ? `
