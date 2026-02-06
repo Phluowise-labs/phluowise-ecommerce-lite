@@ -3781,8 +3781,8 @@
                     `;
                 productCard.innerHTML = `
                     <img src="${imageUrl}" alt="${product.name}" class="product-select-image" 
-                         onerror="this.onerror=null; const basename = this.src.split('/files/')[1]?.split('/view')[0] || ''; const altUrl = 'https://nyc.cloud.appwrite.io/v1/storage/buckets/695fec72003b8ba4fb22/files/' + basename + '/view?project=695f826500067c381616'; if(basename && this.src.includes('/68b1c57b001542be7fbe/')) { this.src = altUrl; console.log('🔄 Trying alternate bucket for: ' + basename); } else if(basename) { this.src = altUrl; } else { this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMCA0MEg3MFY2MCBIMzBWNDBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjgiIGZpbGw9IiNDQ0NDQ0MiLz4KPHBhdGggZD0iTTQ1IDUwSDU1TDUwIDYwTDQ1IDUwWiIgZmlsbD0iI0NDQ0NDQzIi8+Cjwvc3ZnPgo'; console.error('❌ No file ID found for image'); }" 
-                         style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+                         onerror="${createImageErrorHandler(product.name)}"
+                         style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background: #1D1D1D;">
                     <div class="product-select-name">${product.name}</div>
                     <div class="product-select-price">GHS ${product.price.toFixed(2)}</div>
                     ${quantityControls}
@@ -4217,6 +4217,35 @@
             }
         }
 
+        // ⚡ Helper function to get optimized image URL from database
+        function getOptimizedProductImageUrl(product) {
+            // Priority: 1. product.image, 2. product.imageUrl, 3. product.product_image, 4. placeholder
+            let imageUrl = product.image || product.imageUrl || product.product_image || null;
+            
+            if (!imageUrl) {
+                // Return placeholder SVG
+                return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMCA0MEg3MFY2MCBIMzBWNDBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjgiIGZpbGw9IiNDQ0NDQ0MiLz4KPHBhdGggZD0iTTQ1IDUwSDU1TDUwIDYwTDQ1IDUwWiIgZmlsbD0iI0NDQ0NDQzIi8+Cjwvc3ZnPgo';
+            }
+            
+            return imageUrl;
+        }
+
+        // ⚡ Helper function to create error handler for product images
+        function createImageErrorHandler(productName) {
+            return `this.onerror=null; 
+                const basename = this.src.split('/files/')[1]?.split('/view')[0] || ''; 
+                const altUrl = 'https://nyc.cloud.appwrite.io/v1/storage/buckets/695fec72003b8ba4fb22/files/' + basename + '/view?project=695f826500067c381616'; 
+                if(basename && this.src.includes('/68b1c57b001542be7fbe/')) { 
+                    this.src = altUrl; 
+                    console.log('🔄 Trying alternate bucket for: ' + basename); 
+                } else if(basename) { 
+                    this.src = altUrl; 
+                } else { 
+                    this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMCA0MEg3MFY2MCBIMzBWNDBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjgiIGZpbGw9IiNDQ0NDQ0MiLz4KPHBhdGggZD0iTTQ1IDUwSDU1TDUwIDYwTDQ1IDUwWiIgZmlsbD0iI0NDQ0NDQzIi8+Cjwvc3ZnPgo'; 
+                    console.error('❌ No file ID found for image'); 
+                }`;
+        }
+
         function updateQuantityStep() {
             const selectedContainer = document.getElementById('selectedProductsContainer');
             selectedContainer.innerHTML = '';
@@ -4230,8 +4259,15 @@
                     selectedItem.className = 'selected-product-item';
                     // Find the actual index in the full selectedProducts array
                     const actualIndex = selectedProducts.findIndex(p => p.id === product.id);
+                    
+                    // Get optimized image URL
+                    const imageUrl = getOptimizedProductImageUrl(product);
+                    
                     selectedItem.innerHTML = `
-                        <img src="${product.image}" alt="${product.name}" class="selected-product-image">
+                        <img src="${imageUrl}" alt="${product.name}" 
+                             class="selected-product-image"
+                             onerror="${createImageErrorHandler(product.name)}"
+                             style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; background: #1D1D1D;">
                         <div class="selected-product-details">
                             <div class="selected-product-name">${product.name}</div>
                             <div class="selected-product-price">GHS ${product.price.toFixed(2)} each</div>
@@ -4315,8 +4351,15 @@
             productsWithQuantity.forEach(product => {
                 const productItem = document.createElement('div');
                 productItem.className = 'review-product-item';
+                
+                // Get optimized image URL from database
+                const imageUrl = getOptimizedProductImageUrl(product);
+                
                 productItem.innerHTML = `
-                    <img src="${product.image}" alt="${product.name}" class="review-product-image">
+                    <img src="${imageUrl}" alt="${product.name}" 
+                         class="review-product-image"
+                         onerror="${createImageErrorHandler(product.name)}"
+                         style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background: #1D1D1D;">
                     <div class="review-product-details">
                         <div class="review-product-name">${product.quantity}x ${product.name}</div>
                         <div class="review-product-price">GHS ${(product.price * product.quantity).toFixed(2)}</div>
