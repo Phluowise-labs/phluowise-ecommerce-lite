@@ -2833,6 +2833,34 @@
     <script src="js/notifications.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // Map initialization flag
+        let mapInitialized = false;
+        let mapInitializationTimer = null;
+        
+        // Function to safely initialize the map when company data is available
+        function initializeMapWhenReady() {
+            // Only attempt initialization once
+            if (mapInitialized) return;
+            
+            // Check if company data is ready
+            if (window.currentCompany && window.currentCompany.coordinates && 
+                window.currentCompany.coordinates.lat && window.currentCompany.coordinates.lng) {
+                
+                console.log('🗺️ Company data ready, initializing map with coordinates:', window.currentCompany.coordinates);
+                
+                // Clear timer if it exists
+                if (mapInitializationTimer) {
+                    clearInterval(mapInitializationTimer);
+                    mapInitializationTimer = null;
+                }
+                
+                // Initialize the map
+                initMap();
+                mapInitialized = true;
+                console.log('✅ Map initialized successfully');
+            }
+        }
+        
         // Global variables for the schedule flow
         let currentStep = 1;
         const totalSteps = 12; // Increased to 12 steps
@@ -3753,7 +3781,7 @@
                     `;
                 productCard.innerHTML = `
                     <img src="${imageUrl}" alt="${product.name}" class="product-select-image" 
-                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMCA0MEg3MFY2MEgzMFY0MFoiIGZpbGw9IiNDQ0NDQ0MiLz4KPGNpcmNsZSBjeD0iNTAiIGN5PSIzMCIgcj0iOCIgZmlsbD0iI0NDQ0NDQzIi8+CjxwYXRoIGQ9Ik00NSA1MEg1NUw1MCA2MEw0NSA1MFoiIGZpbGw9IiNDQ0NDQ0MiLz4KPHN2Zz4K'" 
+                         onerror="this.onerror=null; const basename = this.src.split('/files/')[1]?.split('/view')[0] || ''; const altUrl = 'https://nyc.cloud.appwrite.io/v1/storage/buckets/695fec72003b8ba4fb22/files/' + basename + '/view?project=695f826500067c381616'; if(basename && this.src.includes('/68b1c57b001542be7fbe/')) { this.src = altUrl; console.log('🔄 Trying alternate bucket for: ' + basename); } else if(basename) { this.src = altUrl; } else { this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMCA0MEg3MFY2MCBIMzBWNDBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjgiIGZpbGw9IiNDQ0NDQ0MiLz4KPHBhdGggZD0iTTQ1IDUwSDU1TDUwIDYwTDQ1IDUwWiIgZmlsbD0iI0NDQ0NDQzIi8+Cjwvc3ZnPgo'; console.error('❌ No file ID found for image'); }" 
                          style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
                     <div class="product-select-name">${product.name}</div>
                     <div class="product-select-price">GHS ${product.price.toFixed(2)}</div>
@@ -6860,9 +6888,8 @@
             
             setCurrentDay();
             
-            setTimeout(() => {
-                initMap();
-            }, 100);
+            // Map will be initialized by initializeMapWhenReady() after company data loads
+            // Removed inline initMap() call to avoid initializing before company data is available
 
             selectRecipientType('you');
             
@@ -7121,21 +7148,15 @@
                 location: branchData.location,
                 email: branchData.email,
                 is_verified: branchData.is_verified || false, // Add verification status
-                // Use coordinates from database if available, otherwise fallback to default
-                coordinates: {
-                    lat: branchData.latitude || 5.6037,
-                    lng: branchData.longitude || -0.1870
+                // Use coordinates from branchData (already computed by companyDataManager)
+                coordinates: branchData.coordinates || {
+                    lat: 5.6037,
+                    lng: -0.1870
                 }
             };
             console.log(' Updated company contact info - Phone:', branchData.phone_number, 'Website:', branchData.website);
             console.log('🔍 Full branchData object for debugging:', branchData);
-            console.log('🔍 Available coordinate fields:', {
-                latitude: branchData.latitude,
-                longitude: branchData.longitude,
-                lat: branchData.lat,
-                lng: branchData.lng,
-                location: branchData.location
-            });
+            console.log('🔍 Coordinates from branchData:', branchData.coordinates);
             console.log(' Updated company coordinates:', window.currentCompany.coordinates);
             
             // Initialize working hours display
@@ -7143,26 +7164,9 @@
             
             // Update map with new coordinates if map is initialized
             if (map) {
-                let coords = { lat: 5.6037, lng: -0.1870 }; // Default coordinates
-                
-                // Prefer geocoding the textual location first
-                if (branchData.location) {
-                    console.log('🗺️ Geocoding branch location first:', branchData.location);
-                    const geo = await geocodeLocation(branchData.location);
-                    // If geocoding yields a non-default result, use it; otherwise try DB coords
-                    const isDefaultGeo = geo && Math.abs(geo.lat - 5.6037) < 1e-6 && Math.abs(geo.lng - -0.1870) < 1e-6;
-                    if (geo && !isDefaultGeo) {
-                        coords = geo;
-                    } else if (branchData.latitude && branchData.longitude) {
-                        coords = { lat: parseFloat(branchData.latitude), lng: parseFloat(branchData.longitude) };
-                    }
-                } else if (branchData.latitude && branchData.longitude) {
-                    // Fall back to database coordinates
-                    coords = { lat: parseFloat(branchData.latitude), lng: parseFloat(branchData.longitude) };
-                }
-                
-                // Persist the chosen coordinates globally
-                window.currentCompany.coordinates = { lat: coords.lat, lng: coords.lng };
+                // Use the coordinates already set in window.currentCompany
+                const coords = window.currentCompany.coordinates;
+                console.log('🗺️ Updating map with coordinates:', coords);
                 
                 updateMapLocation(coords.lat, coords.lng, branchData.branch_name);
             }
@@ -7175,6 +7179,10 @@
             
             // 8. Fetch products for this branch
             await fetchProductsForCurrentBranch();
+            
+            // 9. Initialize the map with company location
+            console.log('🗺️ Company data loaded, attempting to initialize map');
+            initializeMapWhenReady();
         }
         
         // Update social media links - use social_media data from branchData
@@ -7346,6 +7354,23 @@
             // Wait a bit for company data manager to be ready
             setTimeout(() => {
                 fetchBranchDataForSchedule();
+                
+                // Also start a fallback timer to initialize map if data loads
+                if (!mapInitializationTimer) {
+                    mapInitializationTimer = setInterval(() => {
+                        if (window.currentCompany && window.currentCompany.coordinates) {
+                            initializeMapWhenReady();
+                        }
+                    }, 300); // Check every 300ms
+                    
+                    // Stop checking after 30 seconds
+                    setTimeout(() => {
+                        if (mapInitializationTimer) {
+                            clearInterval(mapInitializationTimer);
+                            mapInitializationTimer = null;
+                        }
+                    }, 30000);
+                }
             }, 1500); // Increased delay to ensure everything is loaded
         });
     </script>
