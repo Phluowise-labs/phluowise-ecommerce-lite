@@ -1812,7 +1812,7 @@
             </div>
 
             <!-- Views Content -->
-            <div class="mt-4 pb-[150px]">
+            <div class="mt-4 pb-[80px]">
 
                 <!-- SCHEDULE ORDER VIEW (ScheduleOrder.tsx - Exact) -->
                 <div id="view-schedule" class="block">
@@ -1893,7 +1893,7 @@
                 </div>
 
                 <!-- PRODUCTS VIEW (Products.tsx - Exact Grid) -->
-                <div id="view-products" class="hidden px-4">
+                <div id="view-products" class="hidden px-4 pb-[20px]">
                     <!-- Loading spinner for products -->
                     <div id="productsLoader" class="flex flex-col items-center justify-center py-8">
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mb-3"></div>
@@ -2108,8 +2108,10 @@
                 <img src="images/main/ArrowLeftIcon.png" class="w-6 h-6">
             </button>
             <div class="w-full h-full flex flex-col items-center justify-center gap-4">
-                <img id="modalProductImage" src="images/main/ProductImage1.png"
-                    class="h-[200px] object-contain">
+                <div id="modalImageContainer" class="h-[200px] w-full flex items-center justify-center bg-[#101010] rounded-[12px]">
+                    <img id="modalProductImage" src="" class="h-[200px] object-contain" alt="Product image" 
+                        onerror="this.onerror=null; const basename = this.src.split('/files/')[1]?.split('/view')[0] || ''; const altUrl = 'https://nyc.cloud.appwrite.io/v1/storage/buckets/695fec72003b8ba4fb22/files/' + basename + '/view?project=695f826500067c381616'; if(basename && this.src.includes('/68b1c57b001542be7fbe/')) { this.src = altUrl; console.log('🔄 Trying alternate bucket for modal image'); } else { console.error('❌ Modal image failed'); this.style.display='none'; document.getElementById('modalImageContainer').innerHTML='<span class=&quot;text-white/50&quot;>Image unavailable</span>'; }">
+                </div>
                 <h2 id="modalProductName" class="text-white text-2xl font-bold">Product Name</h2>
                 <p id="modalProductDescription" class="text-white text-lg text-center px-4">Product Description</p>
                 <p id="modalProductPrice" class="text-white text-xl">GHS 0.00</p>
@@ -2915,20 +2917,31 @@
                     // Use product_image from database and construct Appwrite storage URL if needed
                     let imageUrl = doc.product_image || '';
                     
-                    // Debug logging
-                    console.log(`🔍 Product image processing: "${doc.product_name}" - Original: "${imageUrl}"`);
+                    // Debug logging - show all available fields
+                    console.log(`🔍 Product image processing: "${doc.product_name}"`);
+                    console.log(`   - product_image field: "${imageUrl}"`);
+                    console.log(`   - All doc fields:`, doc);
                     
                     // If product_image exists but doesn't start with http, construct Appwrite URL
                     if (imageUrl && !imageUrl.startsWith('http')) {
-                        const constructedUrl = `https://nyc.cloud.appwrite.io/v1/storage/buckets/${window.appwriteConfig.STORAGE_BUCKET_ID}/files/${imageUrl}/view?project=${window.appwriteConfig.PROJECT_ID}`;
-                        imageUrl = constructedUrl;
-                        console.log(`🔧 Constructed URL: ${constructedUrl}`);
+                        // Try the configured storage bucket first
+                        const primaryUrl = `https://nyc.cloud.appwrite.io/v1/storage/buckets/${window.appwriteConfig.STORAGE_BUCKET_ID}/files/${imageUrl}/view?project=${window.appwriteConfig.PROJECT_ID}&mode=admin`;
+                        
+                        // Fallback to alternate bucket (in case images are stored there)
+                        const alternateUrl = `https://nyc.cloud.appwrite.io/v1/storage/buckets/695fec72003b8ba4fb22/files/${imageUrl}/view?project=${window.appwriteConfig.PROJECT_ID}`;
+                        
+                        imageUrl = primaryUrl;
+                        console.log(`🔧 Constructed primary Appwrite URL: ${primaryUrl}`);
+                        console.log(`🔧 Fallback URL: ${alternateUrl}`);
+                    } else if (imageUrl.startsWith('http')) {
+                        console.log(`✅ Using direct HTTP URL: ${imageUrl}`);
                     }
                     
-                    console.log(`✅ Final image URL: ${imageUrl}`);
+                    console.log(`📊 Image URL status: ${imageUrl ? '✅ Has URL' : '❌ No URL'}`);
                     
                     // If no product_image, use type-based fallback
                     if (!imageUrl) {
+                        console.log(`⚠️ No product image found, using fallback for type: ${type}`);
                         if (type.includes('dispenser')) imageUrl = 'images/products/dispenser.jpg';
                         else if (type.includes('bottle')) imageUrl = 'images/products/bottle.jpg';
                         else if (type.includes('sachet') || type.includes('sachets')) imageUrl = 'images/products/sachets.jpg';
@@ -3097,19 +3110,22 @@
                          <div class="w-[15px] h-[15px] bg-white/50 rounded-sm"></div>
                     </div>
                     
-                    <img src="${p.image}" class="w-full h-full object-cover">
+                    <img src="${p.image}" 
+                         class="w-full h-full object-cover" 
+                         alt="${p.name}"
+                         onerror="this.onerror=null; const basename = this.src.split('/files/')[1]?.split('/view')[0] || ''; const altUrl = 'https://nyc.cloud.appwrite.io/v1/storage/buckets/695fec72003b8ba4fb22/files/' + basename + '/view?project=695f826500067c381616'; if(basename && this.src.includes('/68b1c57b001542be7fbe/')) { this.src = altUrl; console.log('🔄 Trying alternate bucket for: ' + basename); } else { console.error('❌ Image failed in both buckets: ${p.image}'); }">
                     
                     <!-- Bottom Blur (intensity: 50, height: 50, zIndex: 2) -->
-                    <div class="absolute bottom-0 left-0 right-0 px-2 py-1 flex flex-row justify-between items-center gap-1 z-10 glass-blur-50" style="height: 50px;">
-                         <div>
-                              <span class="text-white font-[600] block leading-tight truncate" style="width: 110px;">${p.name}</span>
-                              <span class="text-white font-[400] text-sm block leading-tight truncate" style="width: 110px;">${descText}</span>
+                    <div class="absolute bottom-0 left-0 right-0 px-2 py-1 flex flex-row justify-between items-center gap-2 z-10 glass-blur-50" style="height: 50px;">
+                         <div style="flex: 1; min-width: 0;">
+                              <span class="text-white font-[600] block leading-tight truncate" style="max-width: 100%;">${p.name}</span>
+                              <span class="text-white font-[400] text-sm block leading-tight truncate" style="max-width: 100%;">${descText}</span>
                          </div>
                          <!-- Button (height: 25, rounded: 5, bg: #40444B, shadow) -->
-                         <button class="bg-[#40444B] rounded-[5px] px-2 flex items-center justify-center transform active:scale-95 transition-transform"
+                         <button class="bg-[#40444B] rounded-[5px] px-2 py-1 flex items-center justify-center transform active:scale-95 transition-transform flex-shrink-0"
                                  onclick="openProductModal('${escapedName}', ${Number(p.price || 0)}, '${escapedDesc}', '${escapedImage}')"
-                                 style="height: 25px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);">
-                              <span class="text-white text-sm font-[500]">less +</span>
+                                 style="height: 28px; white-space: nowrap; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);">
+                              <span class="text-white text-xs font-[500]">Details</span>
                          </button>
                     </div>
                 `;
@@ -3201,18 +3217,21 @@
         function openProductModal(name, price, description, imageUrl) {
             const modal = document.getElementById('productModal');
             const content = document.getElementById('productModalContent');
-            const modalImage = document.getElementById('modalProductImage');
+            const modalContainer = document.getElementById('modalImageContainer');
             
             document.getElementById('modalProductName').textContent = name;
             document.getElementById('modalProductPrice').textContent = "GHS " + price;
             document.getElementById('modalProductDescription').textContent = description;
             
             // Update modal image if URL is provided
-            if (imageUrl && modalImage) {
-                modalImage.src = imageUrl;
+            if (imageUrl && modalContainer) {
+                modalContainer.innerHTML = `<img id="modalProductImage" src="${imageUrl}" class="h-[200px] object-contain" alt="Product image" onerror="this.onerror=null; const basename = this.src.split('/files/')[1]?.split('/view')[0] || ''; const altUrl = 'https://nyc.cloud.appwrite.io/v1/storage/buckets/695fec72003b8ba4fb22/files/' + basename + '/view?project=695f826500067c381616'; if(basename && this.src.includes('/68b1c57b001542be7fbe/')) { this.src = altUrl; console.log('🔄 Trying alternate bucket for modal image'); } else { console.error('❌ Modal image failed'); this.style.display='none'; document.getElementById('modalImageContainer').innerHTML='<span class=&quot;text-white/50&quot;>Image unavailable</span>'; }">`;
                 console.log('🖼️ Modal image updated:', imageUrl);
             } else {
                 console.log('⚠️ No image URL provided for modal');
+                if (modalContainer) {
+                    modalContainer.innerHTML = '<span class="text-white/50">No image available</span>';
+                }
             }
 
             modal.classList.remove('opacity-0', 'pointer-events-none');
@@ -6766,14 +6785,15 @@
                 const queryPrimary = hasGhana ? normalized : (hasAccra ? `${normalized}, Ghana` : `${normalized}, Accra, Ghana`);
                 
                 // First attempt: restrict to Ghana and limit results
-                let url = `/api/geocode?q=${encodeURIComponent(queryPrimary)}`;
+                // Use the Express server on port 3000 which has the /api/geocode endpoint
+                let url = `http://127.0.0.1:3000/api/geocode?q=${encodeURIComponent(queryPrimary)}`;
                 let response = await fetch(url);
                 let data = await response.json();
                 
                 // Fallback attempt: if no result, try with just Ghana
                 if (!data || data.length === 0) {
                     const queryFallback = `${normalized}, Ghana`;
-                    url = `/api/geocode?q=${encodeURIComponent(queryFallback)}`;
+                    url = `http://127.0.0.1:3000/api/geocode?q=${encodeURIComponent(queryFallback)}`;
                     response = await fetch(url);
                     data = await response.json();
                 }
