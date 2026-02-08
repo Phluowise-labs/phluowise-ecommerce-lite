@@ -3562,9 +3562,26 @@
                         orderData.recipient.phone = phone;
                         orderData.recipient.email = email;
                     } else {
-                        orderData.recipient.name = document.getElementById('youNameDisplay').textContent;
-                        orderData.recipient.phone = document.getElementById('youPhoneDisplay').textContent;
-                        orderData.recipient.email = document.getElementById('youEmailDisplay').textContent;
+                        // For 'you' recipient type, get data from display elements
+                        const youName = document.getElementById('youNameDisplay').textContent?.trim() || '';
+                        const youPhone = document.getElementById('youPhoneDisplay').textContent?.trim() || '';
+                        const youEmail = document.getElementById('youEmailDisplay').textContent?.trim() || '';
+                        
+                        console.log('👤 "You" recipient data from UI:', {youName, youPhone, youEmail});
+                        
+                        if (!youName || youName === 'Loading...') {
+                            showError('Please wait for your profile to load');
+                            return false;
+                        }
+                        
+                        if (!youPhone || youPhone === 'Loading...') {
+                            showError('Your phone number is missing. Please update your profile.');
+                            return false;
+                        }
+                        
+                        orderData.recipient.name = youName;
+                        orderData.recipient.phone = youPhone;
+                        orderData.recipient.email = youEmail;
                     }
 
                     if (!address) {
@@ -4546,12 +4563,21 @@
                 paidAt: new Date().toISOString()
             };
 
-            // Show success message
-            showSuccess('Service fee paid successfully! Continuing with your order...');
+            // Add payment info to orderData
+            orderData.payment = {
+                network: 'Paystack',
+                transactionRef: response.reference,
+                status: 'completed'
+            };
 
-            // Continue to next step (bottom sheet process)
+            console.log('💳 Payment successful, now saving order to database...');
+
+            // Show success message
+            showSuccess('Service fee paid successfully! Saving your order...');
+
+            // Save order to database AFTER payment confirmation
             setTimeout(() => {
-                nextStep();
+                processPayment();
             }, 1500);
         }
 
@@ -4575,7 +4601,13 @@
         }
 
         async function processPayment() {
+            console.log('🚀 ===== PAYMENT PROCESSING STARTED =====');
+            console.log('🚀 Current Step:', currentStep);
+            console.log('🚀 Selected Products:', selectedProducts);
+            console.log('🚀 Order Data:', orderData);
+            
             if (!validateCurrentStep()) {
+                console.warn('❌ Current step validation failed, exiting processPayment');
                 return;
             }
 
@@ -4584,11 +4616,15 @@
             const payBtnText = document.getElementById('payBtnText');
             const payBtnLoading = document.getElementById('payBtnLoading');
             
-            payBtn.disabled = true;
-            payBtnText.classList.add('hidden');
-            payBtnLoading.classList.remove('hidden');
+            if (payBtn) {
+                payBtn.disabled = true;
+                payBtnText?.classList.add('hidden');
+                payBtnLoading?.classList.remove('hidden');
+                console.log('✅ Payment button loading state activated');
+            }
 
             try {
+                console.log('🔧 Initializing OrderManager...');
                 // Initialize OrderManager
                 const orderManager = new OrderManager();
                 
@@ -4596,6 +4632,7 @@
                 let customerData = null;
                 try {
                     customerData = await window.account.get();
+                    console.log('✅ Customer data retrieved from Appwrite:', customerData.$id);
                 } catch (err) {
                     console.error('❌ Error getting customer data:', err);
                     // Try to use cached user data if available
@@ -4603,7 +4640,7 @@
                     if (cachedUser) {
                         try {
                             customerData = JSON.parse(cachedUser);
-                            console.log('✅ Using cached customer data');
+                            console.log('✅ Using cached customer data:', customerData.$id);
                         } catch (parseErr) {
                             console.error('❌ Error parsing cached data:', parseErr);
                             showError('Unable to get customer information. Please refresh the page and try again.');
@@ -4625,6 +4662,19 @@
                     return;
                 }
 
+                console.log('✅ Branch data retrieved:', branchData.branch_id);
+
+                // Validate selected products before creating order
+                if (!selectedProducts || selectedProducts.length === 0) {
+                    showError('No products selected. Please add products to your order.');
+                    payBtn.disabled = false;
+                    payBtnText?.classList.remove('hidden');
+                    payBtnLoading?.classList.add('hidden');
+                    return;
+                }
+
+                console.log('✅ Products validated:', selectedProducts.length, 'items');
+
                 // Generate transaction ID before creating order
                 const transactionId = 'TXN' + Date.now().toString().slice(-8);
                 console.log('🔍 Generated transaction ID:', transactionId);
@@ -4638,7 +4688,7 @@
                     deliveryTime: orderData.deliveryTime,
                     deliveryAddress: orderData.recipient.address,
                     orderComment: orderData.deliveryInstructions || '',
-                    paymentMethod: orderData.payment.network,
+                    paymentMethod: orderData.payment?.network || 'Pay on Delivery',
                     transactionId: transactionId, // Add transaction ID
                     deliveryName: selectedProducts.map(p => p.name).join(', '),
                     deliveryOrgType: orderData.recipient.type || 'individual',
@@ -4653,6 +4703,9 @@
                     business_name: orderData.recipient.type === 'business' ? orderData.recipient.businessName : ''
                 };
 
+                console.log('📝 Order payload prepared:', orderPayload);
+                console.log('💳 Payment method:', orderPayload.paymentMethod);
+
                 // Validate date/time with working days
                 const workingDays = branchData.working_days || branchData.workingHours || [];
                 const validation = orderManager.validateDateTimeWithWorkingDays(
@@ -4662,27 +4715,58 @@
                 );
 
                 if (!validation.valid) {
+                    console.error('❌ Date/time validation failed:', validation.message);
                     showError(validation.message);
+                    payBtn.disabled = false;
+                    payBtnText?.classList.remove('hidden');
+                    payBtnLoading?.classList.add('hidden');
                     return;
                 }
 
-                // Create order and order items
+                console.log('✅ Date/time validation passed');
+                console.log('📦 Creating order and order items in database...');
+
+                // Create order and order items (this saves to database)
                 const order = await orderManager.createCompleteOrder(
                     orderPayload,
                     selectedProducts,
                     workingDays
                 );
 
+                console.log('✅✅✅ ORDER CREATED IN DATABASE ✅✅✅');
+                console.log('✅ Order successfully saved to database with ID:', order.$id);
+                console.log('✅ Order document:', order);
+                console.log('✅ Order status:', order.orderStatus);
+                console.log('✅ Order total:', order.total);
+
                 // Save purchase recipient info to database
                 if (orderData.recipient) {
                     console.log('🔍 Creating purchase recipient info for order:', order.$id);
                     console.log('🔍 Recipient data:', orderData.recipient);
                     
+                    // Get customer full name and phone for 'you' recipient type
+                    let recipientName = orderData.recipient.name || '';
+                    let recipientPhone = orderData.recipient.phone || '';
+                    let recipientEmail = orderData.recipient.email || '';
+                    
+                    // If we couldn't get from orderData.recipient (shouldn't happen), try to fetch from customer
+                    if (!recipientName && orderData.recipient.type === 'you') {
+                        try {
+                            const customerProfile = await fetchCustomerData(customerData.$id);
+                            recipientName = customerProfile?.full_name || customerData.name || '';
+                            recipientPhone = customerProfile?.phone_number || '';
+                            recipientEmail = customerProfile?.email || customerData.email || '';
+                            console.log('📞 Retrieved customer profile for recipient:', {recipientName, recipientPhone, recipientEmail});
+                        } catch (err) {
+                            console.warn('⚠️ Could not fetch customer profile:', err);
+                        }
+                    }
+                    
                     const recipientPayload = {
                         purchase_recipient_type: orderData.recipient.type || 'you',
-                        recipient_name: orderData.recipient.type !== 'you' ? orderData.recipient.name : (orderData.customer?.full_name || ''),
-                        recipient_phone: orderData.recipient.type !== 'you' ? orderData.recipient.phone : (orderData.customer?.phone_number || ''),
-                        recipient_email: orderData.recipient.type !== 'you' ? orderData.recipient.email : (orderData.customer?.email || ''),
+                        recipient_name: recipientName,
+                        recipient_phone: recipientPhone,
+                        recipient_email: recipientEmail,
                         recipient_address: orderData.recipient.address || '',
                         recipient_type: orderData.recipient.type || '',
                         business_name: orderData.recipient.type === 'business' ? orderData.recipient.businessName : '',
@@ -4692,12 +4776,15 @@
                     };
                     
                     console.log('🔍 Recipient payload:', recipientPayload);
+                    console.log('📋 Payload fields - Name:', recipientPayload.recipient_name, 'Phone:', recipientPayload.recipient_phone);
 
                     try {
                         const recipientResult = await orderManager.createPurchaseRecipientInfo(order.$id, recipientPayload);
-                        console.log('✅ Purchase recipient info saved to database:', recipientResult);
+                        console.log('✅ Purchase recipient info saved to database:', recipientResult.$id);
+                        console.log('✅ Recipient document created with:', recipientPayload);
                     } catch (recipientError) {
                         console.error('❌ Error saving purchase recipient info:', recipientError);
+                        console.error('❌ Tried to save payload:', recipientPayload);
                         // Don't fail the order if recipient info fails, but log the error
                     }
                 } else {
@@ -4708,18 +4795,45 @@
                 orderData.orderId = order.$id;
                 orderData.transactionId = transactionId; // Store the transaction ID
                 orderData.timestamp = new Date().toISOString();
+                orderData.orderStatus = 'pending';
 
-                // Show success
+                console.log('💾 Order data stored in memory:', orderData);
+                console.log('📊 Order Summary:');
+                console.log('   - Order ID: ' + orderData.orderId);
+                console.log('   - Transaction ID: ' + orderData.transactionId);
+                console.log('   - Total: GHS ' + orderData.total);
+                console.log('   - Status: SAVED TO DATABASE ✅');
+
+                // Cache order locally
+                if (window.cacheManager) {
+                    try {
+                        window.cacheManager.setCache('lastOrder', orderData, order.$id);
+                        console.log('💾 Order cached locally for offline access');
+                    } catch (cacheErr) {
+                        console.warn('⚠️ Could not cache order locally:', cacheErr);
+                    }
+                }
+
+                // Trigger storage event for schedule-history.html to update
+                window.dispatchEvent(new Event('storage'));
+                console.log('🔄 Storage event dispatched to notify other pages');
+
+                console.log('🚀 ===== PAYMENT PROCESSING COMPLETED SUCCESSFULLY =====');
+
+                // Move to next step
                 nextStep();
                 
             } catch (error) {
                 console.error('❌ Error processing payment/order:', error);
+                console.error('❌ Error stack:', error.stack);
                 showError('Failed to create order: ' + error.message);
                 
                 // Reset loading state on error
-                payBtn.disabled = false;
-                payBtnText.classList.remove('hidden');
-                payBtnLoading.classList.add('hidden');
+                if (payBtn) {
+                    payBtn.disabled = false;
+                    payBtnText?.classList.remove('hidden');
+                    payBtnLoading?.classList.add('hidden');
+                }
             }
         }
 
@@ -4734,9 +4848,9 @@
                 if (progress >= 100) {
                     clearInterval(interval);
                     
-                    // Update order with transaction ID
+                    // Verify order was saved to database
                     if (orderData.orderId && orderData.transactionId) {
-                        updateOrderWithTransaction();
+                        verifyOrderSavedToDatabase();
                     }
                     
                     setTimeout(() => {
@@ -4746,14 +4860,29 @@
             }, 300);
         }
 
-        // Update order with transaction ID after payment
-        async function updateOrderWithTransaction() {
+        // Verify order was successfully saved to database
+        async function verifyOrderSavedToDatabase() {
             try {
+                console.log('🔍 Verifying order was saved to database...');
+                console.log('🔍 Order ID:', orderData.orderId);
+                
                 const orderManager = new OrderManager();
-                await orderManager.updateOrderTransaction(orderData.orderId, orderData.transactionId);
-                console.log('✅ Order updated with transaction ID');
+                const savedOrder = await orderManager.getOrder(orderData.orderId);
+                
+                if (savedOrder && savedOrder.$id === orderData.orderId) {
+                    console.log('✅ Order verified in database:', savedOrder);
+                    console.log('✅ Order status:', savedOrder.orderStatus);
+                    console.log('✅ Order total:', savedOrder.total);
+                    return true;
+                } else {
+                    console.warn('⚠️ Order not found in database verification');
+                    return false;
+                }
             } catch (error) {
-                console.error('❌ Error updating order with transaction ID:', error);
+                console.error('❌ Error verifying order in database:', error);
+                console.error('❌ Order ID was:', orderData.orderId);
+                // Don't fail - the order was already created, just verification failed
+                return false;
             }
         }
 
@@ -5026,36 +5155,68 @@
 
         function saveOrderToHistory() {
             try {
-                console.log('🚀 Order already saved to database during payment processing');
+                console.log('🚀 Saving order to history...');
                 console.log('📦 Order data:', orderData);
+                console.log('📦 Order ID:', orderData.orderId);
+                console.log('📦 Transaction ID:', orderData.transactionId);
+
+                // Verify order was saved to database
+                if (!orderData.orderId) {
+                    console.error('❌ Order ID is missing - order may not have been saved to database');
+                    showError('Order was not properly saved. Please contact support with your transaction ID: ' + orderData.transactionId);
+                    return;
+                }
 
                 // Cache order data locally for offline access
                 if (window.cacheManager) {
-                    window.cacheManager.setCache('orders', orderData, orderData.orderId);
-                    console.log('💾 Order cached locally for offline access');
+                    try {
+                        window.cacheManager.setCache('orders', orderData, orderData.orderId);
+                        console.log('💾 Order cached locally with ID:', orderData.orderId);
+                    } catch (cacheErr) {
+                        console.warn('⚠️ Could not cache order:', cacheErr);
+                    }
+                }
+
+                // Also cache to localStorage as backup
+                try {
+                    const ordersArray = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+                    ordersArray.unshift({
+                        ...orderData,
+                        savedAt: new Date().toISOString()
+                    });
+                    localStorage.setItem('orderHistory', JSON.stringify(ordersArray.slice(0, 50))); // Keep last 50 orders
+                    console.log('💾 Order saved to localStorage backup');
+                } catch (storageErr) {
+                    console.warn('⚠️ Could not save to localStorage:', storageErr);
                 }
 
                 // Trigger storage event for schedule-history.html
                 window.dispatchEvent(new Event('storage'));
                 console.log('🔄 Storage event dispatched to schedule-history.html');
 
-                console.log('✅ Order successfully saved to database with ID:', orderData.orderId);
+                console.log('✅ Order successfully saved to history with ID:', orderData.orderId);
 
             } catch (error) {
-                console.error('Error in saveOrderToHistory:', error);
+                console.error('❌ Error in saveOrderToHistory:', error);
+                console.error('❌ Error details:', error.message);
                 
                 // Handle offline scenario - add to sync queue
-                if (window.cacheManager && window.cacheManager.isOffline()) {
+                if (window.cacheManager && window.cacheManager.isOffline && window.cacheManager.isOffline()) {
                     console.log('📴 Offline mode - adding order to sync queue');
-                    const syncId = window.cacheManager.addToSyncQueue('save_order', orderData, 'high');
-                    
-                    if (syncId) {
-                        console.log('📋 Order queued for sync with ID:', syncId);
-                        return;
+                    try {
+                        const syncId = window.cacheManager.addToSyncQueue('save_order', orderData, 'high');
+                        
+                        if (syncId) {
+                            console.log('📋 Order queued for sync with ID:', syncId);
+                            showSuccess('Order saved offline. It will sync when you\'re back online.');
+                            return;
+                        }
+                    } catch (syncErr) {
+                        console.error('❌ Error adding to sync queue:', syncErr);
                     }
                 }
                 
-                showError('Error saving order. Please try again.');
+                showError('Error saving order history. Your order ID is: ' + (orderData.orderId || orderData.transactionId));
             }
         }
 
