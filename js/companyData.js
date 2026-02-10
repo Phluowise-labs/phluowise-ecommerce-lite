@@ -237,6 +237,13 @@ class CompanyDataManager {
                 const branchSocialMedia = this.socialMedia.filter(sm =>
                     sm.branch_id === branch.branch_id || sm.company_id === branch.company_id
                 );
+                
+                // Log social media matching for this branch
+                if (branchSocialMedia.length > 0) {
+                    console.log(`📱 Found ${branchSocialMedia.length} social media record(s) for branch ${branch.branch_id} (${branch.branch_name})`, branchSocialMedia);
+                } else {
+                    console.log(`⚠️ No social media records found for branch ${branch.branch_id} (${branch.branch_name})`);
+                }
 
                 // Get verification status for this company
                 const verification = this.verifications.find(v => {
@@ -645,6 +652,24 @@ class CompanyDataManager {
                 window.appwriteConfig.SOCIAL_MEDIA_TABLE
             );
             console.log(`📱 Found ${response.documents.length} social media links`);
+            
+            // Log detailed information about each social media record
+            response.documents.forEach((doc, index) => {
+                console.log(`📱 Social Media Record ${index + 1}:`, {
+                    $id: doc.$id,
+                    branch_id: doc.branch_id,
+                    company_id: doc.company_id,
+                    platforms: {
+                        facebook: doc.facebook || doc.facebook_url || 'N/A',
+                        instagram: doc.instagram || doc.instagram_url || 'N/A',
+                        twitter: doc.twitter || doc.twitter_url || 'N/A',
+                        linkedin: doc.linkedIn || doc.linkedin_url || 'N/A',
+                        discord: doc.discord || doc.discord_url || 'N/A',
+                        whatsapp: doc.whatsapp || doc.whatsapp_url || 'N/A'
+                    }
+                });
+            });
+            
             return response.documents;
         } catch (error) {
             console.error('❌ Error fetching social media:', error);

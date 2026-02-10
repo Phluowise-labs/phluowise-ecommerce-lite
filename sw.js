@@ -1,7 +1,7 @@
 const CACHE_NAME = 'phluowise-v1';
 const urlsToCache = [
-  '/',
-  '/offline.html'
+  './',
+  './offline.html'
 ];
 
 // Install event - cache resources
@@ -69,10 +69,29 @@ self.addEventListener('fetch', (event) => {
             return response;
           }
         ).catch(() => {
-          // Offline fallback
+          // Offline fallback - serve offline.html for document requests
           if (event.request.destination === 'document') {
-            return caches.match('/offline.html');
+            return caches.match('./offline.html')
+              .then(response => {
+                if (response) {
+                  return response;
+                }
+                // If offline.html is not cached, return a basic offline page
+                return new Response(
+                  '<html><body><h1>Offline</h1><p>You are offline and offline.html is not available.</p></body></html>',
+                  { headers: { 'Content-Type': 'text/html' } }
+                );
+              })
+              .catch(() => {
+                // If even that fails, return basic offline response
+                return new Response(
+                  '<html><body><h1>Offline</h1><p>You are offline.</p></body></html>',
+                  { headers: { 'Content-Type': 'text/html' } }
+                );
+              });
           }
+          // For non-document requests, return undefined to let browser handle it
+          return undefined;
         });
       })
   );

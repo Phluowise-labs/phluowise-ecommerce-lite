@@ -217,7 +217,6 @@
                     window.location.href = 'signin.html';
                 }
             } catch (error) {
-                console.error('Error loading profile:', error);
                 window.location.href = 'signin.html';
             }
         }
@@ -288,8 +287,6 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration);
-                        
                         // Check for updates
                         registration.addEventListener('updatefound', () => {
                             const newWorker = registration.installing;
@@ -304,7 +301,6 @@
                         });
                     })
                     .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
                     });
             });
         }

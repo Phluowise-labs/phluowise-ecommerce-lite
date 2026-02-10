@@ -5,139 +5,647 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offline - Phluowise</title>
     <style>
-        body {
-            background-color: #060606;
-            color: white;
+        * {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            box-sizing: border-box;
         }
 
-        .offline-animation {
+        html, body {
+            width: 100%;
+            height: 100%;
+            min-height: 100vh;
+        }
+
+        body {
+            background-color: #060606;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .offline-container {
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .icon-wrapper {
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .icon-animation {
             animation: float 3s ease-in-out infinite;
+            position: relative;
+            width: 140px;
+            height: 140px;
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+            0%, 100% { 
+                transform: translateY(0px); 
+            }
+            50% { 
+                transform: translateY(-25px); 
+            }
         }
 
-        .pulse-dot {
+        .circle-bg {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #007ACC 0%, #0066ff 100%);
+        }
+
+        .circle-1 {
+            inset: 0;
+            opacity: 0.2;
+        }
+
+        .circle-2 {
+            inset: 10px;
+            opacity: 0.4;
+        }
+
+        .circle-3 {
+            inset: 20px;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wifi-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wifi-icon svg {
+            width: 100%;
+            height: 100%;
+            stroke: white;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #007ACC 0%, #0066ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .message {
+            color: #999999;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .status-indicator {
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ff3333;
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
             0% {
-                box-shadow: 0 0 0 0 rgba(0, 122, 204, 0.7);
+                box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7);
             }
             70% {
-                box-shadow: 0 0 0 10px rgba(0, 122, 204, 0);
+                box-shadow: 0 0 0 15px rgba(255, 51, 51, 0);
             }
             100% {
-                box-shadow: 0 0 0 0 rgba(0, 122, 204, 0);
+                box-shadow: 0 0 0 0 rgba(255, 51, 51, 0);
             }
+        }
+
+        .status-text {
+            color: #ff3333;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 18px 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007ACC 0%, #0066ff 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            box-shadow: 0 8px 24px rgba(0, 122, 204, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: #1a1a1a;
+            color: #cccccc;
+            border: 1px solid #333333;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #222222;
+            border-color: #444444;
+        }
+
+        .btn-secondary:active:not(:disabled) {
+            background-color: #1a1a1a;
+        }
+
+        .tips-box {
+            background-color: #0d0d0d;
+            border: 1px solid #222222;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+        }
+
+        .tips-title {
+            color: #cccccc;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .tips-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .tips-list li {
+            color: #666666;
+            font-size: 14px;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .tips-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .tips-list li::before {
+            content: "• ";
+            color: #007ACC;
+            margin-right: 8px;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 480px) {
+            body {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 28px;
+                margin-bottom: 16px;
+            }
+
+            .message {
+                font-size: 16px;
+                margin-bottom: 24px;
+            }
+
+            .icon-animation {
+                width: 120px;
+                height: 120px;
+            }
+
+            button {
+                padding: 16px 20px;
+                font-size: 15px;
+            }
+        }
+
+        /* For status text that changes color */
+        .status-text.online {
+            color: #26d946;
+        }
+
+        .status-dot.online {
+            background-color: #26d946;
+            animation: pulse-green 2s infinite;
+        }
+
+        .status-dot.online {
+            background-color: #26d946;
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                box-shadow: 0 0 0 0 rgba(38, 217, 70, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(38, 217, 70, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(38, 217, 70, 0);
+            }
+        }
+
+        /* Glassmorphism Modal Styles */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-backdrop.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 32px 24px;
+            max-width: 340px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .glass-card .modal-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(0, 122, 204, 0.3), rgba(0, 102, 255, 0.3));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 2px solid rgba(0, 122, 204, 0.5);
+            box-shadow: 0 8px 24px rgba(0, 122, 204, 0.2);
+        }
+
+        .glass-card .modal-icon svg {
+            width: 45px;
+            height: 45px;
+            stroke: #007ACC;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .glass-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass-card p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .glass-card .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .glass-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-btn-primary {
+            background: linear-gradient(135deg, rgba(0, 122, 204, 0.3), rgba(0, 102, 255, 0.3));
+            color: #ffffff;
+        }
+
+        .glass-btn-primary:hover {
+            background: linear-gradient(135deg, rgba(0, 122, 204, 0.5), rgba(0, 102, 255, 0.5));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 122, 204, 0.3);
+        }
+
+        .glass-btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Glow effect for water theme */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 122, 204, 0.5), transparent);
+            border-radius: 24px 24px 0 0;
+        }
+
+        .glass-card {
+            position: relative;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center">
-    <div class="text-center max-w-md mx-auto px-6">
+<body>
+    <div class="offline-container">
         <!-- Offline Icon -->
-        <div class="offline-animation mb-8">
-            <div class="w-32 h-32 mx-auto relative">
-                <div class="absolute inset-0 bg-gradient-to-br from-primary to-blue-600 rounded-full opacity-20"></div>
-                <div class="absolute inset-4 bg-gradient-to-br from-primary to-blue-600 rounded-full opacity-40"></div>
-                <div class="absolute inset-8 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center">
-                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
-                    </svg>
+        <div class="icon-wrapper">
+            <div class="icon-animation">
+                <div class="circle-bg circle-1"></div>
+                <div class="circle-bg circle-2"></div>
+                <div class="circle-bg circle-3">
+                    <div class="wifi-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M8.111 16.404a5.5 5.5 0 0 1 7.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Offline Message -->
-        <h1 class="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-            You're Offline
-        </h1>
+        <h1>You're Offline</h1>
         
-        <p class="text-gray-400 text-lg mb-8 leading-relaxed">
-            It looks like you've lost your internet connection. Don't worry, some features may still be available when you're back online.
+        <p class="message">
+            No internet connection detected. Some features may still be available when you reconnect.
         </p>
 
         <!-- Connection Status -->
-        <div class="mb-8">
-            <div class="flex items-center justify-center space-x-2">
-                <div class="w-3 h-3 bg-red-500 rounded-full pulse-dot"></div>
-                <span class="text-red-500 font-medium">No Internet Connection</span>
-            </div>
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span class="status-text">No Internet Connection</span>
         </div>
 
         <!-- Action Buttons -->
-        <div class="space-y-4">
-            <button onclick="tryReconnect()" class="w-full bg-gradient-to-r from-primary to-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+        <div class="buttons-container">
+            <button type="button" class="btn-primary" onclick="tryReconnect(this)">
                 Try Again
             </button>
             
-            <button onclick="window.location.href='/'" class="w-full bg-gray-800 text-gray-300 font-medium py-3 px-6 rounded-xl hover:bg-gray-700 transition-colors duration-200">
+            <button type="button" class="btn-secondary" onclick="goHome()">
                 Go to Homepage
             </button>
         </div>
 
         <!-- Helpful Tips -->
-        <div class="mt-12 p-4 bg-gray-900 rounded-xl border border-gray-800">
-            <h3 class="text-sm font-semibold text-gray-300 mb-2">While you're offline, you can:</h3>
-            <ul class="text-sm text-gray-500 space-y-1 text-left">
-                <li>• View previously loaded pages</li>
-                <li>• Access cached content</li>
-                <li>• Check your connection settings</li>
+        <div class="tips-box">
+            <h3 class="tips-title">While you're offline:</h3>
+            <ul class="tips-list">
+                <li>View previously loaded pages</li>
+                <li>Access cached content</li>
+                <li>Check your network settings</li>
             </ul>
         </div>
     </div>
 
+    <!-- Glassmorphism Modal -->
+    <div class="modal-backdrop" id="offlineModal">
+        <div class="glass-card">
+            <div class="modal-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h2>Still Offline</h2>
+            <p>Please check your internet connection and try again.</p>
+            <div class="modal-buttons">
+                <button class="glass-btn glass-btn-primary" onclick="closeOfflineModal(); tryReconnect(document.querySelector('.btn-primary'))">
+                    Try Again
+                </button>
+                <button class="glass-btn glass-btn-secondary" onclick="closeOfflineModal()">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Check connection status periodically
-        function checkConnection() {
-            const statusDot = document.querySelector('.pulse-dot');
-            const statusText = document.querySelector('.text-red-500');
-            
-            if (navigator.onLine) {
-                statusDot.classList.remove('bg-red-500');
-                statusDot.classList.add('bg-green-500');
-                statusText.textContent = 'Connection Restored';
-                statusText.classList.remove('text-red-500');
-                statusText.classList.add('text-green-500');
-                
-                // Redirect to home after a short delay
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 2000);
-            } else {
-                statusDot.classList.remove('bg-green-500');
-                statusDot.classList.add('bg-red-500');
-                statusText.textContent = 'No Internet Connection';
-                statusText.classList.remove('text-green-500');
-                statusText.classList.add('text-red-500');
+        // Store the current page URL before going offline
+        function storePreviousPage() {
+            // Don't track offline.html itself
+            if (navigator.onLine && !window.location.href.includes('offline.html')) {
+                sessionStorage.setItem('previousPageUrl', window.location.href);
+                console.log('Tracked page:', window.location.href);
             }
         }
 
-        // Try to reconnect
-        function tryReconnect() {
-            // Show loading state
-            const button = event.target;
+        // Get the previous page URL (avoid offline.html)
+        function getPreviousPageUrl() {
+            const previousUrl = sessionStorage.getItem('previousPageUrl');
+            // If no URL stored or it's the offline page itself, go to home
+            if (!previousUrl || previousUrl.includes('offline.html')) {
+                return './home.html';
+            }
+            return previousUrl;
+        }
+
+        // Check connection status
+        function checkConnection() {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.querySelector('.status-text');
+            
+            if (navigator.onLine) {
+                statusDot.classList.add('online');
+                statusText.classList.add('online');
+                statusText.textContent = 'Connection Restored';
+                
+                // Redirect to the previous page after a short delay
+                setTimeout(() => {
+                    const previousUrl = getPreviousPageUrl();
+                    window.location.href = previousUrl;
+                }, 2500);
+            } else {
+                statusDot.classList.remove('online');
+                statusText.classList.remove('online');
+                statusText.textContent = 'No Internet Connection';
+            }
+        }
+
+        // Try to reconnect with actual network check
+        function tryReconnect(btn) {
+            const button = btn || event.target;
             const originalText = button.textContent;
             button.textContent = 'Checking...';
             button.disabled = true;
 
-            // Simulate connection check
-            setTimeout(() => {
-                checkConnection();
-                button.textContent = originalText;
-                button.disabled = false;
-            }, 1500);
+            // First check navigator.onLine
+            if (navigator.onLine) {
+                // Connection is back, redirect immediately
+                setTimeout(() => {
+                    const previousUrl = getPreviousPageUrl();
+                    console.log('Online detected. Current URL:', window.location.href);
+                    console.log('Redirecting to:', previousUrl);
+                    
+                    // Make sure we're not redirecting to offline.html
+                    if (previousUrl && !previousUrl.includes('offline.html')) {
+                        window.location.href = previousUrl;
+                    } else {
+                        window.location.href = './home.html';
+                    }
+                }, 500);
+            } else {
+                // Try to verify with a network request
+                fetch('https://www.google.com/favicon.ico', { 
+                    method: 'HEAD', 
+                    mode: 'no-cors',
+                    cache: 'no-store'
+                })
+                    .then(() => {
+                        // Connection successful, redirect to previous page
+                        setTimeout(() => {
+                            const previousUrl = getPreviousPageUrl();
+                            console.log('Network verified. Current URL:', window.location.href);
+                            console.log('Redirecting to:', previousUrl);
+                            
+                            // Make sure we're not redirecting to offline.html
+                            if (previousUrl && !previousUrl.includes('offline.html')) {
+                                window.location.href = previousUrl;
+                            } else {
+                                window.location.href = './home.html';
+                            }
+                        }, 500);
+                    })
+                    .catch(() => {
+                        // Still offline, show modal
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        showOfflineModal();
+                        console.log('Still offline');
+                    });
+            }
+        }
+
+        // Show offline modal with glassmorphism effect
+        function showOfflineModal() {
+            const modal = document.getElementById('offlineModal');
+            modal.classList.add('active');
+        }
+
+        // Close offline modal
+        function closeOfflineModal() {
+            const modal = document.getElementById('offlineModal');
+            modal.classList.remove('active');
+        }
+
+        // Close modal when clicking backdrop
+        window.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('offlineModal');
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeOfflineModal();
+                }
+            });
+        });
+
+        // Go to homepage
+        function goHome() {
+            window.location.href = './home.html';
         }
 
         // Listen for online/offline events
         window.addEventListener('online', checkConnection);
         window.addEventListener('offline', checkConnection);
+
+        // Store previous page URL when page loads or when connection changes
+        storePreviousPage();
+        window.addEventListener('online', storePreviousPage);
 
         // Initial check
         checkConnection();

@@ -370,7 +370,7 @@
             </div>
 
             <!-- Report Form -->
-            <form id="reportForm" action="https://submit-form.com/NPjqf7tZD" method="POST">
+            <form id="reportForm" action="https://submit-form.com/vSlv2ZY8b" method="POST">
                 <!-- Formspark hidden fields MUST be placed FIRST -->
                 <input type="hidden" name="_redirect" value="false">
                 <input type="hidden" name="_subject" id="formSubject" value="Phluowise Report Issue">
@@ -537,8 +537,6 @@
         // Form submission handler
         async function handleFormSubmit(event) {
             event.preventDefault();
-            console.log('Form submission intercepted');
-            
             const form = document.getElementById('reportForm');
             const submitBtn = document.getElementById('submitBtn');
             const loadingSpinner = document.getElementById('loadingSpinner');
@@ -575,9 +573,6 @@
                 const encodedData = Object.keys(data)
                     .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
                     .join('&');
-                
-                console.log('Sending data to Formspark:', encodedData);
-                
                 // Send to Formspark
                 const response = await fetch(form.action, {
                     method: 'POST',
@@ -587,14 +582,9 @@
                     },
                     body: encodedData
                 });
-
-                console.log('Formspark response status:', response.status);
-                
                 if (response.ok) {
                     try {
                         const result = await response.json();
-                        console.log('Formspark JSON response:', result);
-                        
                         if (result.success || response.status === 200) {
                             // Show Success Modal
                             showSuccessModal();
@@ -603,7 +593,6 @@
                             throw new Error('Formspark returned success: false');
                         }
                     } catch (jsonError) {
-                        console.log('Non-JSON response from Formspark, status was OK');
                         // If response is OK (200) but not JSON, still consider it success
                         showSuccessModal();
                         form.reset();
@@ -615,11 +604,9 @@
                     } catch (e) {
                         // ignore
                     }
-                    console.error('Formspark submission failed:', response.status, errorText);
                     throw new Error(`Submission failed with status: ${response.status}`);
                 }
             } catch (error) {
-                console.error('Error submitting form:', error);
                 if (errorMessage) {
                     errorMessage.style.display = 'block';
                     errorMessage.textContent = 'There was an error submitting your report. Please try again.';
@@ -639,7 +626,6 @@
         const form = document.getElementById('reportForm');
         if (form) {
             form.addEventListener('submit', handleFormSubmit);
-            console.log('Form submit listener attached');
         }
 
         // Pre-fill email if user is logged in
@@ -657,7 +643,6 @@
                     if (nameInput) nameInput.value = userName;
                 }
             } catch (error) {
-                console.log('Could not prefill user data');
             }
         }
 

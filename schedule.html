@@ -1789,6 +1789,12 @@
                                 <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
                             </svg>
                         </div>
+                        <!-- WhatsApp -->
+                        <div onclick="showSocialModal('WhatsApp')" class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity" style="background-color: #333333; height: 28px; width: 28px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                                <path d="M17.471 3.549C15.579 1.614 13.109 0.584 10.459 0.584 4.751 0.584.084 5.251.084 10.959c0 1.928.503 3.81 1.459 5.469L0 24l6.752-1.422c1.594.871 3.393 1.332 5.26 1.332 5.708 0 10.375-4.667 10.375-10.375 0-2.772-1.087-5.374-3.063-7.32zm-7.012 18.032c-1.64 0-3.248-.436-4.666-1.263l-.335-.199-3.49.735.748-3.377-.222-.354c-1.031-1.639-1.577-3.522-1.577-5.485 0-4.746 3.862-8.608 8.608-8.608 2.296 0 4.454.894 6.08 2.52 1.627 1.626 2.52 3.792 2.52 6.088 0 4.746-3.862 8.608-8.608 8.608zm4.709-6.459c-.258-.129-1.522-.753-1.758-.838-.236-.085-.408-.129-.58.129-.172.258-.667.838-.816 1.01-.15.172-.3.194-.558.064-.259-.129-1.092-.402-2.081-1.286-.77-.686-1.291-1.532-1.441-1.79-.15-.258-.016-.397.112-.525.116-.114.258-.3.387-.449.129-.15.172-.258.258-.43.086-.172.043-.323-.021-.452-.064-.129-.58-1.396-.796-1.911-.209-.492-.422-.426-.58-.434-.15-.007-.322-.007-.494-.007-.172 0-.451.065-.688.322-.237.258-.904.883-.904 2.15 0 1.268.926 2.496 1.055 2.668.129.172 1.826 2.79 4.426 3.911.618.268 1.1.427 1.476.547.62.197 1.184.169 1.629.103.497-.074 1.522-.622 1.737-1.222.216-.6.216-1.114.151-1.222-.065-.108-.237-.172-.494-.301z"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2831,6 +2837,8 @@
     <script src="js/cacheManager.js"></script>
     <script src="js/orderManager.js"></script>
     <script src="js/notifications.js"></script>
+    <script src="js/pageTracker.js"></script>
+    <script src="js/offlineDetector.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // Map initialization flag
@@ -6480,6 +6488,7 @@
         function showEditModal(review) {
             // Create modal overlay
             const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'editRatingModal';
             modalOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4';
             modalOverlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;';
             
@@ -6546,8 +6555,8 @@
         }
         
         function cancelEditModal() {
-            const modal = document.querySelector('[style*="position: fixed"]');
-            if (modal && modal.style.zIndex === '9999') {
+            const modal = document.getElementById('editRatingModal');
+            if (modal) {
                 modal.remove();
             }
         }
@@ -6618,6 +6627,7 @@
         function showDeleteModal(review) {
             // Create modal overlay
             const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'deleteRatingModal';
             modalOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4';
             modalOverlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;';
             
@@ -6662,8 +6672,8 @@
         }
         
         function cancelDeleteModal() {
-            const modal = document.querySelector('[style*="position: fixed"]');
-            if (modal && modal.style.zIndex === '9999') {
+            const modal = document.getElementById('deleteRatingModal');
+            if (modal) {
                 modal.remove();
             }
         }
@@ -7077,6 +7087,36 @@
         function closeTermsModal() {
             document.getElementById('termsModal').classList.add('hidden');
         }
+        
+        // Debug function to check social media status
+        window.checkSocialMediaStatus = function() {
+            console.log('=== 📱 SOCIAL MEDIA STATUS DEBUG ===');
+            console.log('1. Current company social media data:');
+            console.log('   window.currentCompanySocialMedia:', window.currentCompanySocialMedia);
+            console.log('2. Full branch data object:');
+            console.log('   window.currentCompany:', window.currentCompany);
+            if (window.currentCompany && window.currentCompany.social_media) {
+                console.log('   Raw social_media from branch:', window.currentCompany.social_media);
+            }
+            console.log('3. Social media DOM elements:');
+            const container = document.querySelector('.flex.flex-row.justify-center.items-center.overflow-x-auto.hide-scrollbar');
+            if (container) {
+                const icons = container.querySelectorAll('div[onclick*="showSocialModal"]');
+                icons.forEach((icon, i) => {
+                    console.log(`   Icon ${i + 1}:`, {
+                        onclick: icon.getAttribute('onclick'),
+                        'data-social-url': icon.getAttribute('data-social-url'),
+                        'data-social-platform': icon.getAttribute('data-social-platform')
+                    });
+                });
+            } else {
+                console.log('   Social media container not found!');
+            }
+            console.log('====================================');
+        };
+        
+        // Make social media checker available in console
+        console.log('💡 Tip: Run "window.checkSocialMediaStatus()" in console to debug social media issues');
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -7426,32 +7466,66 @@
                     
                     console.log('📱 Social media URLs found:', socialPlatforms);
                     
-                    // Update each social media icon click handler
+                    // Store social media data in window for global access
+                    window.currentCompanySocialMedia = socialPlatforms;
+                    console.log('✅ Social media data stored in window.currentCompanySocialMedia:', window.currentCompanySocialMedia);
+                    
+                    // Update each social media icon click handler using data attributes for reliability
                     Object.keys(socialPlatforms).forEach(platform => {
                         const socialUrl = socialPlatforms[platform];
                         
-                        // Create new click handler function
-                        const newHandler = socialUrl ? 
-                            `window.open('${socialUrl}', '_blank')` : 
-                            `showSocialModal('${platform}')`;
-                        
-                        // Update onclick attribute for all social media icons
-                        const socialIcons = document.querySelectorAll(`div[onclick*="${platform}"]`);
-                        socialIcons.forEach(icon => {
-                            icon.setAttribute('onclick', newHandler);
-                        });
-                        
-                        console.log(` Updated ${platform}: ${socialUrl ? 'Link available - ' + socialUrl : 'Show empty modal'}`);
+                        // Find all social media icon containers
+                        const socialMediaContainer = document.querySelector('.flex.flex-row.justify-center.items-center.overflow-x-auto.hide-scrollbar');
+                        if (socialMediaContainer) {
+                            // Get all icon divs within the social media container
+                            const allIcons = socialMediaContainer.querySelectorAll('div[onclick*="showSocialModal"]');
+                            
+                            // Find the icon that matches this platform by checking the onclick attribute
+                            allIcons.forEach(icon => {
+                                if (icon.getAttribute('onclick').includes(platform)) {
+                                    // Store the URL as a data attribute for reference
+                                    icon.setAttribute('data-social-url', socialUrl);
+                                    icon.setAttribute('data-social-platform', platform);
+                                    
+                                    if (socialUrl && socialUrl.trim()) {
+                                        // If URL exists, open it directly
+                                        icon.setAttribute('onclick', `window.open('${socialUrl}', '_blank')`);
+                                        icon.style.cursor = 'pointer';
+                                        console.log(`✅ ${platform}: Direct link set to ${socialUrl}`);
+                                    } else {
+                                        // If no URL, show the unavailable modal
+                                        icon.setAttribute('onclick', `showSocialModal('${platform}')`);
+                                        console.log(`⚠️ ${platform}: No link available, showing modal`);
+                                    }
+                                }
+                            });
+                        }
                     });
                 } else {
                     console.log('📱 No social media data found for this branch');
                     // Show empty modal for all platforms
                     ['Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'Discord', 'WhatsApp'].forEach(platform => {
-                        const socialIcons = document.querySelectorAll(`div[onclick*="${platform}"]`);
-                        socialIcons.forEach(icon => {
-                            icon.setAttribute('onclick', `showSocialModal('${platform}')`);
-                        });
+                        const socialMediaContainer = document.querySelector('.flex.flex-row.justify-center.items-center.overflow-x-auto.hide-scrollbar');
+                        if (socialMediaContainer) {
+                            const allIcons = socialMediaContainer.querySelectorAll('div[onclick*="showSocialModal"]');
+                            allIcons.forEach(icon => {
+                                if (icon.getAttribute('onclick').includes(platform)) {
+                                    icon.setAttribute('onclick', `showSocialModal('${platform}')`);
+                                    icon.setAttribute('data-social-url', '');
+                                    icon.setAttribute('data-social-platform', platform);
+                                }
+                            });
+                        }
                     });
+                    // Store empty social media data
+                    window.currentCompanySocialMedia = {
+                        'Facebook': '',
+                        'Instagram': '',
+                        'Twitter': '',
+                        'LinkedIn': '',
+                        'Discord': '',
+                        'WhatsApp': ''
+                    };
                 }
             } catch (error) {
                 console.error(' Error processing social media data:', error);

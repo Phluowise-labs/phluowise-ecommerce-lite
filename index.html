@@ -44,6 +44,59 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/notifications.css" />
     <script src="js/notifications.js"></script>
+    <script src="js/pageTracker.js"></script>
+    <script>
+        // Proactive offline detection - immediately show offline page when connection drops
+        window.addEventListener('offline', function() {
+            console.log('🔴 [OFFLINE] Connection lost. Current page:', window.location.href);
+            // Only navigate if not already on offline.html
+            if (!window.location.href.includes('offline.html')) {
+                console.log('📘 [OFFLINE] Navigating to offline.html');
+                window.location.href = './offline.html';
+            }
+        });
+
+        // Listen for connection restoration
+        window.addEventListener('online', function() {
+            console.log('🟢 [ONLINE] Connection restored!');
+            // If on offline page, redirect to tracked page
+            if (window.location.href.includes('offline.html')) {
+                const previousUrl = sessionStorage.getItem('previousPageUrl') || './home.html';
+                console.log('📘 [ONLINE] Redirecting to:', previousUrl);
+                window.location.href = previousUrl;
+            }
+        });
+
+        // Monitor Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(registration => {
+                console.log('✅ [SW] Service Worker is active and ready');
+                
+                // Check if offline.html is cached
+                caches.open('phluowise-v1').then(cache => {
+                    cache.match('./offline.html').then(response => {
+                        if (response) {
+                            console.log('✅ [CACHE] offline.html is cached and ready');
+                        } else {
+                            console.warn('⚠️ [CACHE] offline.html is NOT cached');
+                        }
+                    });
+                });
+            }).catch(err => {
+                console.error('❌ [SW] Service Worker is not ready:', err);
+            });
+        } else {
+            console.warn('⚠️ [SW] Service Worker not supported on this device');
+        }
+
+        // Fallback: Check connection status every 30 seconds
+        setInterval(() => {
+            if (!navigator.onLine && !window.location.href.includes('offline.html')) {
+                console.log('🔴 [FALLBACK] Offline detected via polling, redirecting...');
+                window.location.href = './offline.html';
+            }
+        }, 30000);
+    </script>
     <script>
         tailwind.config = {
             theme: {
@@ -635,6 +688,9 @@
                 });
         }
     </script>
+
+    <!-- Pull-to-Refresh Module -->
+    <script src="js/pullToRefresh.js"></script>
 </body>
 
 </html>

@@ -387,7 +387,6 @@
     <script>
         // Fallback if CDN fails
         if (typeof Appwrite === 'undefined') {
-            console.log('Primary CDN failed, trying fallback...');
             document.write('<script src="https://unpkg.com/appwrite@15.0.0/dist/appwrite.js"><\/script>');
         }
     </script>
@@ -401,14 +400,8 @@
 
     <script>
         // Debug: Check if Appwrite loaded correctly
-        console.log('Appwrite version:', typeof Appwrite !== 'undefined' ? 'loaded' : 'not loaded');
-        console.log('Account available:', typeof window.account !== 'undefined' ? 'available' : 'not available');
-        console.log('signOut available:', typeof signOut !== 'undefined' ? 'available' : 'not available');
-        
         // Load user profile data on page load
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('Menu page loaded, loading user data...');
-            
             // Load user data first
             await loadMenuUserData();
             
@@ -419,43 +412,28 @@
         });
 
         async function loadMenuUserData() {
-            console.log('loadMenuUserData called');
             try {
                 const userData = await getUserProfile();
-                console.log('getUserProfile result:', userData);
-                
                 if (userData && userData.auth) {
                     const currentUser = userData.auth;
                     const userProfile = userData.profile;
-                    
-                    console.log('Current user:', currentUser);
-                    console.log('User profile:', userProfile);
-                    
                     // Update user name and email from database
                     const userNameElement = document.getElementById('menuUserName');
                     const userEmailElement = document.getElementById('menuUserEmail');
-                    
-                    console.log('Name element found:', !!userNameElement);
-                    console.log('Email element found:', !!userEmailElement);
-                    
                     if (userNameElement) {
                         const nameToSet = userProfile?.full_name || currentUser.name || 'User';
                         userNameElement.textContent = nameToSet;
-                        console.log('Set name to:', nameToSet);
                     }
                     
                     if (userEmailElement) {
                         const emailToSet = userProfile?.email || currentUser.email || 'user@example.com';
                         userEmailElement.textContent = emailToSet;
-                        console.log('Set email to:', emailToSet);
                     }
                 } else {
-                    console.log('No user data found, redirecting to signin');
                     // Not logged in, redirect to signin
                     window.location.href = 'signin.html';
                 }
             } catch (error) {
-                console.error('Error loading menu user data:', error);
                 // Fallback to default values or redirect
                 const userNameElement = document.getElementById('menuUserName');
                 const userEmailElement = document.getElementById('menuUserEmail');
@@ -573,8 +551,6 @@
             
             // Here you would typically send the deletion request to your backend
             // For now, we'll just show a confirmation message
-            console.log('Account deletion requested with reason:', reason);
-            
             // Show success message
             alert('Account deletion requested. You will be contacted shortly.');
             
@@ -623,7 +599,6 @@
                 try {
                     scheduleHistory = JSON.parse(storedHistory);
                 } catch (e) {
-                    console.log('Error parsing stored history, using sample data');
                 }
             }
             
@@ -713,8 +688,6 @@
 
         // Logout function
         async function logout() {
-            console.log('Menu logout clicked');
-            
             // Get the logout button and show loading state
             const logoutBtn = document.querySelector('button[onclick="logout()"]');
             const originalContent = logoutBtn.innerHTML;
@@ -744,9 +717,7 @@
                 if (typeof account !== 'undefined') {
                     try {
                         await account.deleteSession('current');
-                        console.log('Appwrite session cleared');
                     } catch (appwriteError) {
-                        console.log('Appwrite session already cleared or error:', appwriteError);
                     }
                 }
                 
@@ -765,13 +736,10 @@
                 
                 // Redirect to signin page after brief delay
                 setTimeout(() => {
-                    console.log('Redirecting to signin.html');
                     window.location.href = 'signin.html';
                 }, 500);
                 
             } catch (error) {
-                console.error('Logout error:', error);
-                
                 // Show error state
                 logoutBtn.innerHTML = `
                     <div class="flex flex-row items-center gap-[30px]">
@@ -803,8 +771,6 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration);
-                        
                         // Check for updates
                         registration.addEventListener('updatefound', () => {
                             const newWorker = registration.installing;
@@ -819,7 +785,6 @@
                         });
                     })
                     .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
                     });
             });
         }

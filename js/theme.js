@@ -119,18 +119,15 @@ function initTheme() {
 // Set greeting based on time of day
 function setGreeting() {
     const hour = new Date().getHours();
-    const userName = localStorage.getItem('userName') || localStorage.getItem('firstName') || 'User';
-    // Get first name only and capitalize properly
-    const firstName = userName.split(' ')[0];
-    const displayName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+    const userName = localStorage.getItem('userName') || 'USER';
     let greeting = '';
 
     if (hour >= 0 && hour < 12) {
-        greeting = `Good Morning, ${displayName}`;
+        greeting = `Good Morning, ${userName.toUpperCase()}`;
     } else if (hour >= 12 && hour < 18) {
-        greeting = `Good Afternoon, ${displayName}`;
+        greeting = `Good Afternoon, ${userName.toUpperCase()}`;
     } else {
-        greeting = `Good Evening, ${displayName}`;
+        greeting = `Good Evening, ${userName.toUpperCase()}`;
     }
 
     const greetingEl = document.getElementById('greetingText');

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule History - Database Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Appwrite SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
+</head>
+<body class="bg-gray-900 text-white p-6">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold mb-6">📊 Schedule History - Database Test</h1>
+        
+        <!-- Test Controls -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-6 space-y-4">
+            <h2 class="text-xl font-bold">Test Controls</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="initializeAppwrite()" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg">
+                    🔧 Initialize Appwrite
+                </button>
+                <button onclick="testConnection()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">
+                    🔗 Test DB Connection
+                </button>
+                <button onclick="testOrderFetch()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg">
+                    📥 Fetch Orders
+                </button>
+                <button onclick="testCompanyFetch()" class="bg-cyan-600 hover:bg-cyan-700 px-4 py-2 rounded-lg">
+                    🏢 Fetch Companies
+                </button>
+                <button onclick="testBranchFetch()" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg">
+                    🌿 Fetch Branches
+                </button>
+                <button onclick="testProductFetch()" class="bg-pink-600 hover:bg-pink-700 px-4 py-2 rounded-lg">
+                    📦 Fetch Products
+                </button>
+                <button onclick="clearTestLogs()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg col-span-2">
+                    🗑️ Clear Logs
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Test Results</h2>
+            <div id="testResults" class="space-y-3 text-sm font-mono bg-gray-900 p-4 rounded max-h-96 overflow-y-auto">
+                <p class="text-gray-400">Click "Initialize Appwrite" first, then run tests...</p>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-gray-800 rounded-lg p-6 mt-6 space-y-3 text-sm">
+            <h2 class="text-xl font-bold mb-3">📋 Test Instructions</h2>
+            <ol class="list-decimal list-inside space-y-2 text-gray-300">
+                <li><strong>Initialize Appwrite:</strong> Load SDK and connect to database</li>
+                <li><strong>Test DB Connection:</strong> Verifies database is accessible</li>
+                <li><strong>Fetch Orders:</strong> Fetches actual orders from database</li>
+                <li><strong>Fetch Companies:</strong> Tests company data retrieval</li>
+                <li><strong>Fetch Branches:</strong> Tests branch data retrieval</li>
+                <li><strong>Fetch Products:</strong> Tests product data retrieval</li>
+                <li>Check browser console (F12) for detailed logs</li>
+            </ol>
+        </div>
+
+        <!-- Status -->
+        <div class="bg-gray-800 rounded-lg p-6 mt-6">
+            <h2 class="text-xl font-bold mb-3">🔍 Connection Status</h2>
+            <p>Endpoint: <span id="endpoint" class="text-gray-400">Not initialized</span></p>
+            <p>Project ID: <span id="projectId" class="text-gray-400">Not initialized</span></p>
+            <p>Database ID: <span id="databaseId" class="text-gray-400">Not initialized</span></p>
+            <p>Status: <span id="status" class="text-red-400">❌ Not connected</span></p>
+        </div>
+    </div>
+
+    <script>
+        const { Client, Databases, Query } = Appwrite;
+        let client, databases;
+        let appwriteConfig = {
+            ENDPOINT: 'https://nyc.cloud.appwrite.io/v1',
+            PROJECT_ID: '695f826500067c381616',
+            DATABASE_ID: '68b1b7590035346a3be9',
+            ORDERS_TABLE: 'orders',
+            COMPANY_TABLE: 'companies',
+            BRANCHES_TABLE: 'branches',
+            PRODUCTS_TABLE: 'product'
+        };
+
+        // Log helper
+        function log(message, type = 'info') {
+            const resultsDiv = document.getElementById('testResults');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let color = 'text-gray-400';
+            let icon = 'ℹ️';
+            
+            if (type === 'success') {
+                color = 'text-green-400';
+                icon = '✅';
+            } else if (type === 'error') {
+                color = 'text-red-400';
+                icon = '❌';
+            } else if (type === 'warning') {
+                color = 'text-yellow-400';
+                icon = '⚠️';
+            }
+            
+            const p = document.createElement('p');
+            p.className = color;
+            p.innerHTML = `${icon} [${timestamp}] ${message}`;
+            resultsDiv.appendChild(p);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+            
+            console.log(`${icon} ${message}`);
+        }
+
+        function updateStatus(connected) {
+            if (connected) {
+                document.getElementById('status').className = 'text-green-400';
+                document.getElementById('status').textContent = '✅ Connected';
+            } else {
+                document.getElementById('status').className = 'text-red-400';
+                document.getElementById('status').textContent = '❌ Not connected';
+            }
+        }
+
+        // Initialize Appwrite
+        async function initializeAppwrite() {
+            log('🚀 Initializing Appwrite SDK...', 'info');
+            
+            try {
+                client = new Client();
+                client
+                    .setEndpoint(appwriteConfig.ENDPOINT)
+                    .setProject(appwriteConfig.PROJECT_ID);
+                
+                databases = new Databases(client);
+                
+                document.getElementById('endpoint').textContent = appwriteConfig.ENDPOINT;
+                document.getElementById('projectId').textContent = appwriteConfig.PROJECT_ID;
+                document.getElementById('databaseId').textContent = appwriteConfig.DATABASE_ID;
+                
+                log(`Endpoint: ${appwriteConfig.ENDPOINT}`, 'success');
+                log(`Project ID: ${appwriteConfig.PROJECT_ID}`, 'success');
+                log(`Database ID: ${appwriteConfig.DATABASE_ID}`, 'success');
+                log('✅ Appwrite initialized successfully', 'success');
+                updateStatus(true);
+                
+            } catch (error) {
+                log(`Initialization FAILED: ${error.message}`, 'error');
+                updateStatus(false);
+            }
+        }
+
+        function clearTestLogs() {
+            document.getElementById('testResults').innerHTML = '<p class="text-gray-400">Logs cleared</p>';
+            log('Logs cleared', 'warning');
+        }
+
+        // Test 1: Database Connection
+        async function testConnection() {
+            log('🚀 Testing database connection...', 'info');
+            
+            try {
+                if (!databases) {
+                    log('Initialize Appwrite first!', 'error');
+                    return;
+                }
+                
+                log(`Database ID: ${appwriteConfig.DATABASE_ID}`, 'success');
+                log(`Orders Table: ${appwriteConfig.ORDERS_TABLE}`, 'success');
+                log('✅ Connection test PASSED', 'success');
+                
+            } catch (error) {
+                log(`Connection test FAILED: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 2: Fetch Orders
+        async function testOrderFetch() {
+            log('🚀 Testing order fetch from database...', 'info');
+            
+            try {
+                if (!databases) {
+                    log('Initialize Appwrite first!', 'error');
+                    return;
+                }
+                
+                const response = await databases.listDocuments(
+                    appwriteConfig.DATABASE_ID,
+                    appwriteConfig.ORDERS_TABLE,
+                    [Query.limit(100)]
+                );
+                
+                const count = response.documents.length;
+                log(`Found ${count} orders in database`, 'success');
+                
+                if (count > 0) {
+                    const first = response.documents[0];
+                    log(`First order ID: ${first.orderId || first.$id}`, 'info');
+                    log(`Company: ${first.company || 'N/A'}`, 'info');
+                    log(`Status: ${first.orderStatus || first.status || 'N/A'}`, 'info');
+                    log(`Total: ${first.total || 'N/A'}`, 'info');
+                    log('✅ Order fetch PASSED', 'success');
+                } else {
+                    log('⚠️ No orders found - database may be empty', 'warning');
+                }
+                
+            } catch (error) {
+                log(`Order fetch FAILED: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 3: Fetch Companies
+        async function testCompanyFetch() {
+            log('🚀 Testing company fetch from database...', 'info');
+            
+            try {
+                if (!databases) {
+                    log('Initialize Appwrite first!', 'error');
+                    return;
+                }
+                
+                // Try different possible table names
+                const possibleNames = ['companies', 'company', 'company_tb', 'branches', 'comp'];
+                let found = false;
+                
+                for (const tableName of possibleNames) {
+                    try {
+                        const response = await databases.listDocuments(
+                            appwriteConfig.DATABASE_ID,
+                            tableName,
+                            [Query.limit(10)]
+                        );
+                        
+                        const count = response.documents.length;
+                        log(`✅ Found companies table: "${tableName}" with ${count} records`, 'success');
+                        
+                        if (count > 0) {
+                            response.documents.slice(0, 3).forEach((company, idx) => {
+                                log(`  ${idx + 1}. ${company.name || company.company_name || 'Unknown'} (ID: ${company.company_id || company.$id})`, 'info');
+                            });
+                        }
+                        
+                        // Update config
+                        appwriteConfig.COMPANY_TABLE = tableName;
+                        found = true;
+                        log(`📝 Updated COMPANY_TABLE to: "${tableName}"`, 'success');
+                        break;
+                        
+                    } catch (e) {
+                        // Try next table name
+                    }
+                }
+                
+                if (!found) {
+                    log('❌ Could not find companies table with any standard name', 'error');
+                    log('Possible table names: ' + possibleNames.join(', '), 'warning');
+                }
+                
+            } catch (error) {
+                log(`Company fetch FAILED: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 4: Fetch Branches
+        async function testBranchFetch() {
+            log('🚀 Testing branch fetch from database...', 'info');
+            
+            try {
+                if (!databases) {
+                    log('Initialize Appwrite first!', 'error');
+                    return;
+                }
+                
+                const response = await databases.listDocuments(
+                    appwriteConfig.DATABASE_ID,
+                    appwriteConfig.BRANCHES_TABLE,
+                    [Query.limit(100)]
+                );
+                
+                const count = response.documents.length;
+                log(`Found ${count} branches in database`, 'success');
+                
+                if (count > 0) {
+                    response.documents.slice(0, 3).forEach((branch, idx) => {
+                        log(`  ${idx + 1}. ${branch.branch_name || 'Unknown'} (Company: ${branch.company_id || 'N/A'})`, 'info');
+                    });
+                    log('✅ Branch fetch PASSED', 'success');
+                } else {
+                    log('⚠️ No branches found', 'warning');
+                }
+                
+            } catch (error) {
+                log(`Branch fetch FAILED: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 5: Fetch Products
+        async function testProductFetch() {
+            log('🚀 Testing product fetch from database...', 'info');
+            
+            try {
+                if (!databases) {
+                    log('Initialize Appwrite first!', 'error');
+                    return;
+                }
+                
+                const response = await databases.listDocuments(
+                    appwriteConfig.DATABASE_ID,
+                    appwriteConfig.PRODUCTS_TABLE,
+                    [Query.limit(100)]
+                );
+                
+                const count = response.documents.length;
+                log(`Found ${count} products in database`, 'success');
+                
+                if (count > 0) {
+                    response.documents.slice(0, 3).forEach((product, idx) => {
+                        log(`  ${idx + 1}. ${product.product_name || product.name || 'Unknown'} - GHS${product.price || '0'}`, 'info');
+                    });
+                    log('✅ Product fetch PASSED', 'success');
+                } else {
+                    log('⚠️ No products found', 'warning');
+                }
+                
+            } catch (error) {
+                log(`Product fetch FAILED: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            log('🚀 Test page loaded', 'success');
+            log('Click "Initialize Appwrite" button to connect', 'info');
+        });
+    </script>
+</body>
+</html>
