@@ -232,6 +232,58 @@
             -webkit-box-orient: vertical;
             text-overflow: ellipsis;
         }
+
+        /* Loading spinner for companies (matches iOS home.html) */
+        .refresh-spinner {
+            width: 36px;
+            height: 36px;
+            position: relative;
+        }
+
+        .refresh-spinner::before,
+        .refresh-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            box-sizing: border-box;
+        }
+
+        .refresh-spinner::before {
+            border: 3px solid transparent;
+            border-top-color: #3B74FF;
+            border-right-color: #3B74FF;
+            filter: drop-shadow(0 0 6px rgba(59, 116, 255, 0.6));
+            animation: spin 0.9s linear infinite;
+        }
+
+        .refresh-spinner::after {
+            inset: 6px;
+            border: 3px solid transparent;
+            border-bottom-color: #8BB0FF;
+            border-left-color: #8BB0FF;
+            animation: spinReverse 1.1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinReverse {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(-360deg);
+            }
+        }
     </style>
 </head>
 
@@ -601,6 +653,8 @@
 
         // Companies data will be loaded from database
         let companies = [];
+        // Stable randomized view of companies for UX (used for 'all' filter)
+        let shuffledCompanies = [];
         let companiesDataLoaded = false;
 
         // Handle search input
@@ -760,10 +814,36 @@
             return cssClass;
         }
 
+        // Utility: shuffle an array (Fisher–Yates)
+        function shuffleArray(arr) {
+            const array = arr.slice();
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+            return array;
+        }
+
         // Filter companies based on search query, location, and verification tier
         async function getFilteredCompanies() {
             console.log(`🔍 [DEBUG] Starting getFilteredCompanies with ${companies.length} companies`);
-            let filtered = companies;
+
+            // Base list:
+            // - 'around' view: keep real order so we can sort by distance (best UX)
+            // - 'all' view: use a stable randomized list so order changes only when data is refreshed
+            let baseList;
+            if (currentFilter === 'around') {
+                baseList = companies;
+            } else {
+                if (!shuffledCompanies || shuffledCompanies.length === 0) {
+                    shuffledCompanies = shuffleArray(companies);
+                }
+                baseList = shuffledCompanies;
+            }
+
+            let filtered = baseList;
 
             // Apply verification tier filtering
             filtered = filtered.filter(company => {
@@ -927,9 +1007,23 @@
                 // List View
                 html = '<div class="flex flex-col gap-1">';
                 filteredCompanies.forEach((company, index) => {
-                    let distanceText = company.time || 'Unknown distance';
-                    if (company.distance && !isNaN(company.distance) && company.distance > 0) {
-                        distanceText = `${company.distance.toFixed(1)} km away`;
+                    // Default distance label
+                    let distanceText = 'Unknown distance';
+
+                    if (userLocation) {
+                        // When we know the user's location:
+                        // - If distance not ready/invalid -> "Locating..."
+                        // - If valid distance -> show km away
+                        if (company.distance === undefined || company.distance === null || isNaN(company.distance) || company.distance <= 0) {
+                            distanceText = 'Locating...';
+                        } else {
+                            distanceText = `${company.distance.toFixed(1)} km away`;
+                        }
+                    } else {
+                        // When we don't know user location, fall back to company.time only if it's sane
+                        if (typeof company.time === 'string' && !company.time.toLowerCase().includes('nan')) {
+                            distanceText = company.time;
+                        }
                     }
                     const accuracyBadge = company.accuracy === 'high' ?
                         '<span class="text-xs text-green-400 ml-1">●</span>' :
@@ -979,9 +1073,23 @@
                 // Grid View
                 html = `<div class="grid grid-cols-2 gap-[10px] px-[10px] pt-[10px] pb-[100px]">`;
                 filteredCompanies.forEach((company, index) => {
-                    let distanceText = company.time || 'Unknown';
-                    if (company.distance && !isNaN(company.distance) && company.distance > 0) {
-                        distanceText = `${company.distance.toFixed(1)} km`;
+                    // Default distance label
+                    let distanceText = 'Unknown';
+
+                    if (userLocation) {
+                        // When we know the user's location:
+                        // - If distance not ready/invalid -> "Locating..."
+                        // - If valid distance -> show km
+                        if (company.distance === undefined || company.distance === null || isNaN(company.distance) || company.distance <= 0) {
+                            distanceText = 'Locating...';
+                        } else {
+                            distanceText = `${company.distance.toFixed(1)} km`;
+                        }
+                    } else {
+                        // When we don't know user location, fall back to company.time only if it's sane
+                        if (typeof company.time === 'string' && !company.time.toLowerCase().includes('nan')) {
+                            distanceText = company.time;
+                        }
                     }
                     const accuracyBadge = company.accuracy === 'high' ?
                         '<span class="text-xs text-green-400">●</span>' :
@@ -1087,6 +1195,10 @@
             try {
                 console.log('🔄 Manual refresh - replacing cache with fresh data...');
 
+                // Show loading state while refreshing
+                companiesDataLoaded = false;
+                await renderCompanies();
+
                 // Force refresh from database first
                 const freshData = await window.companyDataManager.fetchCompanyData();
 
@@ -1096,8 +1208,9 @@
                     console.log('💾 Cache replaced with fresh data');
                 }
 
-                // Update local companies array
+                // Update local companies array and refresh randomized view
                 companies = freshData;
+                shuffledCompanies = shuffleArray(companies);
                 companiesDataLoaded = true;
 
                 // Clear service worker cache and update with fresh content
@@ -1162,6 +1275,10 @@
             try {
                 console.log('🔄 Refresh - replacing cache with fresh data...');
 
+                // Show loading state while refreshing
+                companiesDataLoaded = false;
+                await renderCompanies();
+
                 // Force refresh from database first
                 const freshData = await window.companyDataManager.fetchCompanyData();
 
@@ -1171,8 +1288,9 @@
                     console.log('💾 Cache replaced with fresh data');
                 }
 
-                // Update local companies array
+                // Update local companies array and refresh randomized view
                 companies = freshData;
+                shuffledCompanies = shuffleArray(companies);
                 companiesDataLoaded = true;
 
                 // Re-render with current filters and search
@@ -1250,6 +1368,7 @@
                 if (hasCompaniesChanged(freshData, companies)) {
                     console.log('🆕 New data detected - replacing cache and updating UI');
                     companies = freshData;
+                    shuffledCompanies = shuffleArray(companies);
                     companiesDataLoaded = true;
 
                     // Replace cache with fresh data
@@ -1560,6 +1679,7 @@
 
                     // Update UI
                     companies = freshData;
+                    shuffledCompanies = shuffleArray(companies);
                     companiesDataLoaded = true;
                     renderCompanies();
 
@@ -1662,6 +1782,10 @@
         // Load initial company data from database
         async function loadInitialCompanyData() {
             try {
+                // Ensure loading state is visible while initial data is fetched
+                companiesDataLoaded = false;
+                await renderCompanies();
+
                 // Check if user is authenticated
                 if (!window.account) {
                     console.log('⏳ Waiting for Appwrite account to initialize...');
