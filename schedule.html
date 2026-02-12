@@ -87,7 +87,7 @@
           -webkit-font-feature-settings: 'liga';
           -webkit-font-smoothing: antialiased;
           font-variation-settings:
-          'FILL' 1,
+          'FILL' 0,
           'wght' 400,
           'GRAD' 0,
           'opsz' 24
@@ -241,6 +241,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             opacity: 0;
             visibility: hidden;
+            z-index: 100000;
             transition: all 0.3s ease;
         }
 
@@ -1436,7 +1437,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 99999;
+            z-index: 100003;
             padding: 20px;
             opacity: 0;
             visibility: hidden;
@@ -1608,9 +1609,9 @@
 <body class="dark-theme h-screen flex flex-col overflow-hidden">
 
     <!-- Header with Back Button and Profile Image (Exact from schedule.tsx) -->
-    <div class="relative w-full">
+    <div class="relative w-full z-10">
         <!-- Banner Background -->
-        <div class="absolute inset-0 w-full h-[180px] overflow-hidden">
+        <div class="absolute inset-0 w-full h-[180px] overflow-hidden z-20">
             <img id="shopBannerImage" class="w-full h-full object-cover" style="display: none;" />
             <div id="bannerPlaceholder" class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
                 <div class="text-center">
@@ -1623,18 +1624,16 @@
         </div>
         
         <!-- Back Button -->
-        <div class="absolute top-5 left-4 z-20">
-            <button onclick="window.history.back()" class="w-10 h-10 flex items-center justify-center">
+        <div class="absolute top-5 left-4 z-40">
+            <button onclick="window.history.back()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all shadow-lg">
                 <img src="images/main/ArrowLeftIcon.png" class="w-6 h-6 object-contain">
             </button>
         </div>
 
         <!-- Menu Button -->
-        <div class="absolute top-5 right-4 z-20">
-            <button onclick="openTermsOfService()" class="w-10 h-10 flex items-center justify-center rounded-full bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] transition-colors">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
+        <div class="absolute top-5 right-4 z-40">
+            <button onclick="openTermsOfService()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all shadow-lg">
+                <span class="material-symbols-outlined text-white">contract</span>
             </button>
         </div>
 
@@ -1642,7 +1641,7 @@
         <div class="h-[80px] w-full"></div>
 
         <!-- Profile Image Container (top: 40, left: 40, p: 8, rounded: 14, height: 90, width: 95) -->
-        <div class="absolute top-[60px] left-10 z-10 p-2 rounded-[14px]"
+        <div class="absolute top-[60px] left-10 z-50 p-2 rounded-[14px]"
             style="background-color: var(--bottom-sheet-color); height: 90px; width: 95px;">
             <div class="w-full h-full rounded-[14px] overflow-hidden bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
                 <img id="shopProfileImage" class="w-full h-full object-cover rounded-[14px]" style="display: none;" />
@@ -1656,10 +1655,10 @@
     </div>
 
     <!-- Main Scrollable Content -->
-    <div class="flex-1 overflow-y-auto hide-scrollbar pb-[70px] mt-2 relative z-10">
+    <div class="flex-1 overflow-y-auto hide-scrollbar pb-[70px] mt-0 relative z-10">
 
         <!-- Top Spacer - Increased to move company data beneath banner -->
-        <div class="h-[100px]"></div>
+        <div class="h-[110px]"></div>
 
         <div class="px-0 relative flex flex-col">
 
@@ -1831,7 +1830,7 @@
 
                         <!-- View Company Website Button (width: 225, top: 10, left: 20, rounded: 5, elevation: 5) -->
                         <button id="websiteButton"
-                            class="flex flex-row items-center gap-2 p-3 rounded-[5px] absolute top-[10px] left-[20px] rn-shadow z-[1000]"
+                            class="flex flex-row items-center gap-2 p-3 rounded-[5px] absolute top-[10px] left-[20px] rn-shadow z-[99999]"
                             style="background-color: var(--bottom-sheet-color); width: 225px;"
                             onclick="openCompanyWebsite()">
                             <svg class="w-6 h-6" fill="white" stroke="white" viewBox="0 0 24 24">
@@ -1844,13 +1843,13 @@
                         </button>
 
                         <!-- Contact Popup (width: 250, rounded: 10, bottom: 70, right: 20) -->
-                        <div id="contactPopup" class="absolute bottom-[70px] right-[20px] hidden rounded-[10px] z-[1000]"
+                        <div id="contactPopup" class="absolute bottom-[70px] right-[20px] hidden rounded-[10px] z-[99999]"
                             style="width: 250px; background-color: var(--bottom-sheet-color);">
                             <button id="contactPopupPhoneButton" onclick="callCompany()" class="flex flex-row items-center gap-4 pl-4 w-full" style="height: 60px;">
                                 <div class="w-8 h-8 rounded-full border border-white flex items-center justify-center">
                                     <span class="text-white text-xl font-bold">+</span>
                                 </div>
-                                <span id="contactPopupPhone" class="text-white text-lg font-[600] capitalize px-4 leading-5 whitespace-nowrap">+234 810 000 0000</span>
+                                <span id="contactPopupPhone" class="text-white text-lg font-[600] capitalize px-4 leading-5 whitespace-nowrap">no contact</span>
                             </button>
                         </div>
 
@@ -2169,40 +2168,37 @@
         </div>
     </div>
 
-    <!-- Terms of Service Modal -->
-    <div id="termsModal" class="fixed inset-0 z-[10002] flex items-center justify-center p-4 hidden"
+    <!-- Branch Terms & Privacy Modal (fetched from DB: tos_url, privacy_url) -->
+    <div id="termsModal" class="fixed inset-0 z-[100002] flex items-center justify-center p-4 hidden"
         style="background-color: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
-        <div class="rounded-[20px] w-full max-w-[400px] h-[80vh] bg-[#1D1D1D] border border-[rgba(255,255,255,0.1)] flex flex-col">
-            <!-- Header -->
+        <div class="rounded-[20px] w-full max-w-[400px] bg-[#1D1D1D] border border-[rgba(255,255,255,0.1)] flex flex-col">
+            <!-- Header: company name (not Phluowise) - belongs to the branch/company -->
             <div class="flex items-center justify-between p-4 border-b border-[rgba(255,255,255,0.1)] flex-shrink-0">
-                <h3 class="text-white text-xl font-semibold">Terms of Service</h3>
+                <h3 class="text-white text-xl font-semibold"><span id="termsModalCompanyName">Company</span> Terms of service, privacy policy and disclaimer</h3>
                 <button onclick="closeTermsModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] transition-colors">
                     <span class="text-white text-lg">×</span>
                 </button>
             </div>
-            
-            <!-- Content with Notion link -->
-            <div class="flex-1 overflow-hidden p-4">
-                <div class="w-full h-full rounded-lg border-0 bg-white p-6 text-center">
-                    <h4 class="text-gray-800 text-lg font-medium mb-4">Terms of Service</h4>
-                    <p class="text-gray-600 mb-6">Please read our Terms of Service on Notion</p>
-                    <a href="https://pyrite-kicker-251.notion.site/Phluowise-Ecommerce-Regulations-2fd097f4f33c8064b37dd3071e6be2ee?source=copy_link" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        View Terms of Service
-                    </a>
-                </div>
+            <!-- Menu: branch ToS and Privacy from DB (fallback to app pages) -->
+            <div class="p-4 space-y-3">
+                <button id="branchTermsBtn" onclick="openBranchLink('tos')" class="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.12)] border border-[rgba(255,255,255,0.1)] text-left transition-colors">
+                    <span class="text-white font-medium">Terms of Service</span>
+                    <span class="text-gray-400 text-sm">Opens link</span>
+                </button>
+                <button id="branchPrivacyBtn" onclick="openBranchLink('privacy')" class="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.12)] border border-[rgba(255,255,255,0.1)] text-left transition-colors">
+                    <span class="text-white font-medium">Privacy Policy</span>
+                    <span class="text-gray-400 text-sm">Opens link</span>
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Schedule Flow Bottom Sheet (NEW VERSION - Integrated from second file) -->
     <div id="scheduleFlowSheet"
-        class="bottom-sheet-container fixed inset-0 z-[10001] flex items-end justify-center pointer-events-none">
+        class="bottom-sheet-container fixed inset-0 z-[100000] flex items-end justify-center pointer-events-none">
 
         <!-- Content -->
-        <div id="scheduleFlowContent" class="bottom-sheet-content w-full max-w-[400px] flex flex-col relative"
+        <div id="scheduleFlowContent" class="bottom-sheet-content w-full max-w-[400px] flex flex-col relative z-[100001]"
             style="height: 85vh;">
 
             <!-- Drag Handle -->
@@ -2274,7 +2270,7 @@
                         </div>
                     </div>
 
-                    <div class="terms-container">
+                    <div id="termsLinkContainer" class="terms-container">
                         <p class="info-text">
                             By continuing you agree to our <a href="#" onclick="openTermsOfService()"
                                 class="text-blue-400 hover:text-blue-300 underline">terms of service</a>
@@ -2475,9 +2471,9 @@
                             placeholder="Enter delivery instructions..."></textarea>
                     </div>
 
-                    <!-- Delivery Fee Information -->
+                    <!-- Delivery Fee Information (company name set from branch) -->
                     <div class="delivery-info-note">
-                        <strong>Please Note:</strong> Delivery Fees Are Charged By The Water Company, Not Phluowise.
+                        <strong>Please Note:</strong> Delivery Fees Are Charged By The Water Company, Not <span id="deliveryNoteCompany1">the company</span>.
                         Payment Must Be Made Upon Delivery To Confirm Receipt.
                     </div>
 
@@ -2560,9 +2556,9 @@
                         </div>
                     </div>
 
-                    <!-- Delivery Fee Note -->
+                    <!-- Delivery Fee Note (company name set from branch) -->
                     <div class="delivery-info-note">
-                        <strong>Please Note:</strong> Delivery Fees Are Charged By The Water Company, Not Phluowise.
+                        <strong>Please Note:</strong> Delivery Fees Are Charged By The Water Company, Not <span id="deliveryNoteCompany2">the company</span>.
                         Payment Must Be Made Upon Delivery To Confirm Receipt.
                     </div>
                 </div>
@@ -2717,9 +2713,9 @@
                             </button>
                         </div>
 
-                        <!-- Rating Section -->
+                        <!-- Rating Section (company name set from branch) -->
                         <div class="w-full">
-                            <h4 class="review-section-title mb-4">Rate Phluowise</h4>
+                            <h4 class="review-section-title mb-4">Rate <span id="rateCompanyName">the company</span></h4>
                             <p class="section-subheader mb-6">How was your experience with our service?</p>
 
                             <div class="rating-stars-container">
@@ -3378,6 +3374,24 @@
             document.querySelectorAll('.step-content').forEach(el => {
                 el.classList.add('hidden');
             });
+
+            // Conditional rendering for Terms of Service link
+            if (step === 'terms') {
+                const branch = window.currentCompany || {};
+                const hasTos = !!(branch.tos_url && branch.tos_url.trim());
+                const hasPrivacy = !!(branch.privacy_url && branch.privacy_url.trim());
+                const termsLinkContainer = document.getElementById('termsLinkContainer');
+                
+                if (termsLinkContainer) {
+                    if (hasTos || hasPrivacy) {
+                        termsLinkContainer.classList.remove('hidden');
+                        console.log('📝 Terms/Privacy URLs found, showing links');
+                    } else {
+                        termsLinkContainer.classList.add('hidden');
+                        console.log('📝 No Terms/Privacy URLs found for this branch, hiding links');
+                    }
+                }
+            }
 
             // Show current step
             const stepMap = {
@@ -5263,6 +5277,7 @@
                 
                 const serviceFee = totalItems * SERVICE_FEE_PER_ITEM;
                 const totalAmount = subtotal + serviceFee;
+                const companyName = (window.currentCompany && (window.currentCompany.branch_name || window.currentCompany.name)) || 'Phluowise';
 
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
@@ -5288,7 +5303,7 @@
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(20);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Phluowise', margin, 25);
+                doc.text(companyName, margin, 25);
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'normal');
                 doc.text('Order Confirmation', margin, 35);
@@ -5489,7 +5504,7 @@
                 doc.setTextColor(100, 100, 100);
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Thank you for choosing Phluowise!', margin, yPosition);
+                doc.text('Thank you for choosing ' + companyName + '!', margin, yPosition);
                 doc.text('This is an automatically generated order confirmation.', margin, yPosition + 6);
                 doc.text('For inquiries, contact our customer support.', margin, yPosition + 12);
                 
@@ -6489,8 +6504,8 @@
             // Create modal overlay
             const modalOverlay = document.createElement('div');
             modalOverlay.id = 'editRatingModal';
-            modalOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4';
-            modalOverlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;';
+            modalOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-[100004] flex items-center justify-center p-4';
+            modalOverlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100004;';
             
             // Create modal content
             const modalContent = document.createElement('div');
@@ -6628,8 +6643,8 @@
             // Create modal overlay
             const modalOverlay = document.createElement('div');
             modalOverlay.id = 'deleteRatingModal';
-            modalOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4';
-            modalOverlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;';
+            modalOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-[100004] flex items-center justify-center p-4';
+            modalOverlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100004;';
             
             // Create modal content
             const modalContent = document.createElement('div');
@@ -7081,11 +7096,78 @@
         }
 
         function openTermsOfService() {
+            const branch = window.currentCompany || {};
+            const companyName = branch.branch_name || branch.name || 'Company';
+            
+            // Save company name for persistence in terms/privacy pages
+            try { localStorage.setItem('schedule_branch_company_name', companyName); } catch (e) {}
+
+            var el = document.getElementById('termsModalCompanyName');
+            if (el) {
+                el.textContent = companyName;
+            }
+            
+            // Show/hide buttons based on whether URLs exist
+            const tosBtn = document.getElementById('branchTermsBtn');
+            const privacyBtn = document.getElementById('branchPrivacyBtn');
+            
+            const hasTos = !!(branch.tos_url && branch.tos_url.trim());
+            const hasPrivacy = !!(branch.privacy_url && branch.privacy_url.trim());
+            
+            if (tosBtn) {
+                if (hasTos) {
+                    tosBtn.classList.remove('hidden');
+                } else {
+                    tosBtn.classList.add('hidden');
+                }
+            }
+            
+            if (privacyBtn) {
+                if (hasPrivacy) {
+                    privacyBtn.classList.remove('hidden');
+                } else {
+                    privacyBtn.classList.add('hidden');
+                }
+            }
+            
             document.getElementById('termsModal').classList.remove('hidden');
         }
 
         function closeTermsModal() {
             document.getElementById('termsModal').classList.add('hidden');
+        }
+
+        // Open branch ToS or Privacy URL from DB; fallback to app pages if not set
+        function openBranchLink(type) {
+            const branch = window.currentCompany || {};
+            const tosUrl = branch.tos_url && branch.tos_url.trim();
+            const privacyUrl = branch.privacy_url && branch.privacy_url.trim();
+            
+            // Validation: Only proceed if a URL exists for the requested type
+            if (type === 'tos' && !tosUrl) {
+                console.warn('⚠️ Attempted to open Terms of Service, but no URL exists for this branch');
+                return;
+            }
+            if (type === 'privacy' && !privacyUrl) {
+                console.warn('⚠️ Attempted to open Privacy Policy, but no URL exists for this branch');
+                return;
+            }
+
+            let url = type === 'tos'
+                ? tosUrl
+                : privacyUrl;
+            var companyName = (branch.branch_name || branch.name) || (typeof localStorage !== 'undefined' && localStorage.getItem('schedule_branch_company_name')) || 'Company';
+            if (!url.startsWith('http')) {
+                var sep = url.indexOf('?') >= 0 ? '&' : '?';
+                url = url + sep + 'company_name=' + encodeURIComponent(companyName);
+                try { localStorage.setItem('schedule_branch_company_name', companyName); } catch (e) {}
+            }
+            if (url.startsWith('http')) {
+                window.open(url, '_blank', 'noopener,noreferrer');
+            } else {
+                window.location.href = url;
+            }
+            closeTermsModal();
         }
         
         // Debug function to check social media status
@@ -7340,6 +7422,17 @@
                 locationElement.textContent = branchData.location;
                 console.log(' Updated location:', branchData.location);
             }
+            var termsModalCompanyEl = document.getElementById('termsModalCompanyName');
+            var branchDisplayName = branchData.branch_name || branchData.name || '';
+            if (termsModalCompanyEl && branchDisplayName) {
+                termsModalCompanyEl.textContent = branchDisplayName;
+            }
+            try { localStorage.setItem('schedule_branch_company_name', branchDisplayName); } catch (e) {}
+            var branchName = branchData.branch_name || branchData.name || 'the company';
+            ['deliveryNoteCompany1', 'deliveryNoteCompany2', 'rateCompanyName'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.textContent = branchName;
+            });
             
             // 4. Update description with email
             const descriptionText = document.getElementById('descriptionText');
@@ -7381,9 +7474,10 @@
                 console.log(' No phone number available for contact popup');
             }
             
-            // Update global currentCompany object with database values
+            // Update global currentCompany object with database values (this branch only)
             window.currentCompany = {
                 ...window.currentCompany,
+                ...branchData, // Include full branch so tos_url, privacy_url, social_media, etc. are per-branch
                 company_id: branchData.company_id,
                 branch_id: branchData.branch_id,
                 phone: branchData.phone_number,
@@ -7391,8 +7485,9 @@
                 name: branchData.branch_name,
                 location: branchData.location,
                 email: branchData.email,
-                is_verified: branchData.is_verified || false, // Add verification status
-                // Use coordinates from branchData (already computed by companyDataManager)
+                is_verified: branchData.is_verified || false,
+                tos_url: branchData.tos_url || null,   // This branch's terms of service URL
+                privacy_url: branchData.privacy_url || null, // This branch's privacy policy URL
                 coordinates: branchData.coordinates || {
                     lat: 5.6037,
                     lng: -0.1870
@@ -7654,35 +7749,10 @@
     </script>
     <script src="js/notifications.js"></script>
 
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration);
-                        
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New content is available
-                                    if (confirm('New version available! Reload to update?')) {
-                                        window.location.reload();
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
-        }
-    </script>
+    <!-- Service Worker Registration & Update Notification Logic -->
+    <script src="js/pwa-update.js?v=9"></script>
 
-        <!-- Pay on Delivery Confirmation Modal -->
+    <!-- Pay on Delivery Confirmation Modal -->
         <div id="payOnDeliveryModal" class="modal-overlay hidden">
             <div class="modal-content">
                 <div class="modal-icon warning">

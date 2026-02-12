@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms Display Logic Verification</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .test-case { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+        .success { color: green; font-weight: bold; }
+        .failure { color: red; font-weight: bold; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Verification: Terms & Policies Display Logic</h1>
+    
+    <div id="testResults"></div>
+
+    <script>
+        // Mock DOM elements
+        document.body.innerHTML += `
+            <div id="termsLinkContainer" class="terms-container">Terms Link</div>
+            <div id="termsModal" class="hidden">
+                <div id="termsModalCompanyName"></div>
+                <button id="branchTermsBtn">ToS</button>
+                <button id="branchPrivacyBtn">Privacy</button>
+            </div>
+        `;
+
+        const results = document.getElementById('testResults');
+
+        function assert(condition, message) {
+            const div = document.createElement('div');
+            div.className = 'test-case';
+            div.innerHTML = `${message}: <span class="${condition ? 'success' : 'failure'}">${condition ? 'PASSED' : 'FAILED'}</span>`;
+            results.appendChild(div);
+        }
+
+        // Mock openTermsOfService from schedule.html
+        function mockOpenTermsOfService(currentCompany) {
+            const branch = currentCompany || {};
+            const companyName = branch.branch_name || branch.name || 'Company';
+            
+            const el = document.getElementById('termsModalCompanyName');
+            if (el) el.textContent = companyName;
+            
+            const tosBtn = document.getElementById('branchTermsBtn');
+            const privacyBtn = document.getElementById('branchPrivacyBtn');
+            
+            const hasTos = !!(branch.tos_url && branch.tos_url.trim());
+            const hasPrivacy = !!(branch.privacy_url && branch.privacy_url.trim());
+            
+            if (tosBtn) {
+                if (hasTos) tosBtn.classList.remove('hidden');
+                else tosBtn.classList.add('hidden');
+            }
+            
+            if (privacyBtn) {
+                if (hasPrivacy) privacyBtn.classList.remove('hidden');
+                else privacyBtn.classList.add('hidden');
+            }
+            
+            document.getElementById('termsModal').classList.remove('hidden');
+        }
+
+        // Mock goToStep('terms') logic
+        function mockGoToStepTerms(currentCompany) {
+            const branch = currentCompany || {};
+            const hasTos = !!(branch.tos_url && branch.tos_url.trim());
+            const hasPrivacy = !!(branch.privacy_url && branch.privacy_url.trim());
+            const termsLinkContainer = document.getElementById('termsLinkContainer');
+            
+            if (termsLinkContainer) {
+                if (hasTos || hasPrivacy) termsLinkContainer.classList.remove('hidden');
+                else termsLinkContainer.classList.add('hidden');
+            }
+        }
+
+        // Test Case 1: Branch with both URLs
+        const branchBoth = { branch_name: 'Branch Both', tos_url: 'http://tos.com', privacy_url: 'http://privacy.com' };
+        mockGoToStepTerms(branchBoth);
+        assert(!document.getElementById('termsLinkContainer').classList.contains('hidden'), 'Case 1: Show terms link if both URLs exist');
+        mockOpenTermsOfService(branchBoth);
+        assert(!document.getElementById('branchTermsBtn').classList.contains('hidden'), 'Case 1: Show ToS button');
+        assert(!document.getElementById('branchPrivacyBtn').classList.contains('hidden'), 'Case 1: Show Privacy button');
+
+        // Test Case 2: Branch with NO URLs
+        const branchNone = { branch_name: 'Branch None', tos_url: null, privacy_url: '' };
+        mockGoToStepTerms(branchNone);
+        assert(document.getElementById('termsLinkContainer').classList.contains('hidden'), 'Case 2: Hide terms link if NO URLs exist');
+        mockOpenTermsOfService(branchNone);
+        assert(document.getElementById('branchTermsBtn').classList.contains('hidden'), 'Case 2: Hide ToS button');
+        assert(document.getElementById('branchPrivacyBtn').classList.contains('hidden'), 'Case 2: Hide Privacy button');
+
+        // Test Case 3: Branch with ONLY ToS
+        const branchTosOnly = { branch_name: 'Branch ToS', tos_url: 'http://tos.com', privacy_url: null };
+        mockGoToStepTerms(branchTosOnly);
+        assert(!document.getElementById('termsLinkContainer').classList.contains('hidden'), 'Case 3: Show terms link if ONLY ToS exists');
+        mockOpenTermsOfService(branchTosOnly);
+        assert(!document.getElementById('branchTermsBtn').classList.contains('hidden'), 'Case 3: Show ToS button');
+        assert(document.getElementById('branchPrivacyBtn').classList.contains('hidden'), 'Case 3: Hide Privacy button');
+    </script>
+</body>
+</html>

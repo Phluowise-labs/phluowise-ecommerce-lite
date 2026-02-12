@@ -313,6 +313,8 @@ class CompanyDataManager {
                         image: this.getProductImageUrl(product.product_image || product.image)
                     })),
                     social_media: branchSocialMedia, // Add social media links
+                    tos_url: branch.tos_url || null, // Branch terms of service URL
+                    privacy_url: branch.privacy_url || null, // Branch privacy policy URL
                     // Additional fields for compatibility
                     time: this.generateTimeText(branch.location),
                     distance: null

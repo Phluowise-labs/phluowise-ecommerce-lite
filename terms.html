@@ -42,41 +42,37 @@
 </head>
 
 <body>
-    <!-- Simulating WebView -->
+    <!-- Simulating WebView (company name from URL when opened from schedule) -->
     <div class="flex justify-center items-center min-h-screen">
         <div class="text-center">
-            <p class="text-white text-sm font-inter mb-6">Phluowise Terms of service, privacy policy and disclaimer</p>
+            <p id="termsCompanyText" class="text-white text-sm font-inter mb-6">Phluowise Terms of service, privacy policy and disclaimer</p>
             <a href="https://pyrite-kicker-251.notion.site/Phluowise-Ecommerce-Regulations-2fd097f4f33c8064b37dd3071e6be2ee?source=copy_link" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">View Document</a>
         </div>
     </div>
 
-    <!-- Service Worker Registration -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration);
-                        
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New content is available
-                                    if (confirm('New version available! Reload to update?')) {
-                                        window.location.reload();
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
-        }
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var companyName = params.get('company_name');
+            
+            // If we have it in URL, save it for persistence
+            if (companyName && typeof localStorage !== 'undefined') {
+                try { localStorage.setItem('schedule_branch_company_name', companyName); } catch (e) {}
+            }
+            
+            // If not in URL, try localStorage
+            if (!companyName && typeof localStorage !== 'undefined') {
+                companyName = localStorage.getItem('schedule_branch_company_name');
+            }
+            
+            if (companyName) {
+                var el = document.getElementById('termsCompanyText');
+                if (el) el.textContent = companyName + ' Terms of service, privacy policy and disclaimer';
+            }
+        })();
     </script>
+    <!-- Service Worker Registration & Update Notification Logic -->
+    <script src="js/pwa-update.js?v=7"></script>
 </body>
 
 </html>

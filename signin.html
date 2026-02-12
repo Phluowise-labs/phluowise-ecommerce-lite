@@ -330,32 +330,9 @@
         });
     </script>
 
-    <!-- Service Worker Registration -->
+    <!-- Service Worker Registration & Update Notification Logic -->
+    <script src="js/pwa-update.js?v=7"></script>
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration);
-                        
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New content is available
-                                    if (confirm('New version available! Reload to update?')) {
-                                        window.location.reload();
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
-        }
         function showComingSoon() {
             const toast = document.getElementById('toast');
             toast.classList.add('show');
@@ -363,7 +340,6 @@
                 toast.classList.remove('show');
             }, 3000);
         }    </script>
-
 </body>
 
 </html>

@@ -2259,62 +2259,8 @@
         });
     </script>
 
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration);
-
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New content is available
-                                    if (confirm('New version available! Reload to update?')) {
-                                        window.location.reload();
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
-        }
-
-        // Proactive offline detection - immediately show offline page when connection drops
-        window.addEventListener('offline', function() {
-            console.log('🔴 [OFFLINE] Connection lost. Current page:', window.location.href);
-            // Only navigate if not already on offline.html
-            if (!window.location.href.includes('offline.html')) {
-                console.log('📘 [OFFLINE] Navigating to offline.html');
-                window.location.href = './offline.html';
-            }
-        });
-
-        // Listen for connection restoration
-        window.addEventListener('online', function() {
-            console.log('🟢 [ONLINE] Connection restored!');
-            // If on offline page, redirect to tracked page
-            if (window.location.href.includes('offline.html')) {
-                const previousUrl = sessionStorage.getItem('previousPageUrl') || './home.html';
-                console.log('📘 [ONLINE] Redirecting to:', previousUrl);
-                window.location.href = previousUrl;
-            }
-        });
-
-        // Fallback: Check connection status every 30 seconds
-        setInterval(() => {
-            if (!navigator.onLine && !window.location.href.includes('offline.html')) {
-                console.log('🔴 [FALLBACK] Offline detected via polling, redirecting...');
-                window.location.href = './offline.html';
-            }
-        }, 30000);
-    </script>
+    <!-- Service Worker Registration & Update Notification Logic -->
+    <script src="js/pwa-update.js?v=7"></script>
 </body>
 
 </html>

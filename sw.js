@@ -1,8 +1,15 @@
-const CACHE_NAME = 'phluowise-v1';
+const CACHE_NAME = 'phluowise-v9';
 const urlsToCache = [
   './',
   './offline.html'
 ];
+
+// Listen for skipWaiting message
+self.addEventListener('message', (event) => {
+  if (event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+});
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {
