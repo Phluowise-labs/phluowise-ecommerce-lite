@@ -7524,39 +7524,165 @@
             initializeMapWhenReady();
         }
         
+        // ⭐ Enhanced Social Media Fetching Function
+        async function fetchBranchSocialMedia(branchData) {
+            console.log('📱📱📱 FETCHING SOCIAL MEDIA FOR BRANCH 📱📱📱');
+            console.log('🔍 Branch ID:', branchData.branch_id);
+            console.log('🔍 Branch Name:', branchData.branch_name);
+            console.log('🔍 Raw branchData:', branchData);
+            
+            try {
+                // Extract social media data from multiple possible sources
+                let socialMediaData = [];
+                
+                // 1. Check if social_media exists as an array
+                if (Array.isArray(branchData.social_media) && branchData.social_media.length > 0) {
+                    socialMediaData = branchData.social_media;
+                    console.log('✅ Found social_media as array:', socialMediaData);
+                }
+                // 2. Check if social_media exists as a single object
+                else if (branchData.social_media && typeof branchData.social_media === 'object' && !Array.isArray(branchData.social_media)) {
+                    socialMediaData = [branchData.social_media];
+                    console.log('✅ Found social_media as object, converted to array:', socialMediaData);
+                }
+                // 3. Check for individual social media fields on branchData itself
+                else {
+                    const socialMediaFields = {};
+                    // Direct field mappings for database columns
+                    const possibleFields = [
+                        'facebook', 'instagram', 'twitter', 'linkedin', 'discord', 'whatsapp', 
+                        'tiktok', 'youtube', 'telegram',
+                        // URL variations
+                        'facebook_url', 'instagram_url', 'twitter_url', 'linkedin_url', 
+                        'discord_url', 'whatsapp_url', 'tiktok_url', 'youtube_url', 'telegram_url',
+                        // Link variations
+                        'facebook_link', 'instagram_link', 'twitter_link', 'linkedin_link',
+                        'discord_link', 'whatsapp_link', 'tiktok_link', 'youtube_link', 'telegram_link'
+                    ];
+                    
+                    possibleFields.forEach(field => {
+                        if (branchData[field]) {
+                            socialMediaFields[field] = branchData[field];
+                            console.log(`✅ Found individual field ${field}:`, branchData[field]);
+                        }
+                    });
+                    
+                    if (Object.keys(socialMediaFields).length > 0) {
+                        socialMediaData = [socialMediaFields];
+                        console.log('✅ Constructed socialMediaData from individual fields:', socialMediaData);
+                    }
+                }
+                
+                console.log(`📊 Total social media records found: ${socialMediaData.length}`);
+                console.log('📊 Social media data structure:', JSON.stringify(socialMediaData, null, 2));
+                
+                return socialMediaData;
+            } catch (error) {
+                console.error('❌ Error fetching branch social media:', error);
+                return [];
+            }
+        }
+
         // Update social media links - use social_media data from branchData
         async function updateSocialMediaLinks(branchData) {
             console.log('🔍 Checking social media fields in branchData:', branchData);
             console.log('📱 Social media data from branchData.social_media:', branchData.social_media);
             
             try {
-                // Use social media data that's already been fetched with company data
-                const socialMediaData = branchData.social_media || [];
-                console.log('📱 Social media data array:', socialMediaData);
+                // DEFENSIVE VALIDATION: Verify social media belongs to current branch
+                // This prevents any cross-branch social media leakage at the display layer
+                const currentBranchId = branchData.branch_id;
+                const currentCompanyId = branchData.company_id;
+                console.log(`🔒 BRANCH VALIDATION: Current Branch=${currentBranchId}, Company=${currentCompanyId}`);
                 
-                if (socialMediaData.length > 0) {
+                // Use the new fetchBranchSocialMedia function
+                let socialMediaData = await fetchBranchSocialMedia(branchData);
+                console.log(`🔒 Total social media records found: ${socialMediaData.length}`);
+                console.log(`🔒 Raw social media data before validation:`, socialMediaData);
+                
+                // STRICT VALIDATION: Only accept records that EXACTLY match this branch
+                let validSocialMediaData = [];
+                
+                socialMediaData.forEach(sm => {
+                    console.log(`🔒 Checking social media record:`, {
+                        $id: sm.$id,
+                        sm_branch_id: sm.branch_id,
+                        sm_company_id: sm.company_id,
+                        current_branch_id: currentBranchId,
+                        current_company_id: currentCompanyId
+                    });
+                    
+                    // RULE 1: If record has branch_id, it MUST match current branch (cannot apply company-wide records to single branch)
+                    if (sm.branch_id && sm.branch_id !== '' && sm.branch_id !== undefined && sm.branch_id !== null) {
+                        if (sm.branch_id === currentBranchId) {
+                            console.log(`✅ VALID - Social Media ${sm.$id}: branch_id EXACTLY matches (${sm.branch_id})`);
+                            validSocialMediaData.push(sm);
+                        } else {
+                            console.log(`🚫 BLOCKED - Social Media ${sm.$id}: branch_id mismatch! Has "${sm.branch_id}", need "${currentBranchId}"`);
+                        }
+                        return; // Don't check company_id if branch_id is set
+                    }
+                    
+                    // RULE 2: If record has NO branch_id but has company_id, it's company-level (questionable - use with caution)
+                    // Better approach: Don't use company-level social media at all - each branch should have its own
+                    if ((!sm.branch_id || sm.branch_id === '' || sm.branch_id === undefined || sm.branch_id === null) && 
+                        sm.company_id && sm.company_id === currentCompanyId) {
+                        console.log(`⚠️ WARNING - Social Media ${sm.$id}: company-level record (no branch_id). This may cause cross-branch leakage!`);
+                        console.log(`⚠️ Not including company-level social media. Each branch must have its own record.`);
+                        // Don't include company-level records
+                        return;
+                    }
+                    
+                    console.log(`🚫 BLOCKED - Social Media ${sm.$id}: doesn't match branch or company properly`);
+                });
+                
+                console.log(`🔒 After STRICT validation: ${validSocialMediaData.length} valid social media records`);
+                console.log('📱 Filtered social media data array:', validSocialMediaData);
+                
+                if (validSocialMediaData.length > 0) {
                     // If social media data exists as an array, use the first item or merge all
-                    const socialData = socialMediaData.length === 1 ? socialMediaData[0] : 
-                        socialMediaData.reduce((merged, item) => ({...merged, ...item}), {});
+                    const socialData = validSocialMediaData.length === 1 ? validSocialMediaData[0] : 
+                        validSocialMediaData.reduce((merged, item) => ({...merged, ...item}), {});
                     
                     console.log('📱 Raw socialData object:', socialData);
                     console.log('📱 Available fields in socialData:', Object.keys(socialData));
                     
-                    // Log each field individually
-                    console.log('📱 Facebook field:', socialData.facebook, socialData.facebook_url);
-                    console.log('📱 Instagram field:', socialData.instagram, socialData.instagram_url);
-                    console.log('📱 Twitter field:', socialData.twitter, socialData.twitter_url);
-                    console.log('📱 LinkedIn field:', socialData.linkedIn, socialData.linkedin_url);
-                    console.log('📱 Discord field:', socialData.discord, socialData.discord_url);
-                    console.log('📱 WhatsApp field:', socialData.whatsapp, socialData.whatsapp_url);
+                    // Helper function to get social media field with multiple field name variations
+                    const getSocialField = (obj, ...fieldNames) => {
+                        for (const field of fieldNames) {
+                            const value = obj[field];
+                            // Check if field exists and has a non-empty value (handle null, undefined, empty strings)
+                            if (value && 
+                                value.toString().trim() !== '' && 
+                                value.toString().toLowerCase() !== 'null' &&
+                                value.toString().toLowerCase() !== 'undefined') {
+                                return value.toString().trim();
+                            }
+                        }
+                        return '';
+                    };
+                    
+                    // Log each field individually with all variations - comprehensive mapping
+                    console.log('📱 Facebook field:', getSocialField(socialData, 'facebook', 'facebook_url', 'facebook_link', 'fb', 'fb_url', 'facebookUrl', 'facebookLink'));
+                    console.log('📱 Instagram field:', getSocialField(socialData, 'instagram', 'instagram_url', 'instagram_link', 'ig', 'ig_url', 'instagramUrl', 'instagramLink'));
+                    console.log('📱 Twitter field:', getSocialField(socialData, 'twitter', 'twitter_url', 'twitter_link', 'x', 'x_url', 'twitterUrl', 'twitterLink', 'twitterHandle'));
+                    console.log('📱 TikTok field:', getSocialField(socialData, 'tiktok', 'tiktok_url', 'tiktok_link', 'tik_tok', 'tiktokUrl', 'tiktokLink'));
+                    console.log('📱 YouTube field:', getSocialField(socialData, 'youtube', 'youtube_url', 'youtube_link', 'youtubeUrl', 'youtubeLink', 'youtube_channel'));
+                    console.log('📱 LinkedIn field:', getSocialField(socialData, 'linkedIn', 'linkedin', 'linkedin_url', 'linkedin_link', 'linkedinUrl', 'linkedinLink'));
+                    console.log('📱 Discord field:', getSocialField(socialData, 'discord', 'discord_url', 'discord_link', 'discord_server', 'discordUrl', 'discordLink', 'discc', 'discc_url', 'discc_link'));
+                    console.log('📱 Telegram field:', getSocialField(socialData, 'telegram', 'telegram_url', 'telegram_link', 'telegramUrl', 'telegramLink', 'telegram_username'));
+                    console.log('📱 WhatsApp field:', getSocialField(socialData, 'whatsapp', 'whatsapp_url', 'whatsapp_number', 'whatsapp_link', 'wa', 'wa_url', 'wa_number', 'wa_link', 'whatsappUrl', 'whatsappNumber'));
                     
                     const socialPlatforms = {
-                        'Facebook': socialData.facebook || socialData.facebook_url || '',
-                        'Instagram': socialData.instagram || socialData.instagram_url || '',
-                        'Twitter': socialData.twitter || socialData.twitter_url || '',
-                        'LinkedIn': socialData.linkedIn || socialData.linkedin_url || '',
-                        'Discord': socialData.discord || socialData.discord_url || '',
-                        'WhatsApp': socialData.whatsapp || socialData.whatsapp_url || ''
+                        'Facebook': getSocialField(socialData, 'facebook', 'facebook_url', 'facebook_link', 'fb', 'fb_url', 'facebookUrl', 'facebookLink'),
+                        'Instagram': getSocialField(socialData, 'instagram', 'instagram_url', 'instagram_link', 'ig', 'ig_url', 'instagramUrl', 'instagramLink'),
+                        'Twitter': getSocialField(socialData, 'twitter', 'twitter_url', 'twitter_link', 'x', 'x_url', 'twitterUrl', 'twitterLink', 'twitterHandle'),
+                        'TikTok': getSocialField(socialData, 'tiktok', 'tiktok_url', 'tiktok_link', 'tik_tok', 'tiktokUrl', 'tiktokLink'),
+                        'YouTube': getSocialField(socialData, 'youtube', 'youtube_url', 'youtube_link', 'youtubeUrl', 'youtubeLink', 'youtube_channel'),
+                        'LinkedIn': getSocialField(socialData, 'linkedIn', 'linkedin', 'linkedin_url', 'linkedin_link', 'linkedinUrl', 'linkedinLink'),
+                        'Discord': getSocialField(socialData, 'discord', 'discord_url', 'discord_link', 'discord_server', 'discordUrl', 'discordLink', 'discc', 'discc_url', 'discc_link'),
+                        'Telegram': getSocialField(socialData, 'telegram', 'telegram_url', 'telegram_link', 'telegramUrl', 'telegramLink', 'telegram_username'),
+                        'WhatsApp': getSocialField(socialData, 'whatsapp', 'whatsapp_url', 'whatsapp_number', 'whatsapp_link', 'wa', 'wa_url', 'wa_number', 'wa_link', 'whatsappUrl', 'whatsappNumber')
                     };
                     
                     console.log('📱 Social media URLs found:', socialPlatforms);
@@ -7599,7 +7725,7 @@
                 } else {
                     console.log('📱 No social media data found for this branch');
                     // Show empty modal for all platforms
-                    ['Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'Discord', 'WhatsApp'].forEach(platform => {
+                    ['Facebook', 'Instagram', 'Twitter', 'TikTok', 'YouTube', 'LinkedIn', 'Discord', 'Telegram', 'WhatsApp'].forEach(platform => {
                         const socialMediaContainer = document.querySelector('.flex.flex-row.justify-center.items-center.overflow-x-auto.hide-scrollbar');
                         if (socialMediaContainer) {
                             const allIcons = socialMediaContainer.querySelectorAll('div[onclick*="showSocialModal"]');
@@ -7617,8 +7743,11 @@
                         'Facebook': '',
                         'Instagram': '',
                         'Twitter': '',
+                        'TikTok': '',
+                        'YouTube': '',
                         'LinkedIn': '',
                         'Discord': '',
+                        'Telegram': '',
                         'WhatsApp': ''
                     };
                 }
@@ -7626,6 +7755,46 @@
                 console.error(' Error processing social media data:', error);
             }
         }
+
+        // ⭐ DEBUG FUNCTION: Check Social Media Status
+        window.debugBranchSocialMedia = async function() {
+            console.log('========================================');
+            console.log('🔍 BRANCH SOCIAL MEDIA DEBUG REPORT');
+            console.log('========================================');
+            console.log('📱 Current Branch ID:', window.currentCompany?.branch_id);
+            console.log('📱 Current Company ID:', window.currentCompany?.company_id);
+            console.log('📱 Current Branch Name:', window.currentCompany?.name);
+            console.log('');
+            console.log('📊 Stored Social Media Data in window.currentCompanySocialMedia:');
+            console.log(window.currentCompanySocialMedia || 'NOT FOUND ❌');
+            console.log('');
+            console.log('📝 Social Media URLs Status:');
+            if (window.currentCompanySocialMedia) {
+                Object.entries(window.currentCompanySocialMedia).forEach(([platform, url]) => {
+                    if (url && url.trim() !== '') {
+                        console.log(`  ✅ ${platform}: ${url}`);
+                    } else {
+                        console.log(`  ⚠️ ${platform}: NOT SET`);
+                    }
+                });
+            }
+            console.log('');
+            console.log('🔗 Testing Social Media Icon Handlers:');
+            const socialMediaContainer = document.querySelector('.flex.flex-row.justify-center.items-center.overflow-x-auto.hide-scrollbar');
+            if (socialMediaContainer) {
+                const allIcons = socialMediaContainer.querySelectorAll('div[onclick*="showSocialModal"], div[onclick*="window.open"]');
+                console.log(`  Found ${allIcons.length} social media icons`);
+                allIcons.forEach((icon, index) => {
+                    const platform = icon.getAttribute('data-social-platform') || 'UNKNOWN';
+                    const onclick = icon.getAttribute('onclick');
+                    console.log(`  [${index + 1}] ${platform}: ${onclick?.substring(0, 50)}...`);
+                });
+            } else {
+                console.log('  ❌ Social media container not found!');
+            }
+            console.log('');
+            console.log('========================================');
+        };
         
         // Update working days from database
         function updateWorkingDaysFromDB(branchData) {

@@ -22,6 +22,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Phluowise">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="capacitor.js"></script>
     <link rel="stylesheet" href="css/mobile-responsive.css" />
     <script>
         tailwind.config = {
@@ -187,15 +188,36 @@
             }
         }
 
-        function shareApp() {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Phluowise',
-                    text: 'Check out Phluowise - Your water delivery companion!',
-                    url: window.location.origin
-                });
-            } else {
-                alert('Share feature not supported on this browser. Copy link: ' + window.location.origin);
+        async function shareApp() {
+            const shareData = {
+                title: 'Phluowise',
+                text: 'Check out Phluowise - Your water delivery companion!',
+                url: 'https://phluowise.com'
+            };
+
+            try {
+                // Try Capacitor Share first (for native Android/iOS)
+                if (window.Capacitor && window.Capacitor.isPluginAvailable('Share')) {
+                    await Capacitor.Plugins.Share.share({
+                        ...shareData,
+                        dialogTitle: 'Share Phluowise'
+                    });
+                } 
+                // Fallback to Web Share API
+                else if (navigator.share) {
+                    await navigator.share(shareData);
+                } 
+                // Final fallback: Copy to clipboard
+                else {
+                    await navigator.clipboard.writeText(shareData.url);
+                    alert('Link copied to clipboard: ' + shareData.url);
+                }
+            } catch (error) {
+                console.error('Error sharing:', error);
+                // If it's not a user cancellation, show alert
+                if (error.name !== 'AbortError') {
+                    alert('Sharing failed. Copy link: ' + shareData.url);
+                }
             }
         }
     </script>

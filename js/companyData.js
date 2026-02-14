@@ -233,10 +233,24 @@ class CompanyDataManager {
                     product.branch_id === branch.branch_id || product.company_id === branch.company_id
                 );
 
-                // Get social media for this branch/company
-                const branchSocialMedia = this.socialMedia.filter(sm =>
-                    sm.branch_id === branch.branch_id || sm.company_id === branch.company_id
-                );
+                // Get social media ONLY for this specific branch (strict matching - no company-level fallback)
+                // This prevents cross-branch social media leakage
+                const branchSocialMedia = this.socialMedia.filter(sm => {
+                    // STRICT: Only match if branch_id exactly matches
+                    if (sm.branch_id === branch.branch_id) {
+                        console.log(`✅ Social Media ${sm.$id} matched to branch ${branch.branch_id}`);
+                        return true;
+                    }
+                    
+                    // PREVENT: Don't use company-level social media records
+                    if ((!sm.branch_id || sm.branch_id === '' || sm.branch_id === undefined || sm.branch_id === null) && 
+                        sm.company_id === branch.company_id) {
+                        console.log(`⚠️ BLOCKED: Company-level social media ${sm.$id} (no branch_id) - not attaching to branch ${branch.branch_id} to prevent cross-branch leakage`);
+                        return false;
+                    }
+                    
+                    return false;
+                });
                 
                 // Log social media matching for this branch
                 if (branchSocialMedia.length > 0) {
@@ -653,7 +667,7 @@ class CompanyDataManager {
                 window.appwriteConfig.DATABASE_ID,
                 window.appwriteConfig.SOCIAL_MEDIA_TABLE
             );
-            console.log(`📱 Found ${response.documents.length} social media links`);
+            console.log(`📱 Found ${response.documents.length} social media records`);
             
             // Log detailed information about each social media record
             response.documents.forEach((doc, index) => {
@@ -665,11 +679,16 @@ class CompanyDataManager {
                         facebook: doc.facebook || doc.facebook_url || 'N/A',
                         instagram: doc.instagram || doc.instagram_url || 'N/A',
                         twitter: doc.twitter || doc.twitter_url || 'N/A',
-                        linkedin: doc.linkedIn || doc.linkedin_url || 'N/A',
-                        discord: doc.discord || doc.discord_url || 'N/A',
+                        tiktok: doc.tiktok || doc.tiktok_url || 'N/A',
+                        youtube: doc.youtube || doc.youtube_url || 'N/A',
+                        linkedin: doc.linkedIn || doc.linkedin || doc.linkedin_url || 'N/A',
+                        discord: doc.discord || doc.discc || doc.discord_url || doc.discc_url || 'N/A',
+                        telegram: doc.telegram || doc.telegram_url || 'N/A',
                         whatsapp: doc.whatsapp || doc.whatsapp_url || 'N/A'
-                    }
+                    },
+                    allFields: Object.keys(doc)
                 });
+                console.log(`📱 Full database record #${index + 1}:`, doc);
             });
             
             return response.documents;
