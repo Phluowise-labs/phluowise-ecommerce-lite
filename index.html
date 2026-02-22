@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Phluowise Ecommerce</title>
-    <meta name="description" content="Your smart water delivery companion. Schedule, track, and manage your water orders with ease." />
+    <meta name="description"
+        content="Your smart water delivery companion. Schedule, track, and manage your water orders with ease." />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#2b47d4" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -12,13 +14,15 @@
     <meta name="twitter:site" content="@site" />
     <meta name="twitter:url" content="https:/phluowise.com" />
     <meta name="twitter:title" content="Phluowise Ecommerce" />
-    <meta name="twitter:description" content="Your smart water delivery companion. Schedule, track, and manage your water orders with ease." />
+    <meta name="twitter:description"
+        content="Your smart water delivery companion. Schedule, track, and manage your water orders with ease." />
     <meta name="twitter:image" content="https:/phluowise.com/Phuowise Twitter post.png" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Phluowise Ecommerce" />
-    <meta property="og:description" content="Your smart water delivery companion. Schedule, track, and manage your water orders with ease." />
+    <meta property="og:description"
+        content="Your smart water delivery companion. Schedule, track, and manage your water orders with ease." />
     <meta property="og:site_name" content="Phluowise Ecommerce" />
     <meta property="og:url" content="https:/phluowise.com" />
     <meta property="og:image" content="https:/phluowise.com/Phuowise Twitter post.png" />
@@ -41,28 +45,24 @@
 
         gtag('config', 'G-TRV3R43NQZ');
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="css/output.css" rel="stylesheet">
     <link rel="stylesheet" href="css/notifications.css" />
     <script src="js/notifications.js"></script>
     <script src="js/pageTracker.js"></script>
     <script>
         // Proactive offline detection - immediately show offline page when connection drops
-        window.addEventListener('offline', function() {
-            console.log('🔴 [OFFLINE] Connection lost. Current page:', window.location.href);
+        window.addEventListener('offline', function () {
             // Only navigate if not already on offline.html
             if (!window.location.href.includes('offline.html')) {
-                console.log('📘 [OFFLINE] Navigating to offline.html');
                 window.location.href = './offline.html';
             }
         });
 
         // Listen for connection restoration
-        window.addEventListener('online', function() {
-            console.log('🟢 [ONLINE] Connection restored!');
+        window.addEventListener('online', function () {
             // If on offline page, redirect to tracked page
             if (window.location.href.includes('offline.html')) {
                 const previousUrl = sessionStorage.getItem('previousPageUrl') || './home.html';
-                console.log('📘 [ONLINE] Redirecting to:', previousUrl);
                 window.location.href = previousUrl;
             }
         });
@@ -70,29 +70,20 @@
         // Monitor Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(registration => {
-                console.log('✅ [SW] Service Worker is active and ready');
-                
                 // Check if offline.html is cached
                 caches.open('phluowise-v1').then(cache => {
                     cache.match('./offline.html').then(response => {
-                        if (response) {
-                            console.log('✅ [CACHE] offline.html is cached and ready');
-                        } else {
-                            console.warn('⚠️ [CACHE] offline.html is NOT cached');
-                        }
+                        // Cached check omitted
                     });
                 });
             }).catch(err => {
-                console.error('❌ [SW] Service Worker is not ready:', err);
             });
         } else {
-            console.warn('⚠️ [SW] Service Worker not supported on this device');
         }
 
         // Fallback: Check connection status every 30 seconds
         setInterval(() => {
             if (!navigator.onLine && !window.location.href.includes('offline.html')) {
-                console.log('🔴 [FALLBACK] Offline detected via polling, redirecting...');
                 window.location.href = './offline.html';
             }
         }, 30000);
@@ -454,7 +445,8 @@
                 <div class="slide-content">
                     <img src="images/onboard/Saly-1.png" alt="Welcome" class="slide-image">
                     <h2 class="slide-title">Welcome to Phluowise</h2>
-                    <p class="slide-description">Your smart water delivery companion. Schedule, track, and manage your water orders with ease.</p>
+                    <p class="slide-description">Your smart water delivery companion. Schedule, track, and manage your
+                        water orders with ease.</p>
                 </div>
             </div>
 
@@ -463,7 +455,8 @@
                 <div class="slide-content">
                     <img src="images/onboard/Saly-2.png" alt="Order With Ease" class="slide-image">
                     <h2 class="slide-title">Order With Ease</h2>
-                    <p class="slide-description">Find, Order, And Track the delivery of water from certified suppliers</p>
+                    <p class="slide-description">Find, Order, And Track the delivery of water from certified suppliers
+                    </p>
                 </div>
             </div>
 
@@ -623,7 +616,7 @@
 
         // Add dot click functionality
         document.querySelectorAll('.dot').forEach(dot => {
-            dot.addEventListener('click', function() {
+            dot.addEventListener('click', function () {
                 const targetSlide = parseInt(this.dataset.slide);
                 goToSlide(targetSlide);
             });
@@ -631,7 +624,7 @@
 
         function goToSlide(targetSlide) {
             if (targetSlide === currentSlide) return;
-            
+
             const currentSlideEl = document.querySelector(`[data-slide="${currentSlide}"]`);
             const targetSlideEl = document.querySelector(`[data-slide="${targetSlide}"]`);
             const currentDot = document.querySelector(`.dot[data-slide="${currentSlide}"]`);
@@ -677,14 +670,12 @@
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js')
-                .then(function(registration) {
-                    console.log('Service Worker Registered');
-                    
+                .then(function (registration) {
                     // Force update
                     registration.update();
                 })
-                .catch(function(err) {
-                    console.log('Service Worker registration failed: ', err);
+                .catch(function (err) {
+                    // Suppress service worker registration errors
                 });
         }
     </script>

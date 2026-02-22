@@ -36,22 +36,31 @@ function getCustomerDisplayName() {
 function displayCustomerInfo(elementId) {
     const customerData = getCurrentCustomer();
     const element = document.getElementById(elementId);
-    
+
     if (element && customerData) {
         element.textContent = customerData.name || customerData.email;
     }
 }
 
 // Initialize customer authentication on page load
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     // Add customer authentication to protected pages
-    const protectedPages = ['profile.html', 'home.html', 'schedule.html'];
+    // SECURITY FIX (VULN-06): All pages that require authentication must be listed here.
+    const protectedPages = [
+        'profile.html',
+        'home.html',
+        'schedule.html',
+        'services.html',
+        'schedule-history.html',
+        'report.html',
+        'menu.html'
+    ];
     const currentPage = window.location.pathname.split('/').pop();
-    
+
     if (protectedPages.includes(currentPage)) {
         await protectCustomerRoute();
     }
-    
+
     // Display customer info in elements with class 'customer-name'
     const customerNameElements = document.querySelectorAll('.customer-name');
     customerNameElements.forEach(element => {

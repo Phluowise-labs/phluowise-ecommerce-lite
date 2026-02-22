@@ -29,7 +29,6 @@ class CompanyDataManager {
         this.isLoading = true;
 
         try {
-            console.log('🔄 Fetching company data from database...');
 
             // Fetch companies, branches, working days, products, social media, verification, user settings and ratings in parallel
             const [companiesResponse, branchesResponse, workingDaysResponse, productsResponse, socialMediaResponse, verificationResponse, userSettingsResponse, ratingsResponse] = await Promise.all([
@@ -56,7 +55,6 @@ class CompanyDataManager {
             // Process and merge data
             const mergedData = this.mergeCompanyAndBranchData();
 
-            console.log(`✅ Successfully loaded ${mergedData.length} companies with branches, working days, products, social media, and ratings`);
             return mergedData;
 
         } catch (error) {
@@ -88,7 +86,6 @@ class CompanyDataManager {
                 ]
             );
 
-            console.log(`📋 Found ${response.documents.length} companies`);
             return response.documents;
         } catch (error) {
             console.error('❌ Error fetching companies:', error);
@@ -118,7 +115,6 @@ class CompanyDataManager {
                 ]
             );
 
-            console.log('📍 Found', response.documents.length, 'active branches');
             return response.documents;
         } catch (error) {
             console.error('❌ Error fetching branches:', error);
@@ -147,11 +143,6 @@ class CompanyDataManager {
                 window.appwriteConfig.DATABASE_ID,
                 window.appwriteConfig.PRODUCTS_TABLE
             );
-            console.log('📦 Raw product data from database:');
-            response.documents.forEach((doc, index) => {
-                const productName = doc.name || doc.product_name || doc.productName || 'Unknown Product';
-                console.log(`📦 Product #${index + 1}: ${productName} - Image: ${doc.product_image || doc.image || 'None'}`);
-            });
             return response.documents;
         } catch (error) {
             console.error('❌ Error fetching products:', error);
@@ -161,9 +152,6 @@ class CompanyDataManager {
 
     // Determine verification tier for a company based on user settings
     getVerificationTier(companyId, branchId = null) {
-        console.log(`🔍 [DEBUG] Getting verification tier for company: ${companyId}, branch: ${branchId}`);
-        console.log(`🔍 [DEBUG] Available user settings:`, this.userSettings);
-
         // Find user settings for this company/branch
         const userSetting = this.userSettings.find(setting => {
             // user_settings table uses branch_id and user_id fields
@@ -174,42 +162,25 @@ class CompanyDataManager {
             const matchesBranch = settingBranchId === branchId;
             // Note: We don't match by user_id for verification tiers to avoid conflicts
 
-            console.log(`🔍 [DEBUG] Checking setting:`, {
-                settingBranchId,
-                settingUserId,
-                targetBranchId: branchId,
-                targetCompanyId: companyId,
-                matchesBranch,
-                allFields: Object.keys(setting)
-            });
             return matchesBranch;
         });
 
-        console.log(`🔍 [DEBUG] Found user setting:`, userSetting);
-
         if (!userSetting) {
             // No user settings found - default to tier2
-            console.log(`🔍 [DEBUG] No user settings found for company ${companyId} - defaulting to tier2`);
             return 2;
         }
 
         const verificationLevel = userSetting.verification_level;
-        console.log(`🔍 [DEBUG] Verification level for company ${companyId}: ${verificationLevel}`);
-        console.log(`🔍 [DEBUG] Full user setting object:`, userSetting);
 
         // Map verification_level to tier
         switch (verificationLevel) {
             case 'tier1':
-                console.log(`🔍 [DEBUG] Mapped 'tier1' to tier 1`);
                 return 1;
             case 'tier2':
-                console.log(`🔍 [DEBUG] Mapped 'tier2' to tier 2`);
                 return 2;
             case 'tier3':
-                console.log(`🔍 [DEBUG] Mapped 'tier3' to tier 3`);
                 return 3;
             default:
-                console.log(`⚠️ [DEBUG] Unknown verification level '${verificationLevel}' for company ${companyId} - defaulting to tier2`);
                 return 2;
         }
     }
@@ -238,26 +209,17 @@ class CompanyDataManager {
                 const branchSocialMedia = this.socialMedia.filter(sm => {
                     // STRICT: Only match if branch_id exactly matches
                     if (sm.branch_id === branch.branch_id) {
-                        console.log(`✅ Social Media ${sm.$id} matched to branch ${branch.branch_id}`);
                         return true;
                     }
-                    
+
                     // PREVENT: Don't use company-level social media records
-                    if ((!sm.branch_id || sm.branch_id === '' || sm.branch_id === undefined || sm.branch_id === null) && 
+                    if ((!sm.branch_id || sm.branch_id === '' || sm.branch_id === undefined || sm.branch_id === null) &&
                         sm.company_id === branch.company_id) {
-                        console.log(`⚠️ BLOCKED: Company-level social media ${sm.$id} (no branch_id) - not attaching to branch ${branch.branch_id} to prevent cross-branch leakage`);
                         return false;
                     }
-                    
+
                     return false;
                 });
-                
-                // Log social media matching for this branch
-                if (branchSocialMedia.length > 0) {
-                    console.log(`📱 Found ${branchSocialMedia.length} social media record(s) for branch ${branch.branch_id} (${branch.branch_name})`, branchSocialMedia);
-                } else {
-                    console.log(`⚠️ No social media records found for branch ${branch.branch_id} (${branch.branch_name})`);
-                }
 
                 // Get verification status for this company
                 const verification = this.verifications.find(v => {
@@ -275,24 +237,6 @@ class CompanyDataManager {
 
                 // Get company rating for this branch
                 const companyRating = this.getCompanyRating(branch.company_id, branch.branch_id);
-
-                console.log(`🔍 Checking verification for company ${branch.company_id}:`);
-                console.log('- Found verification:', verification);
-                console.log('- Verification status:', verificationStatus || 'N/A');
-                console.log('- isVerified:', isVerified);
-                console.log('- Verification tier:', verificationTier);
-                console.log('- Company rating:', companyRating);
-                console.log('- Branch name:', branch.branch_name);
-
-                // Debug: Show all verification records for troubleshooting
-                if (this.verifications.length > 0) {
-                    console.log('🔍 All verification records:');
-                    this.verifications.forEach((v, i) => {
-                        const verificationUserId = v.userId || v.user_id || v.company_id || v.companyId || v.companyID || v.company;
-                        const status = v.status || v.verification_status || v.verificationStatus;
-                        console.log(`  ${i + 1}. userId: ${verificationUserId}, status: ${status}, $id: ${v.$id}, allFields: ${Object.keys(v)}`);
-                    });
-                }
 
                 // Create merged company object with branch info
                 const mergedCompany = {
@@ -521,7 +465,6 @@ class CompanyDataManager {
 
         // Normalize and validate input
         if (!location || (typeof location !== 'string' && typeof location !== 'number')) {
-            console.warn(`⚠️ generateCoordinates called with invalid location: ${location}`);
             return { lat: 5.6037, lng: -0.1870 };
         }
 
@@ -529,7 +472,6 @@ class CompanyDataManager {
 
         // Try exact match first
         if (locationCoords[locStr]) {
-            console.log(`📍 Found exact coordinates for: ${locStr}`);
             return locationCoords[locStr];
         }
 
@@ -537,7 +479,6 @@ class CompanyDataManager {
         for (const [key, coords] of Object.entries(locationCoords)) {
             if (key.toLowerCase().includes(locStr.toLowerCase()) ||
                 locStr.toLowerCase().includes(key.toLowerCase())) {
-                console.log(`📍 Found partial match for ${locStr}: ${key}`);
                 return coords;
             }
         }
@@ -548,21 +489,12 @@ class CompanyDataManager {
             if (locStr.toLowerCase().includes(city.toLowerCase())) {
                 const cityKey = `${city}, Ghana`;
                 if (locationCoords[cityKey]) {
-                    console.log(`📍 Extracted city coordinates for ${locStr}: ${cityKey}`);
                     return locationCoords[cityKey];
                 }
             }
         }
 
-        // Fallback: Try to geocode using a simple pattern matching
-        console.log(`⚠️ Location not found in database: ${locStr}`);
-
-        // Extract any numeric patterns or common landmarks
-        const numericMatch = locStr.match(/\d+/);
-        const landmarkMatch = locStr.match(/(market|station|mall|plaza|square|park|church|mosque|school|hospital)/i);
-
         // Default to Accra Central if no specific location can be determined
-        console.log(`📍 Defaulting to Accra Central for: ${locStr}`);
         return {
             lat: 5.6037,
             lng: -0.1870
@@ -602,7 +534,6 @@ class CompanyDataManager {
 
     // Get fallback data when database fails
     getFallbackData() {
-        console.log('🔄 Using fallback company data');
         return []; // Return empty array to show professional empty state instead of fallback data
     }
 
@@ -667,30 +598,7 @@ class CompanyDataManager {
                 window.appwriteConfig.DATABASE_ID,
                 window.appwriteConfig.SOCIAL_MEDIA_TABLE
             );
-            console.log(`📱 Found ${response.documents.length} social media records`);
-            
-            // Log detailed information about each social media record
-            response.documents.forEach((doc, index) => {
-                console.log(`📱 Social Media Record ${index + 1}:`, {
-                    $id: doc.$id,
-                    branch_id: doc.branch_id,
-                    company_id: doc.company_id,
-                    platforms: {
-                        facebook: doc.facebook || doc.facebook_url || 'N/A',
-                        instagram: doc.instagram || doc.instagram_url || 'N/A',
-                        twitter: doc.twitter || doc.twitter_url || 'N/A',
-                        tiktok: doc.tiktok || doc.tiktok_url || 'N/A',
-                        youtube: doc.youtube || doc.youtube_url || 'N/A',
-                        linkedin: doc.linkedIn || doc.linkedin || doc.linkedin_url || 'N/A',
-                        discord: doc.discord || doc.discc || doc.discord_url || doc.discc_url || 'N/A',
-                        telegram: doc.telegram || doc.telegram_url || 'N/A',
-                        whatsapp: doc.whatsapp || doc.whatsapp_url || 'N/A'
-                    },
-                    allFields: Object.keys(doc)
-                });
-                console.log(`📱 Full database record #${index + 1}:`, doc);
-            });
-            
+
             return response.documents;
         } catch (error) {
             console.error('❌ Error fetching social media:', error);
@@ -705,7 +613,6 @@ class CompanyDataManager {
                 window.appwriteConfig.DATABASE_ID,
                 'user_settings'
             );
-            console.log(`⚙️ Found ${response.documents.length} user settings records`);
             return response.documents;
         } catch (error) {
             console.error('❌ Error fetching user settings:', error);
@@ -720,22 +627,6 @@ class CompanyDataManager {
                 window.appwriteConfig.DATABASE_ID,
                 window.appwriteConfig.COMPANY_VERIFICATION_TABLE
             );
-            console.log(`✅ Found ${response.documents.length} verification records:`);
-            response.documents.forEach((doc, index) => {
-                // Log all available fields to understand the structure
-                console.log(`📋 Verification #${index + 1}:`, {
-                    $id: doc.$id,
-                    allFields: Object.keys(doc),
-                    fieldValues: {
-                        company_id: doc.company_id,
-                        companyId: doc.companyId,
-                        companyID: doc.companyID,
-                        status: doc.status,
-                        verification_status: doc.verification_status,
-                        verificationStatus: doc.verificationStatus
-                    }
-                });
-            });
             return response.documents;
         } catch (error) {
             console.error('❌ Error fetching verification data:', error);
@@ -750,7 +641,6 @@ class CompanyDataManager {
                 window.appwriteConfig.DATABASE_ID,
                 window.appwriteConfig.RATINGS_TABLE
             );
-            console.log(`⭐ Found ${response.documents.length} rating records`);
             return response.documents;
         } catch (error) {
             console.error('❌ Error fetching ratings:', error);
@@ -770,8 +660,6 @@ class CompanyDataManager {
             this.debugProductCount = 0;
         }
         if (this.debugProductCount < 3) {
-            console.log(`🔍 [DEBUG] Checking rating for product: ${productName} (${productId})`);
-            console.log(`   - Product Tags:`, product.tags || product.product_tags);
             this.debugProductCount++;
         }
 
@@ -923,17 +811,14 @@ class CompanyDataManager {
 // Create global instance
 try {
     window.companyDataManager = new CompanyDataManager();
-    console.log('✅ CompanyDataManager initialized successfully');
 } catch (error) {
     console.error('❌ Failed to initialize CompanyDataManager:', error);
     // Create a fallback instance with basic functionality
     window.companyDataManager = {
         fetchCompanyData: async function () {
-            console.log('🔄 Using fallback fetchCompanyData');
             return this.getFallbackData();
         },
         getFallbackData: function () {
-            console.log('🔄 Using fallback company data - returning empty array for professional empty state');
             return []; // Return empty array to show professional empty state instead of fallback data
         }
     }

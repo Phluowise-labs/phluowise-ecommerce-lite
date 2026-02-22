@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-TRV3R43NQZ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRV3R43NQZ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-  gtag('config', 'G-TRV3R43NQZ');
-</script>
+        gtag('config', 'G-TRV3R43NQZ');
+    </script>
     <title>Phluowise - Newsletter</title>
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -24,7 +24,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
+
         body {
             background-color: #060606;
             color: white;
@@ -46,7 +46,10 @@
     <div class="flex justify-center items-center min-h-screen">
         <div class="text-center">
             <p class="text-white text-sm font-inter mb-6">Phluowise Newsletter - The Future of Water Accessibility</p>
-            <a href="https://concrete-aurora-836.notion.site/Phluowise-The-Future-of-Water-Accessibility-1e0c077ea642804a8f4cea3f10480ef9?source=copy_link" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">View Document</a>
+            <a href="https://concrete-aurora-836.notion.site/Phluowise-The-Future-of-Water-Accessibility-1e0c077ea642804a8f4cea3f10480ef9?source=copy_link"
+                target="_blank" rel="noopener noreferrer"
+                class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">View
+                Document</a>
         </div>
     </div>
 
@@ -57,7 +60,7 @@
                 navigator.serviceWorker.register('/sw.js')
                     .then((registration) => {
                         console.log('Service Worker registered successfully:', registration);
-                        
+
                         // Check for updates
                         registration.addEventListener('updatefound', () => {
                             const newWorker = registration.installing;
@@ -72,7 +75,7 @@
                         });
                     })
                     .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
+                        // Suppress service worker registration errors
                     });
             });
         }

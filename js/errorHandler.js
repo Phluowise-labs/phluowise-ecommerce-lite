@@ -1,13 +1,13 @@
 // Global Error Handler for External Services
 // Suppresses errors from external services that we can't control
 
-(function() {
+(function () {
     'use strict';
-    
+
     // List of external service errors to suppress
     const suppressedErrors = [
         'exp.notion.so',
-        'http-inputs-notion.splunkcloud.com', 
+        'http-inputs-notion.splunkcloud.com',
         'connect.facebook.net',
         'o324374.ingest.sentry.io',
         'splunk server',
@@ -32,42 +32,42 @@
         'handleRestrictedStateForResponse',
         'Failed to connect to splunk server'
     ];
-    
+
     // Function to check if error should be suppressed
     function shouldSuppress(message) {
-        return suppressedErrors.some(suppressed => 
+        return suppressedErrors.some(suppressed =>
             message.includes(suppressed)
         );
     }
-    
+
     // Override console methods
     const originalConsoleError = console.error;
-    console.error = function(...args) {
+    console.error = function (...args) {
         const message = args.join(' ');
         if (!shouldSuppress(message)) {
-            originalConsoleError.apply(console, args);
+            // originalConsoleError.apply(console, args);
         }
     };
-    
+
     const originalConsoleWarn = console.warn;
-    console.warn = function(...args) {
+    console.warn = function (...args) {
         const message = args.join(' ');
         if (!shouldSuppress(message)) {
-            originalConsoleWarn.apply(console, args);
+            // originalConsoleWarn.apply(console, args);
         }
     };
-    
+
     const originalConsoleLog = console.log;
-    console.log = function(...args) {
+    console.log = function (...args) {
         const message = args.join(' ');
         if (!shouldSuppress(message)) {
-            originalConsoleLog.apply(console, args);
+            // originalConsoleLog.apply(console, args);
         }
     };
-    
+
     // Override fetch to suppress external service network errors
     const originalFetch = window.fetch;
-    window.fetch = function(...args) {
+    window.fetch = function (...args) {
         const url = args[0];
         if (typeof url === 'string' && shouldSuppress(url)) {
             // Return a resolved promise for suppressed URLs
@@ -75,9 +75,9 @@
         }
         return originalFetch.apply(this, args);
     };
-    
+
     // Global error handlers
-    window.addEventListener('error', function(event) {
+    window.addEventListener('error', function (event) {
         const message = event.message || '';
         if (shouldSuppress(message)) {
             event.preventDefault();
@@ -85,8 +85,8 @@
         }
         return true;
     });
-    
-    window.addEventListener('unhandledrejection', function(event) {
+
+    window.addEventListener('unhandledrejection', function (event) {
         const message = event.reason?.message || event.reason || '';
         if (shouldSuppress(message)) {
             event.preventDefault();
@@ -94,6 +94,5 @@
         }
         return true;
     });
-    
-    console.log('✅ Aggressive external service error handler initialized');
+
 })();

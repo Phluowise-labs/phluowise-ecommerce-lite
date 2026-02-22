@@ -1,4 +1,4 @@
-(function() {
+(function () {
     let newWorker;
 
     // Inject CSS
@@ -79,7 +79,7 @@
             // Force reflow
             updateCard.offsetHeight;
             updateCard.classList.add('show');
-            
+
             // Haptic feedback if available (standard for Android)
             if (window.navigator && window.navigator.vibrate) {
                 window.navigator.vibrate([10, 30, 10]);
@@ -113,62 +113,50 @@
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
                 .then((registration) => {
-                    console.log('✅ [PWA] Service Worker registered:', registration);
-                    
                     // Check for updates immediately
                     registration.update();
 
                     if (registration.waiting) {
-                        console.log('🔄 [PWA] Update waiting found on load');
                         newWorker = registration.waiting;
                         showUpdateNotification();
                     }
 
                     // Poll for updates every 15 minutes
                     setInterval(() => {
-                        console.log('🔍 [PWA] Checking for updates...');
                         registration.update();
                     }, 1000 * 60 * 15);
 
                     registration.addEventListener('updatefound', () => {
-                        console.log('🆕 [PWA] New update found, installing...');
                         newWorker = registration.installing;
                         newWorker.addEventListener('statechange', () => {
-                            console.log('⚙️ [PWA] Worker state changed:', newWorker.state);
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('✨ [PWA] Update installed and ready');
                                 showUpdateNotification();
                             }
                         });
                     });
                 })
                 .catch((error) => {
-                    console.log('Service Worker registration failed:', error);
+                    // silently catch
                 });
         });
     }
 
     // Offline Detection
-    window.addEventListener('offline', function() {
-        console.log('🔴 [OFFLINE] Connection lost. Current page:', window.location.href);
+    window.addEventListener('offline', function () {
         if (!window.location.href.includes('offline.html')) {
-            console.log('📘 [OFFLINE] Navigating to offline.html');
             window.location.href = './offline.html';
         }
     });
 
-    window.addEventListener('online', function() {
-        console.log('🟢 [ONLINE] Connection restored!');
+    window.addEventListener('online', function () {
         if (window.location.href.includes('offline.html')) {
             const previousUrl = sessionStorage.getItem('previousPageUrl') || './home.html';
-            console.log('📘 [ONLINE] Redirecting to:', previousUrl);
             window.location.href = previousUrl;
         }
     });
 
     setInterval(() => {
         if (!navigator.onLine && !window.location.href.includes('offline.html')) {
-            console.log('🔴 [FALLBACK] Offline detected via polling, redirecting...');
             window.location.href = './offline.html';
         }
     }, 30000);

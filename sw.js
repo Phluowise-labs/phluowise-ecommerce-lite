@@ -1,4 +1,4 @@
-const CACHE_NAME = 'phluowise-v9';
+const CACHE_NAME = 'phluowise-v10';
 const urlsToCache = [
   './',
   './offline.html'
@@ -16,10 +16,8 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
         // Use addAll with error handling to gracefully handle missing files
         return cache.addAll(urlsToCache).catch((err) => {
-          console.log('Some cache files failed to load:', err);
           // Continue installation even if some files fail
           return Promise.resolve();
         });
@@ -35,7 +33,6 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -45,60 +42,51 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache when offline
+// Fetch event - Network-First Strategy 
+// Attempts to grab from network first so changes are immediate on refresh,
+// falls back to cache only if offline.
 self.addEventListener('fetch', (event) => {
+  // We only want to cache GET requests
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then((response) => {
-        // Cache hit - return response
-        if (response) {
+        // If valid response, clone and cache it
+        if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
 
-        // Clone the request
-        const fetchRequest = event.request.clone();
+        const responseToCache = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
 
-        return fetch(fetchRequest).then(
-          (response) => {
-            // Check if valid response
-            if(!response || response.status !== 200) {
-              return response;
-            }
-
-            // Clone the response
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
+        return response;
+      })
+      .catch(() => {
+        // Network failed (offline). Fallback to cache.
+        return caches.match(event.request).then((response) => {
+          if (response) {
             return response;
           }
-        ).catch(() => {
-          // Offline fallback - serve offline.html for document requests
-          if (event.request.destination === 'document') {
+
+          // Offline fallback - serve offline.html for HTML document requests
+          if (event.request.destination === 'document' || event.request.mode === 'navigate') {
             return caches.match('./offline.html')
-              .then(response => {
-                if (response) {
-                  return response;
+              .then(offlineResponse => {
+                if (offlineResponse) {
+                  return offlineResponse;
                 }
-                // If offline.html is not cached, return a basic offline page
                 return new Response(
                   '<html><body><h1>Offline</h1><p>You are offline and offline.html is not available.</p></body></html>',
                   { headers: { 'Content-Type': 'text/html' } }
                 );
-              })
-              .catch(() => {
-                // If even that fails, return basic offline response
-                return new Response(
-                  '<html><body><h1>Offline</h1><p>You are offline.</p></body></html>',
-                  { headers: { 'Content-Type': 'text/html' } }
-                );
               });
           }
-          // For non-document requests, return undefined to let browser handle it
-          return undefined;
+
+          // Return a generic offline response for non-document requests (e.g. images, API calls)
+          return new Response('', { status: 503, statusText: 'Service Unavailable' });
         });
       })
   );

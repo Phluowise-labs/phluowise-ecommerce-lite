@@ -2795,20 +2795,16 @@
 
         // Get verified icon CSS class based on verification tier
         function getVerifiedIconClass(tier) {
-            console.log(`🔍 [DEBUG] Getting icon class for tier: ${tier}`);
             let cssClass;
             switch (tier) {
                 case 2:
                     cssClass = 'verified-checkmark-tier2'; // Blue icon
-                    console.log(`🔍 [DEBUG] Tier 2 -> Blue icon: ${cssClass}`);
                     break;
                 case 3:
                     cssClass = 'verified-checkmark-tier3'; // Gold icon
-                    console.log(`🔍 [DEBUG] Tier 3 -> Gold icon: ${cssClass}`);
                     break;
                 default:
                     cssClass = 'verified-checkmark-tier2'; // Default to blue (tier2)
-                    console.log(`🔍 [DEBUG] Default tier (${tier}) -> Blue icon: ${cssClass}`);
                     break;
             }
             return cssClass;
@@ -2834,7 +2830,6 @@
                 if (window.distanceCalculator) {
                     const result = await window.distanceCalculator.calculateDistanceAndTime(fromCoords, toCoords, { mode: 'driving' });
                     const distance = result.distance ? result.distance.km : null;
-                    console.log(`✅ Distance API: ${distance?.toFixed(1)}km, Time: ${result.duration?.text}`);
                     return {
                         distance: distance,
                         time: result.duration ? result.duration.text : 'Unknown distance',
@@ -2844,7 +2839,6 @@
                     // Enhanced fallback calculation with road factors
                     const distanceKm = calculateEnhancedDistance(fromCoords, toCoords);
                     const timeEstimate = distanceKm ? generateEstimatedTime(distanceKm) : 'Unknown distance';
-                    console.log(`🔄 Fallback calculation: ${distanceKm?.toFixed(1)}km, Time: ${timeEstimate}`);
                     return {
                         distance: distanceKm,
                         time: timeEstimate,
@@ -2872,28 +2866,23 @@
                 !toCoords.lat || !toCoords.lng ||
                 isNaN(fromCoords.lat) || isNaN(fromCoords.lng) ||
                 isNaN(toCoords.lat) || isNaN(toCoords.lng)) {
-                console.warn('❌ Invalid coordinates in calculateEnhancedDistance', { fromCoords, toCoords });
                 return null;
             }
 
             // Calculate straight-line distance using Haversine
             const straightDistance = haversineDistance(fromCoords, toCoords);
-            console.log(`📏 Straight line distance: ${straightDistance?.toFixed(1)}km`);
 
             // Validate the calculated distance
             if (!straightDistance || isNaN(straightDistance) || straightDistance <= 0) {
-                console.warn('⚠️ Invalid distance calculated in haversine:', straightDistance);
                 return null;
             }
 
             // Apply road network factor (1.3 for urban areas)
             const roadFactor = 1.3;
             const enhancedDistance = straightDistance * roadFactor;
-            console.log(`🛣️ Enhanced distance (with ${roadFactor}x road factor): ${enhancedDistance?.toFixed(1)}km`);
 
             // Final validation
             if (isNaN(enhancedDistance) || enhancedDistance <= 0) {
-                console.warn('⚠️ Invalid enhanced distance calculated:', enhancedDistance);
                 return null;
             }
 
@@ -2937,12 +2926,8 @@
 
             // Validate calculated time
             if (isNaN(timeMinutes) || timeMinutes <= 0) {
-                console.warn('⚠️ Calculated time is invalid:', timeMinutes);
                 return 'Unknown time';
             }
-
-            // Log the calculation for debugging
-            console.log(`📋 Distance: ${distance.toFixed(1)}km → Time: ${timeMinutes}min`);
 
             if (timeMinutes < 5) return 'Less than 5 min';
             if (timeMinutes < 15) return `${timeMinutes} min`;
@@ -2954,8 +2939,6 @@
         }
 
         async function loadServiceData() {
-            console.log('🔄 Loading services with web2app cache-first strategy...');
-
             try {
                 // Check if user is authenticated
                 if (!window.account && loadRetryCount < MAX_RETRIES) {
@@ -2981,7 +2964,6 @@
                 if (window.cacheManager) {
                     const cachedServices = window.cacheManager.getCache('companies'); // Use same key as home.html
                     if (cachedServices && cachedServices.length > 0) {
-                        console.log('📦 Loading services from cache for instant UI:', cachedServices.length);
                         services = cachedServices;
                         servicesDataLoaded = true;
 
@@ -3017,7 +2999,6 @@
             }
 
             try {
-                console.log('🔄 Background refresh - checking for new service data...');
                 const freshData = await window.companyDataManager.fetchCompanyData();
 
                 // Always check for verification tier changes, even if timestamps haven't changed
@@ -3025,14 +3006,12 @@
 
                 // Check if data has changed OR verification tiers changed
                 if (hasServicesChanged(freshData, services) || verificationTiersChanged) {
-                    console.log('🆕 New service data or verification tiers detected - updating cache and UI');
                     services = freshData;
                     servicesDataLoaded = true;
 
                     // Update cache
                     if (window.cacheManager) {
                         window.cacheManager.setCache('companies', freshData);
-                        console.log('💾 Services cache updated with fresh data');
                     }
 
                     // Re-initialize serviceProducts
@@ -3045,8 +3024,6 @@
 
                     // Update UI
                     renderServices();
-                } else {
-                    console.log('📊 No new service data - cache is current');
                 }
             } catch (error) {
                 console.error('❌ Background refresh for services failed:', error);
@@ -3070,7 +3047,6 @@
                 const oldTier = oldService.verification_tier || 2;
 
                 if (newTier !== oldTier) {
-                    console.log(`🔄 Verification tier changed for ${newService.name}: ${oldTier} → ${newTier}`);
                     return true;
                 }
             }
@@ -3104,14 +3080,12 @@
         async function loadServicesFromDatabaseWithFallback() {
             try {
                 // Try database first
-                console.log('📡 Loading services from database...');
                 services = await window.companyDataManager.fetchCompanyData();
                 servicesDataLoaded = true;
 
                 // Cache the loaded services
                 if (window.cacheManager) {
                     window.cacheManager.setCache('companies', services);
-                    console.log('💾 Services cached for offline access');
                 }
 
                 // Initialize serviceProducts object for each company
@@ -3122,8 +3096,6 @@
                 });
 
                 renderServices();
-                console.log(`✅ Loaded ${services.length} services from database`);
-
             } catch (error) {
                 console.error('❌ Database load for services failed:', error);
 
@@ -3131,7 +3103,6 @@
                 if (window.cacheManager) {
                     const cachedServices = window.cacheManager.getCache('companies');
                     if (cachedServices && cachedServices.length > 0) {
-                        console.log('📦 Using cache manager as fallback for services:', cachedServices.length);
                         services = cachedServices;
                         servicesDataLoaded = true;
 
@@ -3148,7 +3119,6 @@
                 }
 
                 // Fallback 2: Use companyDataManager fallback data
-                console.log('🔄 Using companyDataManager fallback data for services...');
                 services = window.companyDataManager.getFallbackData();
                 servicesDataLoaded = true;
 
@@ -3165,30 +3135,22 @@
                 });
 
                 renderServices();
-                console.log('⚠️ Using fallback data for services - app works offline');
             }
         }
 
         // Render service cards dynamically
         async function renderServices() {
-            console.log('🔍 [DEBUG] renderServices() called');
-            console.log('🔍 [DEBUG] Total services array length:', services.length);
-            console.log('🔍 [DEBUG] Services array:', services);
-
             const listView = document.getElementById('listView');
             listView.innerHTML = '';
 
             // Calculate distances for all services if user location is available
             let servicesWithDistance = services;
             if (userLocation) {
-                console.log('📍 User location available:', userLocation);
-                console.log('📍 Calculating distances for', services.length, 'services...');
                 servicesWithDistance = await Promise.all(
                     services.map(async (service) => {
                         if (service.coordinates && service.coordinates.lat && service.coordinates.lng) {
                             try {
                                 const distanceResult = await calculateDistanceAndTime(userLocation, service.coordinates);
-                                console.log(`✅ ${service.name}: Distance=${distanceResult.distance?.toFixed(1)}km, Time=${distanceResult.time}, Accuracy=${distanceResult.accuracy}`);
                                 return {
                                     ...service,
                                     distance: distanceResult.distance,
@@ -3205,12 +3167,9 @@
                         }
                     })
                 );
-            } else {
-                console.log('📍 User location not available yet, using default/stored times');
             }
 
             if (servicesWithDistance.length === 0) {
-                console.log('🔍 [DEBUG] No services found - showing empty state');
                 // Show professional empty state when no companies are available
                 listView.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full text-white text-center p-8" style="min-height: 400px;">
@@ -3245,16 +3204,11 @@
             // Apply verification tier filtering - hide tier1 companies, show tier2 and tier3
             const filteredServices = servicesWithDistance.filter(service => {
                 const tier = service.verification_tier || 2; // Default to tier2 if not set
-                console.log(`🔍 [DEBUG] Service: ${service.name}, Tier: ${tier}, verification_tier field: ${service.verification_tier}`);
                 const shouldShow = tier !== 1; // Hide tier1 companies
-                console.log(`🔍 [DEBUG] Should show ${service.name}: ${shouldShow} (tier ${tier})`);
                 return shouldShow;
             });
 
-            console.log(`🔍 [DEBUG] Filtered services: ${filteredServices.length} out of ${servicesWithDistance.length}`);
-
             filteredServices.forEach((service, index) => {
-                console.log(`🔍 [DEBUG] Creating card for service: ${service.name}`);
                 const serviceCard = createServiceCard(service, index);
                 listView.appendChild(serviceCard);
             });
@@ -4043,13 +3997,13 @@
                         const youName = document.getElementById('youNameDisplay').textContent?.trim();
                         const youPhone = document.getElementById('youPhoneDisplay').textContent?.trim();
                         const youEmail = document.getElementById('youEmailDisplay').textContent?.trim();
-                        
+
                         // Ensure no empty values
                         if (!youName || !youPhone || !youEmail) {
                             showError('Your profile information is incomplete. Please update your profile first.');
                             return false;
                         }
-                        
+
                         orderData.recipient.name = youName;
                         orderData.recipient.phone = youPhone;
                         orderData.recipient.email = youEmail;
@@ -4580,8 +4534,6 @@
             if (addressField && userProfile.address) {
                 addressField.value = userProfile.address;
             }
-
-            console.log('🔍 Loaded user profile data:', { name, phone, email });
         }
 
         // Load user data for menu display
@@ -4641,7 +4593,7 @@
                 menuUserEmail.textContent = userData.email || '';
             }
 
-            console.log('Menu user data loaded:', { name: userData.name || userData.full_name, email: userData.email });
+
         }
 
         // Save user address to localStorage when updated
@@ -4688,17 +4640,14 @@
                 // Get current user from Appwrite
                 if (window.account) {
                     const user = await window.account.get();
-                    console.log('🔍 Current user:', user.$id);
 
                     // Get customer profile from database
                     const customerProfile = await getCustomerProfile(user.$id);
-                    console.log(' Customer profile found:', !!customerProfile);
 
                     if (customerProfile) {
                         // Fix common name variations from database
                         if (customerProfile.full_name === 'Asar') {
                             customerProfile.full_name = 'Asare';
-                            console.log(' Fixed DB name: Asar → Asare');
                         }
 
                         // Update orderData with customer details
@@ -4740,14 +4689,10 @@
                         // Update cache manager if available
                         if (window.cacheManager) {
                             window.cacheManager.setCache('user_profile', userProfileData);
-                            console.log('💾 User profile cached with fresh database data');
                         }
 
                         // Also store as currentUserId
                         localStorage.setItem('currentUserId', customerProfile.$id);
-
-                        console.log(' Customer data loaded:', orderData.customer);
-                        console.log(' Customer data stored in localStorage for schedule history');
 
                         // Update "You" display fields
                         const youNameDisplay = document.getElementById('youNameDisplay');
@@ -4831,14 +4776,11 @@
             try {
                 // Get current user
                 const user = await window.account.get();
-                console.log('🔍 Current user:', user.$id);
 
                 // Fetch saved recipients from database
                 if (window.OrderManager) {
                     const orderManager = new window.OrderManager();
                     const recipients = await orderManager.getSavedRecipients(user.$id);
-
-                    console.log('📋 Retrieved recipients:', recipients);
 
                     // Update global savedRecipients array
                     savedRecipients = recipients || [];
@@ -5449,10 +5391,10 @@
                 const productItem = document.createElement('div');
                 productItem.className = 'review-product-item';
                 productItem.innerHTML = `
-                    <img src="${product.image}" alt="${product.name || product.product_name || 'Unknown Product'}" class="review-product-image">
+                    <img src="${sanitize(product.image)}" alt="${sanitize(product.name || product.product_name || 'Unknown Product')}" class="review-product-image">
                     <div class="review-product-details">
-                        <div class="review-product-name">${product.quantity}x ${product.name || product.product_name || 'Unknown Product'}</div>
-                        <div class="review-product-price">GHS ${(parseFloat(product.price) * product.quantity).toFixed(2)}</div>
+                        <div class="review-product-name">${sanitize(product.quantity)}x ${sanitize(product.name || product.product_name || 'Unknown Product')}</div>
+                        <div class="review-product-price">GHS ${sanitize((parseFloat(product.price) * product.quantity).toFixed(2))}</div>
                     </div>
                 `;
                 productsList.appendChild(productItem);
@@ -5613,7 +5555,7 @@
 
             // Initialize Paystack payment
             const handler = PaystackPop.setup({
-                key: 'pk_live_00d41944ffac0707f49b240150e55474e2a5c06e', // Live public key
+                key: window.appwriteConfig.PAYSTACK_PUBLIC_KEY, // SECURITY FIX (VULN-01): key centralised in appwriteConfig.js
                 email: orderData.recipient.email || orderData.customer.email || 'customer@example.com',
                 amount: serviceFee * 100, // Convert to kobo/cents
                 currency: 'GHS',
@@ -5630,7 +5572,8 @@
         }
 
         function handleServiceFeePaymentSuccess(response) {
-            console.log('Service fee payment successful:', response);
+            // SECURITY: no PII in success log
+            devLog('Service fee payment callback received.');
 
             // Hide processing modal
             const processingModal = document.getElementById('paymentProcessingModal');
@@ -5647,17 +5590,47 @@
                 paidAt: new Date().toISOString()
             };
 
-            // Show success message
-            showSuccess('Service fee paid successfully! Continuing with your order...');
-
-            // Continue to next step (bottom sheet process)
-            setTimeout(() => {
+            // Show success and verify server-side before creating order (SECURITY FIX VULN-02)
+            showSuccess('Service fee paid! Confirming payment...');
+            setTimeout(async () => {
+                // Only attempt server verification when hosted on a real server.
+                // Skip in Cordova/WebView (file:// protocol) — no backend available.
+                const isWebServer = window.location.protocol === 'https:' || window.location.protocol === 'http:';
+                if (isWebServer) {
+                    try {
+                        const verifyPayload = {
+                            reference: response.reference,
+                            expectedAmount: Math.round(calculateServiceFee() * 100),
+                            currency: 'GHS'
+                        };
+                        // SECURITY: HMAC-SHA256 sign the payload so the server
+                        // can detect tampering in transit
+                        const signature = await PhluowiseEncryption.signPaymentPayload(verifyPayload);
+                        const verifyResp = await fetch('/api/verify-payment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Phluowise-Signature': signature || ''
+                            },
+                            body: JSON.stringify(verifyPayload)
+                        });
+                        if (verifyResp.ok) {
+                            const verifyData = await verifyResp.json();
+                            if (!verifyData.verified) {
+                                showError('Payment verification failed. Please contact support if you were charged.');
+                                return;
+                            }
+                        }
+                    } catch (verifyErr) {
+                        devWarn('Payment verification API not reachable.');
+                    }
+                }
                 nextStep();
             }, 1500);
         }
 
         function handleServiceFeePaymentClose() {
-            console.log('Service fee payment window closed');
+            devLog('Service fee payment window closed.');
 
             // Hide processing modal
             const processingModal = document.getElementById('paymentProcessingModal');
@@ -5818,7 +5791,7 @@
                 if (!resp.ok) throw new Error('Server API failed');
 
                 const data = await resp.json();
-                console.log('✅ Rating saved via server API (services)', data);
+                devLog('Rating saved via server API (services).');
                 currentStep = 11;
                 goToStep('ratingSuccess');
                 return;
@@ -5857,7 +5830,7 @@
                         window.ID.unique(),
                         payload
                     );
-                    console.log('✅ Rating saved to Appwrite (services)', payload);
+                    devLog('Rating saved to Appwrite (services).');
 
                     // Proceed to success only after saving
                     currentStep = 11;
@@ -5893,7 +5866,7 @@
 
                 reviewsLocal.push(newReview);
                 localStorage.setItem(storageKey, JSON.stringify(reviewsLocal));
-                console.log('💾 Rating saved locally (services)', { storageKey, newReview });
+                devLog('Rating saved locally (services).')
 
                 currentStep = 11;
                 goToStep('ratingSuccess');
@@ -5923,24 +5896,20 @@
         }
 
         async function completeOrderFlow() {
-            // console.log('📝 Order completed with rating:', userRating);
-            // console.log('💾 Order data to save:', orderData);
+            // SECURITY: do NOT log orderData — contains customer PII
+            devLog('completeOrderFlow called.');
+            devLog('completeOrderFlow: selectedProducts count:', selectedProducts?.length);
 
-            // CRITICAL: Ensure products are preserved before saving
-            console.log('🔍 completeOrderFlow - selectedProducts before save:', selectedProducts);
-            console.log('🔍 completeOrderFlow - orderData.products before save:', orderData.products);
-            
             // Make sure products are set in orderData
             if (!orderData.products || orderData.products.length === 0) {
-                console.log('⚠️ Products missing in orderData, copying from selectedProducts');
-                orderData.products = [...selectedProducts]; // Create a copy
-                console.log('✅ Products copied to orderData:', orderData.products);
+                devLog('Products missing in orderData, copying from selectedProducts.');
+                orderData.products = [...selectedProducts];
+                devLog('Products count copied:', orderData.products.length);
             }
 
-            // CRITICAL: Save order to database and AWAIT completion before clearing products
-            console.log('⏳ About to save order... waiting for completion');
+            devLog('About to save order...');
             await saveOrderToHistory();
-            console.log('✅ Order save completed');
+            devLog('Order save completed.');
 
             // Show success message (GREEN)
             showSuccess(`Thank you for your order! Order ID: ${orderData.orderId}. Your order has been confirmed and will be processed.`);
@@ -5976,16 +5945,14 @@
         // Save order to database with caching support
         async function saveOrderToHistory() {
             try {
-                console.log('🚀 Starting to save order to database...');
-                console.log('📦 Order data to save:', orderData);
-                console.log('📦 selectedProducts at save time:', selectedProducts);
+                devLog('Starting to save order to database...');
 
                 // CRITICAL: Ensure products are set - use selectedProducts as ultimate fallback
                 if (!orderData.products || orderData.products.length === 0) {
-                    console.log('⚠️ orderData.products is empty, using selectedProducts as fallback');
+                    devLog('orderData.products empty, using selectedProducts.');
                     orderData.products = selectedProducts || [];
-                    console.log('📦 Products set from selectedProducts:', orderData.products);
-                    
+                    devLog('Products count set:', orderData.products.length);
+
                     // Double-check that we have products
                     if (!orderData.products || orderData.products.length === 0) {
                         console.error('❌ CRITICAL: No products available to save!');
@@ -6012,11 +5979,7 @@
                 }
 
                 // Save to database using OrderManager
-                console.log('🔍 Checking OrderManager availability:', !!window.OrderManager);
-                console.log('🔍 Checking Appwrite config:', !!window.appwriteConfig);
-                console.log('🔍 Checking databases SDK:', !!window.databases);
-                console.log('🔍 Checking customer data:', !!orderData.customer);
-                console.log('🔍 Customer ID:', orderData.customer?.id);
+                devLog('Checking OrderManager/Appwrite availability.');
 
                 if (window.OrderManager && window.appwriteConfig && window.databases && orderData.customer && orderData.customer.id) {
                     try {
@@ -6055,20 +6018,20 @@
                         // Ensure recipient name and phone are not empty
                         let recipientName = orderData.purchase_recipient_type === 'you' ? (orderData.customer?.full_name || '') : (orderData.recipient.name || '');
                         let recipientPhone = orderData.purchase_recipient_type === 'you' ? (orderData.customer?.phone_number || '') : (orderData.recipient.phone || '');
-                        
+
                         // Validate that both are not empty
                         if (!recipientName || !recipientName.trim()) {
                             console.error('❌ Recipient name is empty!');
                             showError('Recipient name is required. Please check your profile or recipient information.');
                             throw new Error('Recipient name cannot be empty');
                         }
-                        
+
                         if (!recipientPhone || !recipientPhone.trim()) {
                             console.error('❌ Recipient phone is empty!');
                             showError('Recipient phone is required. Please check your profile or recipient information.');
                             throw new Error('Recipient phone cannot be empty');
                         }
-                        
+
                         const recipientData = {
                             purchase_recipient_type: orderData.purchase_recipient_type,
                             recipient_name: recipientName.trim(),
@@ -6081,7 +6044,7 @@
                             self_pickup: orderData.purchase_recipient_type === 'you',
                             self_delivery_address: orderData.purchase_recipient_type === 'you' ? orderData.recipient.address : ''
                         };
-                        
+
                         console.log('🔍 Recipient data being saved:', recipientData);
 
                         await orderManager.createPurchaseRecipientInfo(createdOrder.$id, recipientData);
@@ -6091,13 +6054,13 @@
                         console.log('🔍 orderData.products:', orderData.products);
                         console.log('🔍 selectedProducts:', selectedProducts);
                         console.log('🔍 orderData.products length:', orderData.products?.length);
-                        
+
                         // Use selectedProducts as fallback if orderData.products is empty
                         const productsToSave = (orderData.products && orderData.products.length > 0) ? orderData.products : selectedProducts;
-                        
+
                         console.log('🔍 Final products to save:', productsToSave);
                         console.log('🔍 Products count:', productsToSave?.length);
-                        
+
                         if (productsToSave && productsToSave.length > 0) {
                             console.log('✅ Creating order items for', productsToSave.length, 'products');
                             await orderManager.createOrderItems(createdOrder.$id, productsToSave, dbOrderData);
@@ -6179,7 +6142,6 @@
                 try {
                     const sessionData = JSON.parse(customerSession);
                     userName = sessionData.name || 'User';
-                    console.log('🔍 Greeting - customerSession name:', userName);
                 } catch (e) {
                     console.log('Error parsing customerSession for greeting:', e);
                 }
@@ -6190,11 +6152,9 @@
                 if (window.cacheManager) {
                     const userProfile = window.cacheManager.getCache('user_profile') || {};
                     userName = userProfile.name || userProfile.full_name || 'User';
-                    console.log('🔍 Greeting - userProfile name:', userName);
                 } else {
                     const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
                     userName = userProfile.name || userProfile.full_name || 'User';
-                    console.log('🔍 Greeting - localStorage userProfile name:', userName);
                 }
             }
 
@@ -6205,7 +6165,6 @@
                     try {
                         const customer = JSON.parse(customerData);
                         userName = customer.full_name || 'User';
-                        console.log('🔍 Greeting - customerData full_name:', userName);
                     } catch (e) {
                         console.log('Error parsing customerData for greeting:', e);
                     }
@@ -6215,7 +6174,6 @@
             // Fix common name variations
             if (userName === 'Asar') {
                 userName = 'Asare';
-                console.log('🔧 Fixed name: Asar → Asare');
             }
 
             // Get first name only and capitalize properly
@@ -6231,7 +6189,6 @@
                 greeting = `Good Evening, ${displayName}`;
             }
 
-            console.log('🎯 Final greeting:', greeting);
             document.getElementById('greetingText').textContent = greeting;
         }
 
@@ -6243,7 +6200,6 @@
                 }
 
                 const user = await window.account.get();
-                console.log('🔍 Authenticated user:', user.$id);
 
                 // Check if customer data exists
                 if (!orderData.customer || !orderData.customer.id) {
@@ -6293,8 +6249,6 @@
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        console.log("📍 User location obtained");
-                        console.log(`📍 Current location: ${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`);
                         userLocation = {
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
@@ -6303,7 +6257,6 @@
                         renderServices();
                     },
                     (error) => {
-                        console.log("🏠 Using default location (user location unavailable)");
                         userLocation = { lat: 5.6037, lng: -0.1870 }; // Default Accra location
                         // Re-render services with calculated distances
                         renderServices();
@@ -6870,7 +6823,7 @@
                         });
                     })
                     .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
+                        // Suppress service worker registration errors
                     });
             });
         }
@@ -6880,6 +6833,7 @@
 
 <!-- Appwrite SDK and Config -->
 <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
+<script src="js/encryption.js"></script>
 <script src="js/appwriteConfig.js"></script>
 <script src="js/companyData.js"></script>
 <script src="js/cacheManager.js"></script>

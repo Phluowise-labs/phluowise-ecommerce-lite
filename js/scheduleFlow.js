@@ -8,38 +8,38 @@ let currentRating = 0;
 function initializeProducts() {
     const container = document.getElementById('productCards');
     container.innerHTML = '';
-    
+
     const products = [
         { price: 10, name: 'Sachets water', type: 'Description of product', image: '../public/images/main/ProductImage1.png' },
         { price: 20, name: 'Bottle water', type: 'Description of product', image: '../public/images/main/ProductImage1.png' },
         { price: 15, name: 'Dispenser', type: 'Description of product', image: '../public/images/main/ProductImage1.png' },
         { price: 12, name: 'Sachets water', type: 'Description of product', image: '../public/images/main/ProductImage1.png' }
     ];
-    
+
     products.forEach((product, index) => {
         const card = document.createElement('div');
         card.className = 'flex flex-row gap-4 p-2';
         card.style.height = '300px';
-        
+
         card.innerHTML = `
             <div class="flex flex-col h-full rounded-[10px] w-[80%]" style="background-color: var(--input-bg);">
                 <div class="flex-1 p-4 flex flex-row gap-4 items-center" style="border-bottom: 1px solid #808080;">
                     <div class="rounded-[5px] border overflow-hidden" style="width: 65px; height: 67px; border-color: #333;">
-                        <img src="${product.image}" class="w-full h-full object-cover">
+                        <img src="${sanitize(product.image)}" class="w-full h-full object-cover">
                     </div>
                     <div class="flex flex-col gap-1">
-                        <span class="text-[#808080] text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap" style="max-width: 120px;">${product.name}</span>
+                        <span class="text-[#808080] text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap" style="max-width: 120px;">${sanitize(product.name)}</span>
                         <span class="text-[#F5F5F5B2] text-xl font-bold">500ml</span>
                     </div>
                 </div>
                 <div class="flex-1 p-4 flex flex-row" style="border-bottom: 1px solid #808080; border-top: 1px solid #808080;">
                     <div class="flex flex-col justify-center" style="width: 48%; height: 50px;">
-                        <span class="text-[#F5F5F5B2] text-lg font-[500] leading-6">1 ${product.name} of</span>
+                        <span class="text-[#F5F5F5B2] text-lg font-[500] leading-6">1 ${sanitize(product.name)} of</span>
                         <span class="text-[#F5F5F5B2] text-lg font-[500] leading-6">water</span>
                     </div>
                     <div class="flex flex-col justify-center gap-2 p-2" style="width: 48%; height: 50px;">
                         <span class="text-[#808080] text-lg font-[600] leading-6">Price:</span>
-                        <span class="text-[#F5F5F5B2] text-lg font-[700] leading-6">GH₵ ${product.price}</span>
+                        <span class="text-[#F5F5F5B2] text-lg font-[700] leading-6">GH₵ ${sanitize(product.price)}</span>
                     </div>
                 </div>
                 <div class="flex-1 p-4" style="border-top: 1px solid #808080;">
@@ -58,7 +58,7 @@ function initializeProducts() {
         `;
         container.appendChild(card);
     });
-    
+
     updateTotalPrice();
 }
 
@@ -66,7 +66,7 @@ function initializeProducts() {
 function updateProductQuantity(index, price, name) {
     const quantityInput = document.getElementById(`quantity-${index}`);
     const quantity = parseInt(quantityInput.value) || 0;
-    
+
     // Update selected products array
     const existingProduct = selectedProducts.find(p => p.name === name);
     if (existingProduct) {
@@ -84,7 +84,7 @@ function updateProductQuantity(index, price, name) {
             total: price * quantity
         });
     }
-    
+
     updateTotalPrice();
 }
 
@@ -102,23 +102,23 @@ function updateOrderReview() {
     const orderSummary = document.getElementById('orderSummary');
     const reviewTotal = document.getElementById('reviewTotal');
     const deliveryInfoDiv = document.getElementById('deliveryInfo');
-    
+
     // Update order summary
     orderSummary.innerHTML = '';
     selectedProducts.forEach(product => {
         const item = document.createElement('div');
         item.className = 'flex justify-between items-center';
         item.innerHTML = `
-            <span class="text-white">${product.name} x ${product.quantity}</span>
-            <span class="text-white">GH₵ ${product.total.toFixed(2)}</span>
+            <span class="text-white">${sanitize(product.name)} x ${sanitize(product.quantity)}</span>
+            <span class="text-white">GH\u20B5 ${sanitize(product.total.toFixed(2))}</span>
         `;
         orderSummary.appendChild(item);
     });
-    
+
     // Update total
     const total = selectedProducts.reduce((sum, product) => sum + product.total, 0);
     reviewTotal.textContent = `GH₵ ${total.toFixed(2)}`;
-    
+
     // Update delivery information
     deliveryInfo = {
         name: document.getElementById('recipientName')?.value || '',
@@ -126,24 +126,24 @@ function updateOrderReview() {
         address: document.getElementById('recipientAddress')?.value || '',
         instructions: document.getElementById('specialInstructions')?.value || ''
     };
-    
+
     deliveryInfoDiv.innerHTML = `
         <div class="flex justify-between items-center">
             <span class="text-gray-400">Name:</span>
-            <span class="text-white">${deliveryInfo.name}</span>
+            <span class="text-white">${sanitize(deliveryInfo.name)}</span>
         </div>
         <div class="flex justify-between items-center">
             <span class="text-gray-400">Phone:</span>
-            <span class="text-white">${deliveryInfo.phone}</span>
+            <span class="text-white">${sanitize(deliveryInfo.phone)}</span>
         </div>
         <div class="flex justify-between items-center">
             <span class="text-gray-400">Address:</span>
-            <span class="text-white">${deliveryInfo.address}</span>
+            <span class="text-white">${sanitize(deliveryInfo.address)}</span>
         </div>
         ${deliveryInfo.instructions ? `
         <div class="flex justify-between items-center">
             <span class="text-gray-400">Instructions:</span>
-            <span class="text-white">${deliveryInfo.instructions}</span>
+            <span class="text-white">${sanitize(deliveryInfo.instructions)}</span>
         </div>
         ` : ''}
     `;
@@ -152,7 +152,7 @@ function updateOrderReview() {
 // Payment method selection
 function selectPaymentMethod(method) {
     selectedPaymentMethod = method;
-    
+
     // Update radio buttons
     document.querySelectorAll('.payment-option').forEach(option => {
         const radio = option.querySelector('.payment-radio');
@@ -170,12 +170,12 @@ function goToPaymentDetails() {
         alert('Please select a payment method');
         return;
     }
-    
+
     // Update payment details based on selected method
     const cashInfo = document.getElementById('cashPaymentInfo');
     const mobileInfo = document.getElementById('mobileMoneyInfo');
     const total = selectedProducts.reduce((sum, product) => sum + product.total, 0);
-    
+
     if (selectedPaymentMethod === 'cash') {
         cashInfo.classList.remove('hidden');
         mobileInfo.classList.add('hidden');
@@ -185,16 +185,13 @@ function goToPaymentDetails() {
         mobileInfo.classList.remove('hidden');
         document.getElementById('mobileTotal').textContent = `GH₵ ${total.toFixed(2)}`;
     }
-    
+
     goToStep('payment-details');
 }
 
-// Simulate payment processing
-function simulatePaymentProcessing() {
-    setTimeout(() => {
-        goToStep('payment-success');
-    }, 3000);
-}
+// SECURITY FIX (VULN-03): simulatePaymentProcessing() has been REMOVED.
+// This function previously bypassed real payment processing by always "succeeding" after 3 seconds.
+// All payment flows must go through payServiceFeeWithPaystack() and server-side verification.
 
 // Rating functions
 function setRating(rating) {

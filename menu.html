@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-TRV3R43NQZ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRV3R43NQZ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-  gtag('config', 'G-TRV3R43NQZ');
-</script>
+        gtag('config', 'G-TRV3R43NQZ');
+    </script>
     <title>Phluowise - Menu</title>
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -100,20 +100,21 @@
                 <!-- Profile Image Container -->
                 <div class="relative flex items-center justify-center rounded-full border-[0.5px] border-[#292B2F]"
                     style="height: 110px; width: 110px; background-color: #292B2F;">
-                    <img src="images/main/ProfileImage.png" class="w-[62px] h-[62px] object-contain"
-                        alt="Profile">
+                    <img src="images/main/ProfileImage.png" class="w-[62px] h-[62px] object-contain" alt="Profile">
 
                     <!-- Edit Button -->
-                    <button onclick="openProfileImagePicker()" class="absolute rounded-full flex items-center justify-center"
+                    <button onclick="openProfileImagePicker()"
+                        class="absolute rounded-full flex items-center justify-center"
                         style="top: 2px; right: 0; height: 38px; width: 38px; background-color: #40444B;">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
                     </button>
-                    
+
                     <!-- Hidden file input -->
-                    <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="handleProfileImageChange(event)">
+                    <input type="file" id="profileImageInput" accept="image/*" style="display: none;"
+                        onchange="handleProfileImageChange(event)">
                 </div>
 
                 <!-- User Name -->
@@ -275,45 +276,45 @@
     </button>
 
     <!-- Delete Account Modal -->
-    <div id="deleteAccountModal" class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50"
-        style="display: none;">
+    <div id="deleteAccountModal"
+        class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50" style="display: none;">
         <div class="w-full h-full flex flex-col items-center justify-center p-5">
             <!-- Modal Container -->
             <div class="w-full max-w-[400px] rounded-[20px] overflow-hidden border backdrop-blur-xl bg-black/40 shadow-2xl"
                 style="border-color: rgba(255, 255, 255, 0.1);">
-                
+
                 <!-- Modal Header -->
                 <div class="p-6 backdrop-blur-xl bg-black/30" style="font-family: 'Inter', sans-serif;">
-                    <h3 class="text-white text-base font-medium text-center" style="font-family: 'Inter', sans-serif;">Are you sure you want to delete your account?</h3>
+                    <h3 class="text-white text-base font-medium text-center" style="font-family: 'Inter', sans-serif;">
+                        Are you sure you want to delete your account?</h3>
                 </div>
-                
+
                 <!-- Modal Body -->
                 <div class="p-6 backdrop-blur-xl bg-black/30" style="font-family: 'Inter', sans-serif;">
                     <!-- Input Field -->
                     <div class="mb-4">
-                        <input 
-                            type="text" 
-                            id="deleteReason"
-                            placeholder="Input Reason"
+                        <input type="text" id="deleteReason" placeholder="Input Reason"
                             class="w-full h-[50px] px-4 rounded-[12px] text-white placeholder-gray-400 border border-white/20 focus:outline-none focus:border-white/40 backdrop-blur-xl bg-black/20"
                             style="font-family: 'Inter', sans-serif; font-size: 14px;">
                     </div>
-                    
+
                     <!-- Download Link -->
                     <div class="text-center mb-6">
-                        <a href="#" onclick="downloadScheduleHistoryPDF()" class="text-[#007ACC] text-sm font-medium hover:underline" style="font-family: 'Inter', sans-serif;">
+                        <a href="#" onclick="downloadScheduleHistoryPDF()"
+                            class="text-[#007ACC] text-sm font-medium hover:underline"
+                            style="font-family: 'Inter', sans-serif;">
                             Download account data
                         </a>
                     </div>
-                    
+
                     <!-- Buttons -->
                     <div class="flex gap-3">
-                        <button onclick="closeDeleteModal()" 
+                        <button onclick="closeDeleteModal()"
                             class="flex-1 h-[50px] rounded-[16px] text-white font-medium border border-white/20 backdrop-blur-xl bg-black/20 hover:bg-black/30 transition-all duration-300 shadow-lg"
                             style="font-family: 'Inter', sans-serif; font-size: 14px;">
                             No
                         </button>
-                        <button onclick="confirmDeleteAccount()" 
+                        <button onclick="confirmDeleteAccount()"
                             class="flex-1 h-[50px] rounded-[16px] text-white font-medium backdrop-blur-xl bg-gradient-to-r from-red-500/30 to-red-600/30 border border-red-400/40 hover:from-red-500/40 hover:to-red-600/40 transition-all duration-300 shadow-lg"
                             style="font-family: 'Inter', sans-serif; font-size: 14px;">
                             Yes
@@ -390,21 +391,22 @@
             document.write('<script src="https://unpkg.com/appwrite@15.0.0/dist/appwrite.js"><\/script>');
         }
     </script>
+    <script src="js/encryption.js"></script>
     <script src="js/appwriteConfig.js"></script>
     <script src="js/mobileFeedback.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/customerAuth.js"></script>
-    
+
     <!-- Include Theme JS -->
     <script src="js/theme.js"></script>
 
     <script>
         // Debug: Check if Appwrite loaded correctly
         // Load user profile data on page load
-        document.addEventListener('DOMContentLoaded', async function() {
+        document.addEventListener('DOMContentLoaded', async function () {
             // Load user data first
             await loadMenuUserData();
-            
+
             // Then load theme
             const theme = localStorage.getItem('theme') || 'dark';
             document.getElementById('currentThemeDisplay').textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
@@ -424,7 +426,7 @@
                         const nameToSet = userProfile?.full_name || currentUser.name || 'User';
                         userNameElement.textContent = nameToSet;
                     }
-                    
+
                     if (userEmailElement) {
                         const emailToSet = userProfile?.email || currentUser.email || 'user@example.com';
                         userEmailElement.textContent = emailToSet;
@@ -437,7 +439,7 @@
                 // Fallback to default values or redirect
                 const userNameElement = document.getElementById('menuUserName');
                 const userEmailElement = document.getElementById('menuUserEmail');
-                
+
                 if (userNameElement) userNameElement.textContent = 'User';
                 if (userEmailElement) userEmailElement.textContent = 'user@example.com';
             }
@@ -548,12 +550,12 @@
         // Confirm delete account
         function confirmDeleteAccount() {
             const reason = document.getElementById('deleteReason').value;
-            
+
             // Here you would typically send the deletion request to your backend
             // For now, we'll just show a confirmation message
             // Show success message
             alert('Account deletion requested. You will be contacted shortly.');
-            
+
             // Close modal 
             closeDeleteModal();
         }
@@ -563,7 +565,7 @@
             // Get current user data from the same source as menu display
             const userNameElement = document.getElementById('menuUserName');
             const userEmailElement = document.getElementById('menuUserEmail');
-            
+
             const accountData = {
                 userName: userNameElement?.textContent || 'User',
                 userEmail: userEmailElement?.textContent || 'user@example.com',
@@ -574,10 +576,10 @@
                     history: 'User activity history'
                 }
             };
-            
+
             // Create and download JSON file
             const dataStr = JSON.stringify(accountData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
@@ -592,7 +594,7 @@
         function downloadScheduleHistoryPDF() {
             // Get actual schedule history from localStorage or fetch from backend
             let scheduleHistory = [];
-            
+
             // Try to get schedule history from localStorage first
             const storedHistory = localStorage.getItem('scheduleHistory');
             if (storedHistory) {
@@ -601,7 +603,7 @@
                 } catch (e) {
                 }
             }
-            
+
             // If no stored data, use sample data
             if (scheduleHistory.length === 0) {
                 scheduleHistory = [
@@ -616,20 +618,20 @@
             // Create PDF content
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+
             // Add title
             doc.setFontSize(18);
             doc.text('Schedule History Report', 20, 20);
-            
+
             // Add user info
             doc.setFontSize(12);
             const userNameElement = document.getElementById('menuUserName');
             const userEmailElement = document.getElementById('menuUserEmail');
-            
+
             doc.text(`Name: ${userNameElement?.textContent || 'User'}`, 20, 35);
             doc.text(`Email: ${userEmailElement?.textContent || 'user@example.com'}`, 20, 45);
             doc.text(`Download Date: ${new Date().toLocaleDateString()}`, 20, 55);
-            
+
             // Add table headers
             doc.setFontSize(10);
             doc.setFont(undefined, 'bold');
@@ -637,7 +639,7 @@
             doc.text('Type', 60, 75);
             doc.text('Status', 100, 75);
             doc.text('Items', 140, 75);
-            
+
             // Add table data
             doc.setFont(undefined, 'normal');
             let yPosition = 85;
@@ -648,21 +650,21 @@
                 doc.text(item.items || 'N/A', 140, yPosition);
                 yPosition += 10;
             });
-            
+
             // Save the PDF
             doc.save(`schedule_history_${Date.now()}.pdf`);
         }
-        
+
         // Profile image functions
         function openProfileImagePicker() {
             document.getElementById('profileImageInput').click();
         }
-        
+
         function handleProfileImageChange(event) {
             const file = event.target.files[0];
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     // Update the profile image src
                     const profileImg = document.querySelector('.w-\\[62px\\] .h-\\[62px\\] .object-contain');
                     if (profileImg) {
@@ -674,9 +676,9 @@
                 reader.readAsDataURL(file);
             }
         }
-        
+
         // Load saved profile image on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const savedImage = localStorage.getItem('profileImage');
             if (savedImage) {
                 const profileImg = document.querySelector('.w-\\[62px\\] .h-\\[62px\\] .object-contain');
@@ -691,7 +693,7 @@
             // Get the logout button and show loading state
             const logoutBtn = document.querySelector('button[onclick="logout()"]');
             const originalContent = logoutBtn.innerHTML;
-            
+
             // Show loading indicator
             logoutBtn.innerHTML = `
                 <div class="flex flex-row items-center gap-[30px]">
@@ -705,14 +707,14 @@
                 </div>
             `;
             logoutBtn.disabled = true;
-            
+
             try {
                 // Clear all local storage data
                 localStorage.removeItem('customerSession');
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('userName');
                 localStorage.removeItem('userEmail');
-                
+
                 // Try to clear Appwrite session if available
                 if (typeof account !== 'undefined') {
                     try {
@@ -720,7 +722,7 @@
                     } catch (appwriteError) {
                     }
                 }
-                
+
                 // Show success briefly before redirect
                 logoutBtn.innerHTML = `
                     <div class="flex flex-row items-center gap-[30px]">
@@ -733,12 +735,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                 `;
-                
+
                 // Redirect to signin page after brief delay
                 setTimeout(() => {
                     window.location.href = 'signin.html';
                 }, 500);
-                
+
             } catch (error) {
                 // Show error state
                 logoutBtn.innerHTML = `
@@ -752,7 +754,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 `;
-                
+
                 // Even if there's an error, clear storage and redirect after brief delay
                 setTimeout(() => {
                     localStorage.removeItem('customerSession');

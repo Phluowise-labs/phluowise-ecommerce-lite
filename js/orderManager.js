@@ -23,10 +23,7 @@ class OrderManager {
     this.maxRetries = 3;
     this.retryDelay = 1000; // 1 second
 
-    // Log successful initialization
-    console.log("✅ OrderManager initialized successfully");
-    console.log("📝 Database ID:", this.config.DATABASE_ID);
-    console.log("📝 Orders Table:", this.config.ORDERS_TABLE);
+    // OrderManager initialized
   }
 
   // Retry helper function
@@ -34,13 +31,7 @@ class OrderManager {
     try {
       return await operation();
     } catch (error) {
-      console.error(
-        `❌ Operation failed (attempt ${retries + 1}/${this.maxRetries}):`,
-        error.message
-      );
-
       if (retries < this.maxRetries - 1) {
-        console.log(`🔄 Retrying in ${this.retryDelay}ms...`);
         await new Promise((resolve) => setTimeout(resolve, this.retryDelay));
         return this.retryOperation(operation, retries + 1);
       }
@@ -52,30 +43,17 @@ class OrderManager {
   // Create a new order
   async createOrder(orderData) {
     try {
-      console.log(
-        "🔍 OrderManager.createOrder - orderData.total:",
-        orderData.total
-      );
-      console.log("🔍 OrderManager.createOrder - orderData:", orderData);
-
       // Generate unique ID with fallback method (max 20 chars)
       let uniqueOrderId;
       try {
         uniqueOrderId = this.ID.unique();
-        console.log("🔍 Generated unique orderId via Appwrite:", uniqueOrderId);
-
-        // If ID.unique() returns "unique()", use fallback method
         if (uniqueOrderId === "unique()") {
           throw new Error("Appwrite ID.unique() not working properly");
         }
       } catch (error) {
-        console.log("🔍 Using fallback ID generation method");
-        // Generate shorter ID: timestamp (last 8 digits) + random (6 chars) = max 14 chars
         const timestamp = Date.now().toString().slice(-8);
         const random = Math.random().toString(36).substr(2, 6);
         uniqueOrderId = timestamp + random;
-        console.log("🔍 Generated fallback orderId:", uniqueOrderId);
-        console.log("🔍 Fallback orderId length:", uniqueOrderId.length);
       }
 
       const order = {
@@ -101,9 +79,6 @@ class OrderManager {
         total: String(Number(orderData.total || 0).toFixed(2)), // Convert to string with 2 decimals
       };
 
-      console.log("🔍 Final order object total:", order.total);
-      console.log("🔍 Final order object with orderId:", order.orderId);
-
       const result = await this.databases.createDocument(
         this.config.DATABASE_ID,
         this.config.ORDERS_TABLE,
@@ -111,11 +86,9 @@ class OrderManager {
         order
       );
 
-      console.log("✅ Order created:", result.$id);
-      console.log("✅ Order total in result:", result.total);
       return result;
     } catch (error) {
-      console.error("❌ Error creating order:", error);
+      console.error("Error creating order."); // no PII in error log
       throw error;
     }
   }
@@ -123,17 +96,11 @@ class OrderManager {
   // Create purchase recipient information
   async createPurchaseRecipientInfo(orderId, recipientData) {
     try {
-      console.log("🔍 Creating purchase recipient info...");
-      console.log("🔍 Order ID:", orderId);
-      console.log("🔍 Recipient data:", recipientData);
-      console.log("🔍 Table:", this.config.PURCHASE_RECIPIENT_TABLE);
-      console.log("🔍 Database:", this.config.DATABASE_ID);
-
       // Validate required fields
       if (!recipientData.recipient_name || !recipientData.recipient_name.trim()) {
         throw new Error('Recipient name is required and cannot be empty');
       }
-      
+
       if (!recipientData.recipient_phone || !recipientData.recipient_phone.trim()) {
         throw new Error('Recipient phone is required and cannot be empty');
       }
@@ -145,7 +112,7 @@ class OrderManager {
         recipient_phone: (recipientData.recipient_phone || "").trim(),
         recipient_email:
           recipientData.recipient_email &&
-          recipientData.recipient_email.trim() !== ""
+            recipientData.recipient_email.trim() !== ""
             ? recipientData.recipient_email
             : null,
         recipient_address: recipientData.recipient_address || "",
@@ -156,8 +123,6 @@ class OrderManager {
         self_delivery_address: recipientData.self_delivery_address || "",
       };
 
-      console.log("🔍 Final recipient info object:", recipientInfo);
-
       const result = await this.databases.createDocument(
         this.config.DATABASE_ID,
         this.config.PURCHASE_RECIPIENT_TABLE,
@@ -165,11 +130,9 @@ class OrderManager {
         recipientInfo
       );
 
-      console.log("✅ Purchase recipient info created:", result.$id);
       return result;
     } catch (error) {
-      console.error("❌ Error creating purchase recipient info:", error);
-      console.error("❌ Error details:", error.message);
+      console.error("Error creating purchase recipient info."); // no PII
       throw error;
     }
   }
@@ -185,39 +148,20 @@ class OrderManager {
       const createdItems = [];
 
       for (const item of items) {
-        console.log("🔍 Processing item for orderItem:", item);
-        console.log("🔍 Item type:", item.type);
-        console.log("🔍 Item productType:", item.productType);
-        console.log("🔍 Item name:", item.name);
-        console.log("🔍 Item productName:", item.productName);
-
         // Generate unique ID using timestamp and random number as fallback (max 20 chars)
         let uniqueOrderItemId;
         try {
           uniqueOrderItemId = this.ID.unique();
-          console.log(
-            "🔍 Generated unique orderItemId via Appwrite:",
-            uniqueOrderItemId
-          );
-
-          // If ID.unique() returns "unique()", use fallback method
           if (uniqueOrderItemId === "unique()") {
             throw new Error("Appwrite ID.unique() not working properly");
           }
         } catch (error) {
-          console.log("🔍 Using fallback ID generation method");
-          // Generate shorter ID: timestamp (last 8 digits) + random (6 chars) = max 14 chars
           const timestamp = Date.now().toString().slice(-8);
           const random = Math.random().toString(36).substr(2, 6);
           uniqueOrderItemId = timestamp + random;
-          console.log("🔍 Generated fallback orderItemId:", uniqueOrderItemId);
-          console.log(
-            "🔍 Fallback orderItemId length:",
-            uniqueOrderItemId.length
-          );
         }
 
-        // Get product name with better fallbacks to handle undefined
+        // Get product name with fallbacks
         let productName =
           item.name ||
           item.productName ||
@@ -225,17 +169,9 @@ class OrderManager {
           item.type ||
           "Unknown Product";
 
-        // Handle case where name might be undefined or empty
-        if (
-          !productName ||
-          productName === "undefined" ||
-          productName.trim() === ""
-        ) {
+        if (!productName || productName === "undefined" || productName.trim() === "") {
           productName = item.type || "Service Product";
         }
-
-        console.log("🔍 Final product name to use:", productName);
-        console.log("🔍 Item details for debugging:", JSON.stringify(item));
 
         const orderItem = {
           orderItemId: uniqueOrderItemId,
@@ -260,9 +196,6 @@ class OrderManager {
           returnComment: "",
         };
 
-        console.log("🔍 Final orderItem productType:", orderItem.productType);
-        console.log("🔍 Final orderItem productName:", orderItem.productName);
-
         const result = await this.databases.createDocument(
           this.config.DATABASE_ID,
           this.config.ORDER_ITEMS_TABLE,
@@ -273,10 +206,9 @@ class OrderManager {
         createdItems.push(result);
       }
 
-      console.log(`✅ Created ${createdItems.length} order items`);
       return createdItems;
     } catch (error) {
-      console.error("❌ Error creating order items:", error);
+      console.error("Error creating order items."); // no PII
       throw error;
     }
   }
@@ -295,7 +227,7 @@ class OrderManager {
 
       return { ...order, items: orderItems };
     } catch (error) {
-      console.error("❌ Error fetching order:", error);
+      console.error("Error fetching order.");
       throw error;
     }
   }
@@ -322,7 +254,7 @@ class OrderManager {
             // Normalize common fields for consumer code
             return items.documents.map(it => {
               const parsedProduct = (it.product && typeof it.product === 'string') ? (() => {
-                try { return JSON.parse(it.product); } catch(e) { return it.product; }
+                try { return JSON.parse(it.product); } catch (e) { return it.product; }
               })() : it.product;
 
               return {
@@ -336,47 +268,15 @@ class OrderManager {
             });
           }
         } catch (innerErr) {
-          console.warn('OrderManager.getOrderItems attempt failed with filters', filters, innerErr.message);
+          devWarn('OrderManager.getOrderItems attempt failed for a filter.');
         }
       }
 
-      // If nothing found via indexed queries, fetch a page of order_items and filter client-side as a last resort
-      try {
-        const allItems = await this.databases.listDocuments(
-          this.config.DATABASE_ID,
-          this.config.ORDER_ITEMS_TABLE
-        );
-
-        if (allItems && Array.isArray(allItems.documents)) {
-          const filtered = allItems.documents.filter(it => {
-            try {
-              const text = JSON.stringify(it);
-              if (text.includes(orderId)) return true;
-            } catch (e) {}
-
-            const candidates = [it.orderId, it.order_id, it.order, (it.order && it.order.$id), (it.order && it.orderId)];
-            return candidates.some(v => v === orderId);
-          });
-
-          if (filtered.length > 0) {
-            return filtered.map(it => ({
-              ...it,
-              productName: it.productName || it.product_name || it.name || null,
-              productPrice: it.productPrice || it.product_price || it.price || 0,
-              productQty: it.productQty || it.product_qty || it.quantity || 1,
-              productImage: it.productImage || it.product_image || null,
-              productType: it.productType || it.product_type || it.type || 'product'
-            }));
-          }
-        }
-      } catch (fallbackErr) {
-        console.warn('OrderManager.getOrderItems fallback failed:', fallbackErr.message);
-      }
-
-      // If still nothing, return empty array
+      // SECURITY FIX (VULN-06): Removed unfiltered bulk fetch of ALL order_items.
+      // Always use indexed queries with orderId filter to prevent cross-user data exposure.
       return [];
     } catch (error) {
-      console.error("❌ Error fetching order items:", error);
+      console.error("Error fetching order items.");
       throw error;
     }
   }
@@ -392,7 +292,7 @@ class OrderManager {
 
       return orders.documents;
     } catch (error) {
-      console.error("❌ Error fetching customer orders:", error);
+      console.error("Error fetching customer orders.");
       throw error;
     }
   }
@@ -407,10 +307,10 @@ class OrderManager {
         { orderStatus: status }
       );
 
-      console.log(`✅ Order ${orderId} status updated to: ${status}`);
+      devLog('Order status updated.');
       return result;
     } catch (error) {
-      console.error("❌ Error updating order status:", error);
+      console.error("Error updating order status.");
       throw error;
     }
   }
@@ -425,18 +325,29 @@ class OrderManager {
         { transactionId: transactionId }
       );
 
-      console.log(`✅ Order ${orderId} transaction ID updated`);
+      devLog('Order transaction ID updated.');
       return result;
     } catch (error) {
-      console.error("❌ Error updating transaction ID:", error);
+      console.error("Error updating transaction ID.");
       throw error;
     }
   }
 
   // Delete order (and its items)
-  async deleteOrder(orderId) {
+  // SECURITY FIX (VULN-08): Requires currentUserId to verify ownership before deletion.
+  async deleteOrder(orderId, currentUserId) {
     try {
-      // First delete all order items
+      // Fetch order first and verify ownership
+      const order = await this.databases.getDocument(
+        this.config.DATABASE_ID,
+        this.config.ORDERS_TABLE,
+        orderId
+      );
+      if (!currentUserId || order.customer_id !== currentUserId) {
+        throw new Error('Unauthorized: You do not own this order.');
+      }
+
+      // Delete all order items
       const items = await this.getOrderItems(orderId);
       for (const item of items) {
         await this.databases.deleteDocument(
@@ -453,10 +364,10 @@ class OrderManager {
         orderId
       );
 
-      console.log(`✅ Order ${orderId} and its items deleted`);
+      devLog('Order deleted.');
       return true;
     } catch (error) {
-      console.error("❌ Error deleting order:", error);
+      console.error("Error deleting order:", error.message);
       throw error;
     }
   }
@@ -510,18 +421,11 @@ class OrderManager {
   // Get saved recipients for a user
   async getSavedRecipients(userId) {
     try {
-      console.log("🔍 Fetching saved recipients for user:", userId);
-
       // Get favorite recipients (saved with order_id = favorite_<userId>)
       const favoriteResult = await this.databases.listDocuments(
         this.config.DATABASE_ID,
         this.config.PURCHASE_RECIPIENT_TABLE,
         [this.Query.equal("order_id", `favorite_${userId}`)]
-      );
-
-      console.log(
-        "🔍 Found favorite recipients:",
-        favoriteResult.documents.length
       );
 
       // Transform favorite recipients
@@ -545,8 +449,6 @@ class OrderManager {
           this.config.ORDERS_TABLE,
           [this.Query.equal("customer_id", userId)]
         );
-
-        console.log("🔍 Found orders:", ordersResult.documents.length);
 
         if (ordersResult.documents.length > 0) {
           // Get all unique recipient info from these orders
@@ -577,11 +479,7 @@ class OrderManager {
                 }
                 return null;
               } catch (error) {
-                console.error(
-                  "❌ Error fetching recipient for order:",
-                  order.$id,
-                  error
-                );
+                devErr('Error fetching recipient for an order.');
                 return null;
               }
             }
@@ -619,21 +517,17 @@ class OrderManager {
             return acc;
           }, new Map());
 
-          console.log(
-            "🔍 Final recipients found:",
-            Array.from(finalRecipients.values())
-          );
+          devLog('Final recipients loaded.');
           return Array.from(finalRecipients.values());
         }
       } catch (orderError) {
-        console.error("❌ Error fetching order recipients:", orderError);
-        // Return just favorites if order fetch fails
+        devErr('Error fetching order recipients.');
         return favoriteRecipients;
       }
 
       return favoriteRecipients;
     } catch (error) {
-      console.error("❌ Error getting saved recipients:", error);
+      console.error("Error getting saved recipients.");
       return [];
     }
   }
@@ -641,9 +535,6 @@ class OrderManager {
   // Save recipient to database as favorite
   async saveRecipient(userId, recipientData) {
     try {
-      console.log("🔍 Saving recipient for user:", userId);
-      console.log("🔍 Recipient data:", recipientData);
-
       // Create a favorite recipient entry (not tied to an order)
       const document = {
         // Use order_id field to store the user ID for favorite recipients
@@ -668,29 +559,35 @@ class OrderManager {
         document
       );
 
-      console.log("✅ Recipient saved:", result.$id);
       return result;
     } catch (error) {
-      console.error("❌ Error saving recipient:", error);
+      console.error("Error saving recipient.");
       throw error;
     }
   }
 
   // Delete saved recipient
-  async deleteRecipient(recipientId) {
+  // SECURITY FIX (VULN-08): Requires currentUserId to verify ownership before deletion.
+  async deleteRecipient(recipientId, currentUserId) {
     try {
-      console.log("🔍 Deleting recipient:", recipientId);
-
+      // Fetch document first and verify it belongs to this user
+      const doc = await this.databases.getDocument(
+        this.config.DATABASE_ID,
+        this.config.PURCHASE_RECIPIENT_TABLE,
+        recipientId
+      );
+      // Favorites use order_id = 'favorite_<userId>'. Reject if mismatch.
+      if (!currentUserId || doc.order_id !== `favorite_${currentUserId}`) {
+        throw new Error('Unauthorized: You do not own this recipient record.');
+      }
       await this.databases.deleteDocument(
         this.config.DATABASE_ID,
         this.config.PURCHASE_RECIPIENT_TABLE,
         recipientId
       );
-
-      console.log("✅ Recipient deleted");
       return true;
     } catch (error) {
-      console.error("❌ Error deleting recipient:", error);
+      console.error("Error deleting recipient:", error.message);
       throw error;
     }
   }
@@ -715,10 +612,10 @@ class OrderManager {
       // Create order items
       await this.createOrderItems(order.$id, cartItems, orderData);
 
-      console.log("✅ Complete order created successfully");
+      devLog('Complete order created successfully.');
       return order;
     } catch (error) {
-      console.error("❌ Error creating complete order:", error);
+      console.error("Error creating complete order.");
       throw error;
     }
   }
@@ -732,14 +629,13 @@ class OrderManager {
         [Query.equal("customer_id", customerId), Query.orderDesc("$createdAt")]
       );
 
-      console.log("✅ Orders retrieved for customer:", result.documents);
       return result.documents;
     };
 
     try {
       return await this.retryOperation(operation);
     } catch (error) {
-      console.error("❌ Error getting orders after retries:", error);
+      console.error("Error getting orders after retries.");
       return [];
     }
   }
@@ -759,7 +655,7 @@ class OrderManager {
     try {
       return await this.retryOperation(operation);
     } catch (error) {
-      console.error("❌ Error getting order items after retries:", error);
+      console.error("Error getting order items after retries.");
       return [];
     }
   }
@@ -767,18 +663,11 @@ class OrderManager {
   // Get purchase recipient info for an order
   async getPurchaseRecipientInfo(orderId) {
     const operation = async () => {
-      console.log("🔍 Getting purchase recipient info for order:", orderId);
-      console.log("🔍 Table:", this.config.PURCHASE_RECIPIENT_TABLE);
-      console.log("🔍 Database:", this.config.DATABASE_ID);
-
       const result = await this.databases.listDocuments(
         this.config.DATABASE_ID,
         this.config.PURCHASE_RECIPIENT_TABLE,
         [Query.equal("order_id", orderId)]
       );
-
-      console.log("🔍 Purchase recipient query result:", result);
-      console.log("🔍 Found recipient info:", result.documents);
 
       return result.documents.length > 0 ? result.documents[0] : null;
     };
@@ -791,16 +680,8 @@ class OrderManager {
         error.message.includes("not authorized") ||
         error.message.includes("401")
       ) {
-        console.log(
-          "⚠️ No permission to read purchase recipient info, skipping..."
-        );
         return null;
       }
-      console.error(
-        "❌ Error getting purchase recipient info after retries:",
-        error
-      );
-      console.error("❌ Error details:", error.message);
       return null;
     }
   }

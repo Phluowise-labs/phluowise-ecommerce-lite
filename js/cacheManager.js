@@ -10,7 +10,7 @@ class CacheManager {
         this.SYNC_QUEUE_KEY = this.CACHE_PREFIX + 'sync_queue';
         this.OFFLINE_FLAG_KEY = this.CACHE_PREFIX + 'offline_mode';
         this.LAST_SYNC_KEY = this.CACHE_PREFIX + 'last_sync';
-        
+
         // Cache expiration times (in milliseconds)
         this.EXPIRY_TIMES = {
             user_profile: 24 * 60 * 60 * 1000, // 24 hours
@@ -19,7 +19,7 @@ class CacheManager {
             products: 60 * 60 * 1000,          // 1 hour
             reviews: 24 * 60 * 60 * 1000       // 24 hours
         };
-        
+
         this.init();
     }
 
@@ -27,11 +27,10 @@ class CacheManager {
         // Monitor online/offline status
         window.addEventListener('online', () => this.handleOnlineStatus(true));
         window.addEventListener('offline', () => this.handleOnlineStatus(false));
-        
+
         // Check current status
         this.isOnline = navigator.onLine;
-        console.log('📱 Cache Manager initialized - Online:', this.isOnline);
-        
+
         // Start sync process if coming back online
         if (this.isOnline) {
             this.processSyncQueue();
@@ -52,17 +51,16 @@ class CacheManager {
         try {
             const key = this.getCacheKey(type, identifier);
             const expiry = customExpiry || this.EXPIRY_TIMES[type] || (24 * 60 * 60 * 1000);
-            
+
             const cacheItem = {
                 data: data,
                 timestamp: Date.now(),
                 expiry: Date.now() + expiry,
                 version: this.CACHE_VERSION
             };
-            
+
             localStorage.setItem(key, JSON.stringify(cacheItem));
-            console.log(`💾 Cached ${type} data:`, { key, size: JSON.stringify(data).length });
-            
+
             return true;
         } catch (error) {
             console.error('❌ Error setting cache:', error);
@@ -77,27 +75,19 @@ class CacheManager {
         try {
             const key = this.getCacheKey(type, identifier);
             const cached = localStorage.getItem(key);
-            
+
             if (!cached) {
-                console.log(`📦 No cached data found for ${type}`);
                 return null;
             }
-            
+
             const cacheItem = JSON.parse(cached);
-            
+
             // Check if expired
             if (Date.now() > cacheItem.expiry) {
-                console.log(`⏰ Cache expired for ${type}, removing...`);
                 this.removeCache(type, identifier);
                 return null;
             }
-            
-            console.log(`📦 Retrieved cached ${type} data:`, { 
-                key, 
-                age: Date.now() - cacheItem.timestamp,
-                remaining: cacheItem.expiry - Date.now()
-            });
-            
+
             return cacheItem.data;
         } catch (error) {
             console.error('❌ Error getting cache:', error);
@@ -127,14 +117,14 @@ class CacheManager {
         try {
             const keys = Object.keys(localStorage);
             let removed = 0;
-            
+
             keys.forEach(key => {
                 if (key.startsWith(this.CACHE_PREFIX)) {
                     localStorage.removeItem(key);
                     removed++;
                 }
             });
-            
+
             console.log(`🗑️ Cleared ${removed} cache items`);
             return removed;
         } catch (error) {
@@ -158,23 +148,23 @@ class CacheManager {
                 retries: 0,
                 nextRetry: Date.now() // Immediate retry
             };
-            
+
             queue.push(syncItem);
-            
+
             // Sort by priority (high first)
             queue.sort((a, b) => {
                 const priorities = { high: 3, normal: 2, low: 1 };
                 return priorities[b.priority] - priorities[a.priority];
             });
-            
+
             localStorage.setItem(this.SYNC_QUEUE_KEY, JSON.stringify(queue));
             console.log(`📋 Added to sync queue: ${action}`, syncItem);
-            
+
             // Try to process immediately if online
             if (this.isOnline) {
                 setTimeout(() => this.processSyncQueue(), 100);
             }
-            
+
             return syncItem.id;
         } catch (error) {
             console.error('❌ Error adding to sync queue:', error);
@@ -189,9 +179,9 @@ class CacheManager {
         try {
             const queue = localStorage.getItem(this.SYNC_QUEUE_KEY);
             if (!queue) return [];
-            
+
             const parsedQueue = JSON.parse(queue);
-            
+
             // Filter out items that are not ready for retry
             const now = Date.now();
             return parsedQueue.filter(item => !item.nextRetry || item.nextRetry <= now);
@@ -209,24 +199,23 @@ class CacheManager {
             console.log('📴 Offline, skipping sync queue processing');
             return;
         }
-        
+
         const queue = this.getSyncQueue();
         if (queue.length === 0) {
-            console.log('📋 Sync queue is empty');
             return;
         }
-        
+
         console.log(`🔄 Processing ${queue.length} items in sync queue...`);
-        
+
         const processed = [];
         const failed = [];
-        
+
         // Process items by priority
         const sortedQueue = [...queue].sort((a, b) => {
             const priorities = { high: 3, normal: 2, low: 1 };
             return priorities[b.priority] - priorities[a.priority];
         });
-        
+
         for (const item of sortedQueue) {
             try {
                 await this.processSyncItem(item);
@@ -234,7 +223,7 @@ class CacheManager {
                 console.log(`✅ Synced item: ${item.action} (ID: ${item.id})`);
             } catch (error) {
                 console.error(`❌ Failed to sync item ${item.id}:`, error);
-                
+
                 // Increment retries and move to failed if too many attempts
                 item.retries = (item.retries || 0) + 1;
                 if (item.retries >= 3) {
@@ -247,16 +236,16 @@ class CacheManager {
                 }
             }
         }
-        
+
         // Update queue (remove processed, keep failed for retry)
         const newQueue = failed.filter(item => item.retries < 3);
         localStorage.setItem(this.SYNC_QUEUE_KEY, JSON.stringify(newQueue));
-        
+
         console.log(`📊 Sync completed: ${processed.length} processed, ${newQueue.length} remaining for retry`);
-        
+
         // Update last sync timestamp
         localStorage.setItem(this.LAST_SYNC_KEY, Date.now().toString());
-        
+
         // Show notification if items were processed
         if (processed.length > 0) {
             this.showSyncNotification(processed.length);
@@ -279,14 +268,14 @@ class CacheManager {
             </div>
         `;
         notification.style.transform = 'translateX(200%)';
-        
+
         document.body.appendChild(notification);
-        
+
         // Animate in
         setTimeout(() => {
             notification.style.transform = 'translateX(0)';
         }, 100);
-        
+
         // Remove after 3 seconds
         setTimeout(() => {
             if (notification.parentElement) {
@@ -320,15 +309,15 @@ class CacheManager {
         if (!window.OrderManager) {
             throw new Error('OrderManager not available');
         }
-        
+
         const orderManager = new window.OrderManager();
         await orderManager.createOrder(orderData);
-        
+
         // Also sync order items if present
         if (orderData.products && orderData.products.length > 0) {
             await orderManager.createOrderItems(orderData.orderId, orderData.products, orderData);
         }
-        
+
         return true;
     }
 
@@ -339,14 +328,14 @@ class CacheManager {
         if (!window.databases) {
             throw new Error('Database not available');
         }
-        
+
         const result = await window.databases.createDocument(
             window.appwriteConfig.DATABASE_ID,
             window.appwriteConfig.RATINGS_TABLE,
             window.ID.unique(),
             reviewData
         );
-        
+
         return result;
     }
 
@@ -357,14 +346,14 @@ class CacheManager {
         if (!window.databases || !profileData.uid) {
             throw new Error('Database or user ID not available');
         }
-        
+
         const result = await window.databases.updateDocument(
             window.appwriteConfig.DATABASE_ID,
             window.appwriteConfig.CUSTOMER_TABLE,
             profileData.uid,
             profileData
         );
-        
+
         return result;
     }
 
@@ -374,9 +363,9 @@ class CacheManager {
     handleOnlineStatus(isOnline) {
         this.isOnline = isOnline;
         localStorage.setItem(this.OFFLINE_FLAG_KEY, (!isOnline).toString());
-        
+
         console.log(`📱 Connection status changed: ${isOnline ? 'Online' : 'Offline'}`);
-        
+
         if (isOnline) {
             // Process sync queue when coming back online
             setTimeout(() => this.processSyncQueue(), 1000);
@@ -394,24 +383,24 @@ class CacheManager {
                 totalSize: 0,
                 items: {}
             };
-            
+
             keys.forEach(key => {
                 const item = localStorage.getItem(key);
                 const size = item ? item.length : 0;
                 stats.totalSize += size;
-                
+
                 // Extract type from key
                 const parts = key.split('_');
                 const type = parts[1] || 'unknown';
-                
+
                 if (!stats.items[type]) {
                     stats.items[type] = { count: 0, size: 0 };
                 }
-                
+
                 stats.items[type].count++;
                 stats.items[type].size += size;
             });
-            
+
             return stats;
         } catch (error) {
             console.error('❌ Error getting cache stats:', error);
@@ -445,5 +434,3 @@ class CacheManager {
 // Initialize cache manager globally
 window.CacheManager = CacheManager;
 window.cacheManager = new CacheManager();
-
-console.log('📱 Cache Manager loaded and initialized');

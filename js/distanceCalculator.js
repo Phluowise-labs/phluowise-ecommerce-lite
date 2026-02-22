@@ -17,12 +17,11 @@ class DistanceCalculator {
     // Calculate distance and time between two points
     async calculateDistanceAndTime(fromCoords, toCoords, options = {}) {
         const cacheKey = this.getCacheKey(fromCoords, toCoords, options);
-        
+
         // Check cache first
         if (this.cache.has(cacheKey)) {
             const cached = this.cache.get(cacheKey);
             if (Date.now() - cached.timestamp < this.cacheTimeout) {
-                console.log('📦 Using cached distance calculation');
                 return cached.data;
             }
         }
@@ -30,7 +29,7 @@ class DistanceCalculator {
         try {
             // Try different APIs in order of preference
             let result = null;
-            
+
             if (this.apiKeys.google && options.mode !== 'walking') {
                 result = await this.calculateWithGoogleMaps(fromCoords, toCoords, options);
             } else if (this.apiKeys.mapbox) {
@@ -52,7 +51,7 @@ class DistanceCalculator {
 
         } catch (error) {
             console.error('❌ Distance calculation failed:', error);
-            
+
             // Use fallback calculation
             const fallback = await this.calculateWithEnhancedHaversine(fromCoords, toCoords, options);
             this.fallbackCache.set(cacheKey, fallback);
@@ -64,11 +63,11 @@ class DistanceCalculator {
     async calculateWithGoogleMaps(fromCoords, toCoords, options = {}) {
         const mode = options.mode || 'driving';
         const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${fromCoords.lat},${fromCoords.lng}&destinations=${toCoords.lat},${toCoords.lng}&mode=${mode}&key=${this.apiKeys.google}`;
-        
+
         try {
             const response = await fetch(url);
             const data = await response.json();
-            
+
             if (data.status === 'OK' && data.rows[0].elements[0].status === 'OK') {
                 const element = data.rows[0].elements[0];
                 return {
@@ -97,11 +96,11 @@ class DistanceCalculator {
     async calculateWithMapbox(fromCoords, toCoords, options = {}) {
         const mode = options.mode === 'driving' ? 'driving-traffic' : options.mode || 'driving';
         const url = `https://api.mapbox.com/directions/v5/mapbox/${mode}/${fromCoords.lng},${fromCoords.lat};${toCoords.lng},${toCoords.lat}?access_token=${this.apiKeys.mapbox}&overview=full&geometries=geojson`;
-        
+
         try {
             const response = await fetch(url);
             const data = await response.json();
-            
+
             if (data.routes && data.routes.length > 0) {
                 const route = data.routes[0];
                 return {
@@ -130,11 +129,11 @@ class DistanceCalculator {
     async calculateWithOpenRoute(fromCoords, toCoords, options = {}) {
         const profile = options.mode === 'driving' ? 'driving-car' : options.mode === 'walking' ? 'foot-walking' : 'cycling-regular';
         const url = `https://api.openrouteservice.org/v2/directions/${profile}?api_key=${this.apiKeys.openroute}&start=${fromCoords.lng},${fromCoords.lat}&end=${toCoords.lng},${toCoords.lat}`;
-        
+
         try {
             const response = await fetch(url);
             const data = await response.json();
-            
+
             if (data.features && data.features.length > 0) {
                 const route = data.features[0].properties;
                 return {
@@ -162,18 +161,18 @@ class DistanceCalculator {
     // Enhanced Haversine calculation with realistic time estimation
     async calculateWithEnhancedHaversine(fromCoords, toCoords, options = {}) {
         const mode = options.mode || 'driving';
-        
+
         // Calculate straight-line distance using Haversine
         const distanceKm = this.haversineDistance(fromCoords, toCoords);
-        
+
         // Apply road network factor (typically 1.2-1.4 for urban areas)
         const roadFactor = this.getRoadFactor(mode, distanceKm);
         const roadDistanceKm = distanceKm * roadFactor;
-        
+
         // Calculate realistic travel time based on mode and distance
         const avgSpeed = this.getAverageSpeed(mode, roadDistanceKm);
         const timeSeconds = (roadDistanceKm / avgSpeed) * 3600;
-        
+
         return {
             distance: {
                 km: roadDistanceKm,
@@ -269,28 +268,28 @@ class DistanceCalculator {
     // Batch calculate distances for multiple destinations
     async calculateMultipleDistances(fromCoords, toCoordsList, options = {}) {
         const results = [];
-        
+
         // Process in batches to avoid API rate limits
         const batchSize = 10;
         for (let i = 0; i < toCoordsList.length; i += batchSize) {
             const batch = toCoordsList.slice(i, i + batchSize);
-            const batchPromises = batch.map(toCoords => 
+            const batchPromises = batch.map(toCoords =>
                 this.calculateDistanceAndTime(fromCoords, toCoords, options)
                     .catch(error => {
                         console.error(`Failed to calculate distance to ${toCoords.lat},${toCoords.lng}:`, error);
                         return null;
                     })
             );
-            
+
             const batchResults = await Promise.all(batchPromises);
             results.push(...batchResults);
-            
+
             // Add delay between batches to respect rate limits
             if (i + batchSize < toCoordsList.length) {
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
         }
-        
+
         return results;
     }
 
