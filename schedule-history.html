@@ -18,7 +18,7 @@
     <link rel="manifest" href="manifest.json">
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#007ACC">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Phluowise">
     <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
@@ -1072,10 +1072,11 @@
 
                 if (toFetch.companies.length > 0) {
                     try {
+                        // Only fetch the specific companies we need
                         const companyResponse = await window.databases.listDocuments(
                             window.appwriteConfig.DATABASE_ID,
                             window.appwriteConfig.COMPANY_TABLE,
-                            [Query.limit(100)]
+                            [Query.equal('company_id', toFetch.companies), Query.limit(100)]
                         );
                         for (const company of companyResponse.documents) {
                             const id = company.company_id || company.$id;
@@ -1094,10 +1095,11 @@
 
                 if (toFetch.branches.length > 0) {
                     try {
+                        // Only fetch the specific branches we need
                         const branchResponse = await window.databases.listDocuments(
                             window.appwriteConfig.DATABASE_ID,
                             window.appwriteConfig.BRANCHES_TABLE,
-                            [Query.limit(100)]
+                            [Query.equal('branch_id', toFetch.branches), Query.limit(100)]
                         );
                         for (const branch of branchResponse.documents) {
                             const id = branch.branch_id || branch.$id;
@@ -1253,7 +1255,7 @@
                 }
                 return null;
             } catch (error) {
-                console.error('Error fetching customer doc ID:', error);
+
                 return null;
             }
         }
@@ -1269,18 +1271,18 @@
                 lastOrderId = null;
                 showLoadingSkeleton();
                 const sessionId = await getCustomerIdFromSession();
-                console.log('🔍 Session ID from Appwrite:', sessionId);
+
                 if (!sessionId) {
-                    console.warn('⚠️ No session ID – user not logged in');
+
                     hideLoadingSkeleton();
                     showNoOrdersMessage();
                     dataLoadInProgress = false;
                     return;
                 }
                 const customerDocumentId = await fetchAndStoreCustomerDocId(sessionId);
-                console.log('🔍 Customer document ID (from customer_tb):', customerDocumentId);
+
                 if (!customerDocumentId) {
-                    console.warn('⚠️ No customer document found for this session');
+
                     hideLoadingSkeleton();
                     showNoOrdersMessage();
                     dataLoadInProgress = false;
@@ -1288,7 +1290,7 @@
                 }
                 await fetchOrdersFromDatabase(customerDocumentId, sessionId);
             } catch (error) {
-                console.error('❌ Error in loadInitialData:', error);
+
                 showOfflineState();
             } finally {
                 hideLoadingSkeleton();
@@ -1298,7 +1300,7 @@
 
         async function fetchOrdersFromDatabase(customerDocumentId, sessionId, loadMore = false) {
             if (!navigator.onLine) {
-                console.warn('📴 Offline – cannot fetch orders');
+
                 showOfflineState();
                 return;
             }
@@ -1314,47 +1316,26 @@
                         return;
                     }
                 }
-                // Use underscore field name: customer_id
+                // Query by BOTH customer_tb.$id AND Auth user ID for backward compatibility
+                // Old orders used Auth user ID as customer_id; new orders use customer_tb.$id
+                const customerIds = [customerDocumentId];
+                if (sessionId && sessionId !== customerDocumentId) {
+                    customerIds.push(sessionId);
+                }
                 const queries = [
-                    Query.equal('customer_id', customerDocumentId),
+                    Query.equal('customer_id', customerIds),
                     Query.orderDesc('deliveryDate'),
                     Query.limit(ORDERS_PER_PAGE)
                 ];
                 if (lastOrderId && loadMore) {
                     queries.push(Query.cursorAfter(lastOrderId));
                 }
-                console.log('📡 Executing orders query:', queries);
                 const response = await window.databases.listDocuments(
                     window.appwriteConfig.DATABASE_ID,
                     window.appwriteConfig.ORDERS_TABLE,
                     queries
                 );
-                console.log('✅ Orders query response:', response);
                 const fetchedOrders = response.documents;
-                console.log(`📦 Fetched ${fetchedOrders.length} orders from DB`);
-
-                // DEBUG: If no orders found, try querying by session ID to see if orders exist with wrong field
-                if (fetchedOrders.length === 0 && sessionId) {
-                    const debugQueries = [
-                        Query.equal('customer_id', sessionId),
-                        Query.limit(1)
-                    ];
-                    console.log('🔍 Debug: querying by session ID instead:', debugQueries);
-                    try {
-                        const debugResponse = await window.databases.listDocuments(
-                            window.appwriteConfig.DATABASE_ID,
-                            window.appwriteConfig.ORDERS_TABLE,
-                            debugQueries
-                        );
-                        console.log(`🔍 Orders with session ID: ${debugResponse.documents.length}`);
-                        if (debugResponse.documents.length > 0) {
-                            console.log('⚠️ Found orders using session ID – your order creation uses the wrong customer_id!');
-                            console.log('Sample order:', debugResponse.documents[0]);
-                        }
-                    } catch (debugError) {
-                        console.error('Debug query failed:', debugError);
-                    }
-                }
 
                 if (fetchedOrders.length > 0) {
                     const uniqueCompanyIds = new Set();
@@ -1371,11 +1352,12 @@
                     try {
                         const orderId = order.$id || order.orderId || order.id;
                         if (processedOrderIds.has(orderId)) continue;
-                        if (order.customer_id !== customerDocumentId) continue; // extra security
+                        // Accept orders belonging to either ID (backward compat)
+                        if (order.customer_id !== customerDocumentId && order.customer_id !== sessionId) continue;
                         const existingOrderIds = new Set(orders.map(o => o.$id || o.orderId));
                         if (existingOrderIds.has(orderId)) continue;
                         processedOrderIds.add(orderId);
-                        const minimalOrder = await processOrderMinimal(order, customerDocumentId);
+                        const minimalOrder = await processOrderMinimal(order, customerDocumentId, sessionId);
                         if (minimalOrder) {
                             const orderCreatedAt = new Date(order.$createdAt || order.createdAt || Date.now());
                             const fiveMinutesAgo = new Date();
@@ -1397,7 +1379,7 @@
                 renderOrders();
                 updateFloatingButton();
             } catch (error) {
-                console.error('❌ Error in fetchOrdersFromDatabase:', error);
+
                 if (!loadMore) showOfflineState();
             } finally {
                 isLoadingMore = false;
@@ -1405,10 +1387,11 @@
             }
         }
 
-        async function processOrderMinimal(order, expectedCustomerId) {
+        async function processOrderMinimal(order, expectedCustomerId, altCustomerId) {
             try {
                 if (!order.$id) return null;
-                if (order.customer_id !== expectedCustomerId) return null;
+                // Accept either the customer_tb.$id or the Auth user ID
+                if (order.customer_id !== expectedCustomerId && order.customer_id !== altCustomerId) return null;
                 const orderId = order.$id;
                 const orderStatus = order.orderStatus || order.status || 'pending';
                 const deliveryAddress = order.deliveryAddress || order.address || order.location || '';
@@ -1554,7 +1537,7 @@
                         }, 0);
                         order.serviceFee = orderItems.reduce((sum, item) => {
                             const qty = parseInt(item.productQty) || 1;
-                            return sum + (0.10 * qty);
+                            return sum + (0.20 * qty);
                         }, 0);
                         order.total = order.subtotal + order.serviceFee;
                         order.price = `GH₵${order.total.toFixed(2)}`;
@@ -1583,7 +1566,7 @@
                 localStorage.setItem('currentUserId', user.$id);
                 return user.$id;
             } catch (error) {
-                console.error('Error getting session:', error);
+
                 return null;
             }
         }
@@ -1634,18 +1617,7 @@
                 () => localStorage.getItem('currentUserId'),
                 () => { try { const u = JSON.parse(localStorage.getItem('user') || '{}'); return u.uid || u.userId || u.id || u.$id; } catch { return null; } },
                 () => {
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        if (key.includes('id') || key.includes('user') || key.includes('customer')) {
-                            try {
-                                const val = JSON.parse(localStorage.getItem(key));
-                                if (val && (val.uid || val.userId || val.id || val.$id)) return val.uid || val.userId || val.id || val.$id;
-                            } catch {
-                                const val = localStorage.getItem(key);
-                                if (val && val.length > 5 && val.length < 50) return val;
-                            }
-                        }
-                    }
+                    // Removed unsafe iteration over all localStorage keys
                     return null;
                 }
             ];
@@ -1720,7 +1692,7 @@
         function formatShortDate(dateString) {
             try {
                 const d = new Date(dateString);
-                return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
+                return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`;
             } catch { return dateString || 'N/A'; }
         }
 
@@ -1731,12 +1703,12 @@
                 const now = new Date();
                 const diffMins = Math.floor((now - date) / 60000);
                 if (diffMins < 1) return 'Order sent:\nJust now';
-                if (diffMins < 60) return `Order sent:\n${diffMins} minute${diffMins>1?'s':''} ago`;
-                const diffHours = Math.floor(diffMins/60);
-                if (diffHours < 24) return `Order sent:\n${diffHours} hour${diffHours>1?'s':''} ago`;
-                const diffDays = Math.floor(diffHours/24);
-                if (diffDays < 7) return `Order sent:\n${diffDays} day${diffDays>1?'s':''} ago`;
-                return `Order sent:\n${String(date.getMonth()+1).padStart(2,'0')}/${String(date.getDate()).padStart(2,'0')}/${date.getFullYear()} at ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+                if (diffMins < 60) return `Order sent:\n${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+                const diffHours = Math.floor(diffMins / 60);
+                if (diffHours < 24) return `Order sent:\n${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                const diffDays = Math.floor(diffHours / 24);
+                if (diffDays < 7) return `Order sent:\n${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                return `Order sent:\n${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}/${date.getFullYear()} at ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
             } catch { return 'Order sent:\nN/A'; }
         }
 
@@ -1759,20 +1731,20 @@
         }
 
         function getStatusText(status) {
-            const map = { pending:'Pending', accepted:'Accepted', denied:'Denied', ongoing:'Completed', completed:'Completed' };
+            const map = { pending: 'Pending', accepted: 'Accepted', denied: 'Denied', ongoing: 'Completed', completed: 'Completed' };
             return map[status] || status;
         }
 
         function getStatusColor(status) {
-            const map = { pending:'#F2A78C', accepted:'#2C9043', denied:'#F85D5D', ongoing:'#2CAA48', completed:'#2CAA48' };
+            const map = { pending: '#F2A78C', accepted: '#2C9043', denied: '#F85D5D', ongoing: '#2CAA48', completed: '#2CAA48' };
             return map[status] || '#F2A78C';
         }
 
         function setStatusView(view) {
             currentView = view;
-            ['status','ongoing','denied','completed'].forEach(btn => {
-                const b = document.getElementById('btn-'+btn);
-                if (b) b.style.backgroundColor = btn===view ? 'var(--btn-color)' : 'transparent';
+            ['status', 'ongoing', 'denied', 'completed'].forEach(btn => {
+                const b = document.getElementById('btn-' + btn);
+                if (b) b.style.backgroundColor = btn === view ? 'var(--btn-color)' : 'transparent';
             });
             renderOrders();
         }
@@ -1796,7 +1768,6 @@
                 if (currentView === 'completed') return o.status === 'ongoing';
                 return true;
             });
-            console.log(`🎨 Rendering ${filtered.length} orders for view "${currentView}"`);
             if (filtered.length === 0) {
                 container.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full text-white text-center p-8">
@@ -1858,9 +1829,9 @@
         function showNotification(msg, type = 'info') {
             const n = document.createElement('div');
             const styles = {
-                success: { bg:'bg-green-500/20', border:'border-green-500/50', text:'text-green-500', icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />' },
-                error: { bg:'bg-red-500/20', border:'border-red-500/50', text:'text-red-500', icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />' },
-                info: { bg:'bg-blue-500/20', border:'border-blue-500/50', text:'text-blue-500', icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />' }
+                success: { bg: 'bg-green-500/20', border: 'border-green-500/50', text: 'text-green-500', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />' },
+                error: { bg: 'bg-red-500/20', border: 'border-red-500/50', text: 'text-red-500', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />' },
+                info: { bg: 'bg-blue-500/20', border: 'border-blue-500/50', text: 'text-blue-500', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />' }
             };
             const s = styles[type] || styles.info;
             n.className = `fixed top-4 right-4 glass border ${s.border} text-foreground px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-up max-w-sm`;
@@ -1942,10 +1913,10 @@
                             if (typeof parsed === 'string') try { parsed = JSON.parse(parsed); } catch { }
                             return {
                                 ...it,
-                                productName: it.productName || it.product_name || it.name || (parsed && (parsed.name||parsed.title)) || it.title || it.label || null,
-                                productPrice: it.productPrice || it.product_price || it.price || (parsed && (parsed.price||parsed.unitPrice)) || 0,
+                                productName: it.productName || it.product_name || it.name || (parsed && (parsed.name || parsed.title)) || it.title || it.label || null,
+                                productPrice: it.productPrice || it.product_price || it.price || (parsed && (parsed.price || parsed.unitPrice)) || 0,
                                 productQty: it.productQty || it.product_qty || it.quantity || it.qty || 1,
-                                productImage: it.productImage || it.product_image || (parsed && (parsed.image||(parsed.images&&parsed.images[0]))) || null,
+                                productImage: it.productImage || it.product_image || (parsed && (parsed.image || (parsed.images && parsed.images[0]))) || null,
                                 productType: it.productType || it.product_type || it.type || (parsed && parsed.type) || 'product'
                             };
                         });
@@ -1969,7 +1940,7 @@
                     );
                     if (rec.documents.length) {
                         const r = rec.documents[0];
-                        if ((!r.recipient_name || r.recipient_name.trim()==='') && r.purchase_recipient_type==='you' && orderDetails.customer_id) {
+                        if ((!r.recipient_name || r.recipient_name.trim() === '') && r.purchase_recipient_type === 'you' && orderDetails.customer_id) {
                             try {
                                 const cust = await window.databases.listDocuments(
                                     window.appwriteConfig.DATABASE_ID,
@@ -1978,7 +1949,7 @@
                                 );
                                 if (cust.documents.length) {
                                     const c = cust.documents[0];
-                                    enriched.customerDetails = { ...r, recipient_name: c.full_name||c.name||r.recipient_name, recipient_phone: c.phone_number||r.recipient_phone, recipient_email: c.email||r.recipient_email };
+                                    enriched.customerDetails = { ...r, recipient_name: c.full_name || c.name || r.recipient_name, recipient_phone: c.phone_number || r.recipient_phone, recipient_email: c.email || r.recipient_email };
                                 } else enriched.customerDetails = r;
                             } catch { enriched.customerDetails = r; }
                         } else enriched.customerDetails = r;
@@ -2009,7 +1980,7 @@
                                 [Query.limit(100)]
                             );
                             const prodMap = {};
-                            prodResp.documents.forEach(p => { prodMap[p.$id] = p; prodMap[p.product_id||p.id] = p; });
+                            prodResp.documents.forEach(p => { prodMap[p.$id] = p; prodMap[p.product_id || p.id] = p; });
                             enriched.orderItems = enriched.orderItems.map(it => {
                                 const pid = it.product_id || it.productId || it.product || it.$id;
                                 const p = prodMap[pid];
@@ -2030,16 +2001,16 @@
                                 100
                             );
                             const prods = prodResp.documents || [];
-                            const total = parseFloat(orderDetails.total||0);
-                            const match = prods.find(p => Math.abs(parseFloat(p.price||p.productPrice||p.product_price||0) - total) < 0.001) || prods.find(p => Math.abs(parseFloat(p.price||0) - total) <= 1.5);
+                            const total = parseFloat(orderDetails.total || 0);
+                            const match = prods.find(p => Math.abs(parseFloat(p.price || p.productPrice || p.product_price || 0) - total) < 0.001) || prods.find(p => Math.abs(parseFloat(p.price || 0) - total) <= 1.5);
                             if (match) {
                                 enriched.orderItems = [{
-                                    $id: 'inferred-'+orderDetails.$id,
-                                    productName: match.name||match.productName||match.product_name||match.title||'Unknown Product',
-                                    productPrice: parseFloat(match.price||match.productPrice||match.product_price||0),
+                                    $id: 'inferred-' + orderDetails.$id,
+                                    productName: match.name || match.productName || match.product_name || match.title || 'Unknown Product',
+                                    productPrice: parseFloat(match.price || match.productPrice || match.product_price || 0),
                                     productQty: 1,
-                                    productImage: resolveImageUrl(match.image||match.productImage||match.product_image),
-                                    productType: match.type||match.productType||match.product_type||'product'
+                                    productImage: resolveImageUrl(match.image || match.productImage || match.product_image),
+                                    productType: match.type || match.productType || match.product_type || 'product'
                                 }];
                             }
                         } catch { }
@@ -2088,55 +2059,55 @@
             let productInfo = { name: 'N/A', image: null, quantity: 1, unitPrice: 0 };
             if (currentOrderForDetails.orderItems && currentOrderForDetails.orderItems.length) {
                 const first = currentOrderForDetails.orderItems[0];
-                const totalQty = currentOrderForDetails.orderItems.reduce((s,i)=>s+(i.productQty||1),0);
+                const totalQty = currentOrderForDetails.orderItems.reduce((s, i) => s + (i.productQty || 1), 0);
                 productInfo = {
-                    name: currentOrderForDetails.orderItems.length>1 ? `${currentOrderForDetails.orderItems.length} products` : first.productName||first.product_name||first.name||(first.product&&(first.product.name||first.product.title))||currentOrderForDetails.deliveryName||'N/A',
-                    image: first.productImage||first.product_image||(first.product&&first.product.image)||null,
+                    name: currentOrderForDetails.orderItems.length > 1 ? `${currentOrderForDetails.orderItems.length} products` : first.productName || first.product_name || first.name || (first.product && (first.product.name || first.product.title)) || currentOrderForDetails.deliveryName || 'N/A',
+                    image: first.productImage || first.product_image || (first.product && first.product.image) || null,
                     quantity: totalQty,
-                    unitPrice: first.productPrice||0
+                    unitPrice: first.productPrice || 0
                 };
             } else if (isNew && currentOrderForDetails.products.length) {
                 productInfo = {
-                    name: currentOrderForDetails.products.length>1 ? `${currentOrderForDetails.products.length} products` : currentOrderForDetails.products[0].name||currentOrderForDetails.products[0].product_name||'N/A',
-                    image: currentOrderForDetails.products[0]?.image||null,
-                    quantity: currentOrderForDetails.products.reduce((s,p)=>s+(p.quantity||0),0),
-                    unitPrice: currentOrderForDetails.products[0]?.price||0
+                    name: currentOrderForDetails.products.length > 1 ? `${currentOrderForDetails.products.length} products` : currentOrderForDetails.products[0].name || currentOrderForDetails.products[0].product_name || 'N/A',
+                    image: currentOrderForDetails.products[0]?.image || null,
+                    quantity: currentOrderForDetails.products.reduce((s, p) => s + (p.quantity || 0), 0),
+                    unitPrice: currentOrderForDetails.products[0]?.price || 0
                 };
             }
             let displayImage = null;
             if (productInfo.image) {
                 displayImage = productInfo.image;
                 if (displayImage.includes('appwrite.io/v1/storage/buckets/')) {
-                    const proj = window.appwriteConfig.PROJECT_ID||'695f826500067c381616';
-                    displayImage = displayImage.replace('/view?','/preview?')+'&width=200&height=200&quality=80';
+                    const proj = window.appwriteConfig.PROJECT_ID || '695f826500067c381616';
+                    displayImage = displayImage.replace('/view?', '/preview?') + '&width=200&height=200&quality=80';
                 }
             }
             if (!displayImage && currentOrderForDetails.companyImage) displayImage = currentOrderForDetails.companyImage;
             if (!displayImage) {
-                const orig = orders.find(o => (o.orderId===currentOrderForDetails.orderId)||(o.$id===currentOrderForDetails.$id));
+                const orig = orders.find(o => (o.orderId === currentOrderForDetails.orderId) || (o.$id === currentOrderForDetails.$id));
                 if (orig && orig.companyImage) displayImage = orig.companyImage;
             }
             if (!displayImage && productInfo.name && productInfo.name.toLowerCase().includes('water')) displayImage = 'images/products/large-bottle.jpg';
 
-            const subtotal = parseFloat(currentOrderForDetails.subtotal)||0;
-            const serviceFee = parseFloat(currentOrderForDetails.serviceFee)||0;
-            const total = parseFloat(currentOrderForDetails.total)||0;
+            const subtotal = parseFloat(currentOrderForDetails.subtotal) || 0;
+            const serviceFee = parseFloat(currentOrderForDetails.serviceFee) || 0;
+            const total = parseFloat(currentOrderForDetails.total) || 0;
             let calcFee = serviceFee, calcSub = subtotal;
             if (currentOrderForDetails.products && Array.isArray(currentOrderForDetails.products) && currentOrderForDetails.products.length) {
-                calcSub = currentOrderForDetails.products.reduce((s,p)=>s+(parseFloat(p.price)||0)*(parseInt(p.quantity)||1),0);
-                calcFee = currentOrderForDetails.products.reduce((s,p)=>s+(0.10*(parseInt(p.quantity)||1)),0);
-            } else if (total>0) {
-                calcFee = 0.10;
+                calcSub = currentOrderForDetails.products.reduce((s, p) => s + (parseFloat(p.price) || 0) * (parseInt(p.quantity) || 1), 0);
+                calcFee = currentOrderForDetails.products.reduce((s, p) => s + (0.20 * (parseInt(p.quantity) || 1)), 0);
+            } else if (total > 0) {
+                calcFee = 0.20;
                 calcSub = total - calcFee;
             }
-            const displayTotal = total>0 ? total : calcSub+calcFee;
-            const displaySubtotal = subtotal>0 ? subtotal : calcSub;
+            const displayTotal = total > 0 ? total : calcSub + calcFee;
+            const displaySubtotal = subtotal > 0 ? subtotal : calcSub;
 
             let statusText = 'Pending', statusColor = '#F2A78C';
             const st = currentOrderForDetails.orderStatus || currentOrderForDetails.status || 'pending';
-            if (st==='confirmed'||st==='accepted') { statusText='Accepted'; statusColor='#2C9043'; }
-            else if (st==='ongoing'||st==='completed') { statusText='Completed'; statusColor='#2CAA48'; }
-            else if (st==='denied'||st==='rejected') { statusText='Denied'; statusColor='#F85D5D'; }
+            if (st === 'confirmed' || st === 'accepted') { statusText = 'Accepted'; statusColor = '#2C9043'; }
+            else if (st === 'ongoing' || st === 'completed') { statusText = 'Completed'; statusColor = '#2CAA48'; }
+            else if (st === 'denied' || st === 'rejected') { statusText = 'Denied'; statusColor = '#F85D5D'; }
 
             area.innerHTML = `
                 <div class="space-y-4">
@@ -2145,12 +2116,12 @@
                         <div class="flex items-center space-x-4">
                             <div class="rounded-[10px] bg-[#808080] overflow-hidden flex-shrink-0" style="width:80px;height:80px;">
                                 ${currentOrderForDetails.profile_image ?
-                                    `<img src="${currentOrderForDetails.profile_image}" class="w-full h-full object-cover" alt="${currentOrderForDetails.company||'Company'}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center" style="display:none;"><svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>` :
-                                    `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center"><svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>`
-                                }
+                    `<img src="${currentOrderForDetails.profile_image}" class="w-full h-full object-cover" alt="${currentOrderForDetails.company || 'Company'}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center" style="display:none;"><svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>` :
+                    `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center"><svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>`
+                }
                             </div>
                             <div class="flex-1">
-                                <h4 class="text-white text-lg font-semibold">${currentOrderForDetails.company||'Unknown Company'}<span class="material-symbols-outlined verified-checkmark" style="font-size:16px;margin-left:2px;">verified</span></h4>
+                                <h4 class="text-white text-lg font-semibold">${currentOrderForDetails.company || 'Unknown Company'}<span class="material-symbols-outlined verified-checkmark" style="font-size:16px;margin-left:2px;">verified</span></h4>
                                 <p class="text-gray-400 text-sm">${productInfo.name}</p>
                                 <p class="text-gray-400 text-sm">Quantity: ${productInfo.quantity}</p>
                             </div>
@@ -2159,10 +2130,10 @@
                         <div class="mt-4 pt-4 border-t border-gray-700">
                             <p class="text-gray-400 text-xs mb-2">Product Images:</p>
                             <div class="grid grid-cols-2 gap-3">
-                                ${currentOrderForDetails.orderItems.map((it,i)=>{
-                                    const img = it.productImage||it.product_image||(it.product&&it.product.image);
-                                    return `<div class="rounded-lg bg-gray-900/50 overflow-hidden h-40">${img?`<img src="${img}" class="w-full h-full object-cover" alt="${it.productName||'Product'}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center" style="display:none;"><svg class="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle></svg></div>`:`<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center"><svg class="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle></svg></div>`}<p class="text-white text-xs text-center p-2 bg-gray-900/70">${it.productName||it.product_name||'Product'}</p></div>`;
-                                }).join('')}
+                                ${currentOrderForDetails.orderItems.map((it, i) => {
+                    const img = it.productImage || it.product_image || (it.product && it.product.image);
+                    return `<div class="rounded-lg bg-gray-900/50 overflow-hidden h-40">${img ? `<img src="${img}" class="w-full h-full object-cover" alt="${it.productName || 'Product'}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center" style="display:none;"><svg class="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle></svg></div>` : `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center"><svg class="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle></svg></div>`}<p class="text-white text-xs text-center p-2 bg-gray-900/70">${it.productName || it.product_name || 'Product'}</p></div>`;
+                }).join('')}
                             </div>
                         </div>` : ''}
                     </div>
@@ -2171,14 +2142,14 @@
                     <div class="bg-gray-800/50 rounded-xl p-4">
                         <h3 class="text-white text-lg font-bold mb-3">Order Items</h3>
                         <div class="space-y-3">
-                            ${currentOrderForDetails.orderItems.map(it=>`
+                            ${currentOrderForDetails.orderItems.map(it => `
                                 <div class="flex justify-between items-center py-2 border-b border-gray-700">
                                     <div class="flex-1">
-                                        <p class="text-white font-medium">${it.productName||it.product_name||it.name||(it.product&&(it.product.name||it.product.title))||'Unknown Product'}</p>
-                                        <p class="text-gray-400 text-sm">Qty: ${it.productQty||1}</p>
-                                        <p class="text-gray-400 text-sm">Type: ${it.productType||it.product_type||it.type||'N/A'}</p>
+                                        <p class="text-white font-medium">${it.productName || it.product_name || it.name || (it.product && (it.product.name || it.product.title)) || 'Unknown Product'}</p>
+                                        <p class="text-gray-400 text-sm">Qty: ${it.productQty || 1}</p>
+                                        <p class="text-gray-400 text-sm">Type: ${it.productType || it.product_type || it.type || 'N/A'}</p>
                                     </div>
-                                    <p class="text-white font-medium">GHS${((it.productPrice||0)*(it.productQty||1)).toFixed(2)}</p>
+                                    <p class="text-white font-medium">GHS${((it.productPrice || 0) * (it.productQty || 1)).toFixed(2)}</p>
                                 </div>
                             `).join('')}
                         </div>
@@ -2187,13 +2158,13 @@
                     <div class="bg-gray-800/50 rounded-xl p-4">
                         <h3 class="text-white text-lg font-bold mb-3">Order Summary</h3>
                         <div class="space-y-2">
-                            <div class="flex justify-between"><span class="text-gray-400">Order ID:</span><span class="text-white font-medium">${currentOrderForDetails.orderId||'N/A'}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-400">Company:</span><span class="text-white font-medium">${currentOrderForDetails.company||'Unknown Company'}<span class="material-symbols-outlined verified-checkmark" style="font-size:14px;margin-left:2px;">verified</span></span></div>
-                            <div class="flex justify-between"><span class="text-gray-400">Product:</span><span class="text-white font-medium">${currentOrderForDetails.orderItems?.length? (currentOrderForDetails.orderItems[0].productName||currentOrderForDetails.orderItems[0].product_name||currentOrderForDetails.orderItems[0].name||(currentOrderForDetails.orderItems[0].product&&(currentOrderForDetails.orderItems[0].product.name||currentOrderForDetails.orderItems[0].product.title))) : productInfo.name}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-400">Quantity:</span><span class="text-white font-medium">${currentOrderForDetails.orderItems?.length? currentOrderForDetails.orderItems.reduce((s,i)=>s+(i.productQty||0),0) : productInfo.quantity}</span></div>
-                            ${currentOrderForDetails.deliveryDate? `<div class="flex justify-between"><span class="text-gray-400">Delivery Date:</span><span class="text-white font-medium">${new Date(currentOrderForDetails.deliveryDate).toLocaleDateString()}</span></div>` : ''}
-                            ${currentOrderForDetails.deliveryTime? `<div class="flex justify-between"><span class="text-gray-400">Delivery Time:</span><span class="text-white font-medium">${currentOrderForDetails.deliveryTime}</span></div>` : ''}
-                            ${currentOrderForDetails.orderComment? `<div class="flex justify-between"><span class="text-gray-400">Instructions:</span><span class="text-white font-medium text-right" style="max-width:60%;">${currentOrderForDetails.orderComment}</span></div>` : ''}
+                            <div class="flex justify-between"><span class="text-gray-400">Order ID:</span><span class="text-white font-medium">${currentOrderForDetails.orderId || 'N/A'}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-400">Company:</span><span class="text-white font-medium">${currentOrderForDetails.company || 'Unknown Company'}<span class="material-symbols-outlined verified-checkmark" style="font-size:14px;margin-left:2px;">verified</span></span></div>
+                            <div class="flex justify-between"><span class="text-gray-400">Product:</span><span class="text-white font-medium">${currentOrderForDetails.orderItems?.length ? (currentOrderForDetails.orderItems[0].productName || currentOrderForDetails.orderItems[0].product_name || currentOrderForDetails.orderItems[0].name || (currentOrderForDetails.orderItems[0].product && (currentOrderForDetails.orderItems[0].product.name || currentOrderForDetails.orderItems[0].product.title))) : productInfo.name}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-400">Quantity:</span><span class="text-white font-medium">${currentOrderForDetails.orderItems?.length ? currentOrderForDetails.orderItems.reduce((s, i) => s + (i.productQty || 0), 0) : productInfo.quantity}</span></div>
+                            ${currentOrderForDetails.deliveryDate ? `<div class="flex justify-between"><span class="text-gray-400">Delivery Date:</span><span class="text-white font-medium">${new Date(currentOrderForDetails.deliveryDate).toLocaleDateString()}</span></div>` : ''}
+                            ${currentOrderForDetails.deliveryTime ? `<div class="flex justify-between"><span class="text-gray-400">Delivery Time:</span><span class="text-white font-medium">${currentOrderForDetails.deliveryTime}</span></div>` : ''}
+                            ${currentOrderForDetails.orderComment ? `<div class="flex justify-between"><span class="text-gray-400">Instructions:</span><span class="text-white font-medium text-right" style="max-width:60%;">${currentOrderForDetails.orderComment}</span></div>` : ''}
                         </div>
                     </div>
                     
@@ -2209,10 +2180,10 @@
                     <div class="bg-gray-800/50 rounded-xl p-4">
                         <h3 class="text-white text-lg font-bold mb-3">Payment & Status</h3>
                         <div class="space-y-2">
-                            <div class="flex justify-between"><span class="text-gray-400">Payment Method:</span><span class="text-white font-medium">${currentOrderForDetails.paymentMethod||'N/A'}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-400">Payment Method:</span><span class="text-white font-medium">${currentOrderForDetails.paymentMethod || 'N/A'}</span></div>
                             <div class="flex justify-between"><span class="text-gray-400">Status:</span><span class="font-medium" style="color:${statusColor};">${statusText}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-400">Transaction ID:</span><span class="text-white font-medium">${currentOrderForDetails.transactionId||'N/A'}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-400">Delivery Address:</span><span class="text-white font-medium">${currentOrderForDetails.deliveryAddress||'N/A'}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-400">Transaction ID:</span><span class="text-white font-medium">${currentOrderForDetails.transactionId || 'N/A'}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-400">Delivery Address:</span><span class="text-white font-medium">${currentOrderForDetails.deliveryAddress || 'N/A'}</span></div>
                         </div>
                     </div>
                     
@@ -2220,10 +2191,10 @@
                     <div class="bg-gray-800/50 rounded-xl p-4">
                         <h3 class="text-white text-lg font-bold mb-3">Recipient Information</h3>
                         <div class="space-y-2">
-                            <div class="flex justify-between"><span class="text-gray-400">Name:</span><span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_name||currentOrderForDetails.customerDetails.full_name||currentOrderForDetails.customerDetails.name||'N/A'}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-400">Phone:</span><span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_phone||currentOrderForDetails.customerDetails.phone_number||currentOrderForDetails.customerDetails.recipient_phone_number||'N/A'}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-400">Email:</span><span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_email||currentOrderForDetails.customerDetails.email||'N/A'}</span></div>
-                            ${currentOrderForDetails.customerDetails.recipient_type? `<div class="flex justify-between"><span class="text-gray-400">Type:</span><span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_type}</span></div>` : ''}
+                            <div class="flex justify-between"><span class="text-gray-400">Name:</span><span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_name || currentOrderForDetails.customerDetails.full_name || currentOrderForDetails.customerDetails.name || 'N/A'}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-400">Phone:</span><span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_phone || currentOrderForDetails.customerDetails.phone_number || currentOrderForDetails.customerDetails.recipient_phone_number || 'N/A'}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-400">Email:</span><span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_email || currentOrderForDetails.customerDetails.email || 'N/A'}</span></div>
+                            ${currentOrderForDetails.customerDetails.recipient_type ? `<div class="flex justify-between"><span class="text-gray-400">Type:</span><span class="text-white font-medium">${currentOrderForDetails.customerDetails.recipient_type}</span></div>` : ''}
                         </div>
                     </div>` : ''}
                     
@@ -2242,14 +2213,14 @@
             }
         }
 
-        function formatFullDate(d) { try { return new Date(d).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); } catch { return d||'N/A'; } }
+        function formatFullDate(d) { try { return new Date(d).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); } catch { return d || 'N/A'; } }
         function closeOrderDetailsSheet() {
             const sheet = document.getElementById('orderDetailsSheet');
             const content = document.getElementById('orderDetailsContent');
             content.classList.add('translate-y-full');
             setTimeout(() => {
-                sheet.classList.remove('opacity-100','z-50');
-                sheet.classList.add('opacity-0','pointer-events-none');
+                sheet.classList.remove('opacity-100', 'z-50');
+                sheet.classList.add('opacity-0', 'pointer-events-none');
             }, 300);
             currentOrderForDetails = null;
         }
@@ -2259,43 +2230,43 @@
             try {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                doc.setFontSize(18).text('Order Details',20,20);
+                doc.setFontSize(18).text('Order Details', 20, 20);
                 let y = 40;
-                doc.setFontSize(14).text('Order Summary',20,y); y+=10;
+                doc.setFontSize(14).text('Order Summary', 20, y); y += 10;
                 doc.setFontSize(11);
-                doc.text(`Order ID: ${currentOrderForDetails.orderId||'N/A'}`,20,y); y+=8;
-                doc.text(`Company: ${currentOrderForDetails.company||'N/A'}`,20,y); y+=8;
-                doc.text(`Status: ${currentOrderForDetails.statusText||'Pending'}`,20,y); y+=8;
-                if (currentOrderForDetails.deliveryDate) { doc.text(`Delivery Date: ${new Date(currentOrderForDetails.deliveryDate).toLocaleDateString()}`,20,y); y+=8; }
-                if (currentOrderForDetails.deliveryTime) { doc.text(`Delivery Time: ${currentOrderForDetails.deliveryTime}`,20,y); y+=8; }
+                doc.text(`Order ID: ${currentOrderForDetails.orderId || 'N/A'}`, 20, y); y += 8;
+                doc.text(`Company: ${currentOrderForDetails.company || 'N/A'}`, 20, y); y += 8;
+                doc.text(`Status: ${currentOrderForDetails.statusText || 'Pending'}`, 20, y); y += 8;
+                if (currentOrderForDetails.deliveryDate) { doc.text(`Delivery Date: ${new Date(currentOrderForDetails.deliveryDate).toLocaleDateString()}`, 20, y); y += 8; }
+                if (currentOrderForDetails.deliveryTime) { doc.text(`Delivery Time: ${currentOrderForDetails.deliveryTime}`, 20, y); y += 8; }
                 if (currentOrderForDetails.customerDetails) {
-                    y+=5; doc.setFontSize(14).text('Recipient Information',20,y); y+=10; doc.setFontSize(11);
-                    doc.text(`Recipient: ${currentOrderForDetails.customerDetails.recipient_name||currentOrderForDetails.customerDetails.full_name||currentOrderForDetails.customerDetails.name||'N/A'}`,20,y); y+=8;
-                    doc.text(`Phone: ${currentOrderForDetails.customerDetails.recipient_phone||currentOrderForDetails.customerDetails.phone_number||'N/A'}`,20,y); y+=8;
-                    doc.text(`Email: ${currentOrderForDetails.customerDetails.recipient_email||currentOrderForDetails.customerDetails.email||'N/A'}`,20,y); y+=8;
+                    y += 5; doc.setFontSize(14).text('Recipient Information', 20, y); y += 10; doc.setFontSize(11);
+                    doc.text(`Recipient: ${currentOrderForDetails.customerDetails.recipient_name || currentOrderForDetails.customerDetails.full_name || currentOrderForDetails.customerDetails.name || 'N/A'}`, 20, y); y += 8;
+                    doc.text(`Phone: ${currentOrderForDetails.customerDetails.recipient_phone || currentOrderForDetails.customerDetails.phone_number || 'N/A'}`, 20, y); y += 8;
+                    doc.text(`Email: ${currentOrderForDetails.customerDetails.recipient_email || currentOrderForDetails.customerDetails.email || 'N/A'}`, 20, y); y += 8;
                 }
                 if (currentOrderForDetails.orderItems?.length) {
-                    y+=5; doc.setFontSize(14).text('Order Items',20,y); y+=10; doc.setFontSize(11);
-                    currentOrderForDetails.orderItems.forEach((it,i)=>{
-                        const name = it.productName||it.name||'Unknown Product';
-                        const qty = it.productQty||1;
-                        const price = it.productPrice||0;
-                        doc.text(`${i+1}. ${name} (Qty: ${qty}) - GHS${(price*qty).toFixed(2)}`,20,y); y+=8;
-                        if (y>270) { doc.addPage(); y=20; }
+                    y += 5; doc.setFontSize(14).text('Order Items', 20, y); y += 10; doc.setFontSize(11);
+                    currentOrderForDetails.orderItems.forEach((it, i) => {
+                        const name = it.productName || it.name || 'Unknown Product';
+                        const qty = it.productQty || 1;
+                        const price = it.productPrice || 0;
+                        doc.text(`${i + 1}. ${name} (Qty: ${qty}) - GHS${(price * qty).toFixed(2)}`, 20, y); y += 8;
+                        if (y > 270) { doc.addPage(); y = 20; }
                     });
                 }
-                y+=5; doc.setFontSize(14).text('Price Breakdown',20,y); y+=10; doc.setFontSize(11);
-                const sub = parseFloat(currentOrderForDetails.subtotal)||parseFloat(currentOrderForDetails.total)||0;
-                const fee = parseFloat(currentOrderForDetails.serviceFee)||0.10;
-                const tot = parseFloat(currentOrderForDetails.total)||0;
-                doc.text(`Subtotal: GHS${sub.toFixed(2)}`,20,y); y+=8;
-                doc.text(`Service Fee: GHS${fee.toFixed(2)}`,20,y); y+=8;
-                doc.text(`Total: GHS${tot.toFixed(2)}`,20,y);
-                const fileName = `order_${currentOrderForDetails.orderId||Date.now()}.pdf`;
+                y += 5; doc.setFontSize(14).text('Price Breakdown', 20, y); y += 10; doc.setFontSize(11);
+                const sub = parseFloat(currentOrderForDetails.subtotal) || parseFloat(currentOrderForDetails.total) || 0;
+                const fee = parseFloat(currentOrderForDetails.serviceFee) || 0.20;
+                const tot = parseFloat(currentOrderForDetails.total) || 0;
+                doc.text(`Subtotal: GHS${sub.toFixed(2)}`, 20, y); y += 8;
+                doc.text(`Service Fee: GHS${fee.toFixed(2)}`, 20, y); y += 8;
+                doc.text(`Total: GHS${tot.toFixed(2)}`, 20, y);
+                const fileName = `order_${currentOrderForDetails.orderId || Date.now()}.pdf`;
                 const isMobile = window.Capacitor?.isNativePlatform?.();
                 if (isMobile) await savePdfToMobile(doc, fileName);
                 else doc.save(fileName);
-            } catch (err) { alert('Error generating PDF: '+err.message); }
+            } catch (err) { alert('Error generating PDF: ' + err.message); }
         }
 
         async function savePdfToMobile(doc, fileName) {
@@ -2309,7 +2280,7 @@
                 }
             } catch (err) {
                 alert(`⚠️ Could not save PDF. Error: ${err.message}\nAttempting web fallback...`);
-                try { new jsPDF().text('Order PDF',20,20).save(fileName); } catch { alert('Could not save PDF.'); }
+                try { new jsPDF().text('Order PDF', 20, 20).save(fileName); } catch { alert('Could not save PDF.'); }
             }
         }
 
@@ -2317,8 +2288,8 @@
             const sheet = document.getElementById('returnPickupsSheet');
             const content = document.getElementById('returnPickupsContent');
             window.currentReturnOrder = order;
-            sheet.classList.remove('opacity-0','pointer-events-none');
-            sheet.classList.add('opacity-100','z-50');
+            sheet.classList.remove('opacity-0', 'pointer-events-none');
+            sheet.classList.add('opacity-100', 'z-50');
             setTimeout(() => content.classList.remove('translate-y-full'), 10);
         }
         function closeReturnPickupsSheet() {
@@ -2326,8 +2297,8 @@
             const content = document.getElementById('returnPickupsContent');
             content.classList.add('translate-y-full');
             setTimeout(() => {
-                sheet.classList.remove('opacity-100','z-50');
-                sheet.classList.add('opacity-0','pointer-events-none');
+                sheet.classList.remove('opacity-100', 'z-50');
+                sheet.classList.add('opacity-0', 'pointer-events-none');
             }, 300);
         }
         function selectReturnOption(reason) {
@@ -2386,26 +2357,27 @@
             const prev = localStorage.getItem('previousPage');
             if (prev && prev !== location.pathname.split('/').pop()) location.href = prev;
         });
-        document.addEventListener('DOMContentLoaded', () => { if (!localStorage.getItem('previousPage')) localStorage.setItem('previousPage','schedule-history.html'); });
+        document.addEventListener('DOMContentLoaded', () => { if (!localStorage.getItem('previousPage')) localStorage.setItem('previousPage', 'schedule-history.html'); });
 
-        window.showComingSoonModal = function() {
-            const o = document.createElement('div'); o.id='comingSoonModal'; o.className='fixed inset-0 z-50 flex items-center justify-center p-9'; o.style.cssText='display:flex;backdrop-filter:blur(20px);background-color:rgba(0,0,0,0.5);';
-            const c = document.createElement('div'); c.className='rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]'; c.style.cssText='background-color:var(--modal-bg);border-color:var(--modal-border);';
+        window.showComingSoonModal = function () {
+            const o = document.createElement('div'); o.id = 'comingSoonModal'; o.className = 'fixed inset-0 z-50 flex items-center justify-center p-9'; o.style.cssText = 'display:flex;backdrop-filter:blur(20px);background-color:rgba(0,0,0,0.5);';
+            const c = document.createElement('div'); c.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]'; c.style.cssText = 'background-color:var(--modal-bg);border-color:var(--modal-border);';
             c.innerHTML = `<div class="flex flex-col items-center justify-center w-full h-full"><div class="flex flex-col items-center justify-center mb-6"><div class="w-[80px] h-[80px] rounded-full flex items-center justify-center mb-4" style="background-color:rgba(59,116,255,0.1);"><svg class="w-[40px] h-[40px] text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></div><h2 class="text-white text-[20px] font-bold text-center mb-3">Coming Soon!</h2><p class="text-gray-400 text-[14px] text-center leading-[20px] mb-6">We're working on an exciting new feature for returning dispenser bottles to companies after use. This will help you easily manage returns and contribute to sustainability.</p><div class="w-full text-left mb-6"><div class="text-gray-400 text-[13px] space-y-2"><div class="flex items-center gap-2"><svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2"/></svg><span>Easy bottle return scheduling</span></div><div class="flex items-center gap-2"><svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2"/></svg><span>Track return status</span></div><div class="flex items-center gap-2"><svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2"/></svg><span>Eco-friendly recycling program</span></div><div class="flex items-center gap-2"><svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2"/></svg><span>Rewards for returns</span></div></div></div></div><div class="w-full flex items-center"><button onclick="closeComingSoonModal()" class="h-[37px] flex-1 rounded-[100px] flex items-center justify-center border transition-all hover:opacity-80" style="background-color:rgba(59,116,255,0.25);border-color:rgba(59,116,255,0.3);"><span class="text-white text-base font-semibold capitalize">Got it!</span></button></div></div>`;
             o.appendChild(c); document.body.appendChild(o);
-            o.addEventListener('click', e => { if (e.target===o) closeComingSoonModal(); });
+            o.addEventListener('click', e => { if (e.target === o) closeComingSoonModal(); });
         };
-        window.closeComingSoonModal = function() { document.getElementById('comingSoonModal')?.remove(); };
+        window.closeComingSoonModal = function () { document.getElementById('comingSoonModal')?.remove(); };
     </script>
     <script src="js/notifications.js"></script>
 
     <!-- Delete Account Modals (unchanged) -->
     <script>
-        window.showDeleteConfirm = function() { /* ... unchanged ... */ };
-        window.cancelDeleteAccount = function() { /* ... unchanged ... */ };
-        window.confirmDeleteAccount = async function() { /* ... unchanged ... */ };
-        window.showDeleteSuccessModal = function() { /* ... unchanged ... */ };
+        window.showDeleteConfirm = function () { /* ... unchanged ... */ };
+        window.cancelDeleteAccount = function () { /* ... unchanged ... */ };
+        window.confirmDeleteAccount = async function () { /* ... unchanged ... */ };
+        window.showDeleteSuccessModal = function () { /* ... unchanged ... */ };
     </script>
 
 </body>
+
 </html>

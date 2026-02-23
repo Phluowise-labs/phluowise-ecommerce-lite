@@ -9,9 +9,16 @@ class ScheduleHistoryManager {
         this.hasMore = true;
     }
 
-    // Set the current user ID
+    // Set the current user ID (prefer explicit id, fallback to localStorage)
     setUserId(userId) {
-        this.currentUserId = userId;
+        const idFromStorage = (typeof localStorage !== 'undefined') ? (localStorage.getItem('customer_id') || localStorage.getItem('customerId') || localStorage.getItem('user_id')) : null;
+        this.currentUserId = userId || idFromStorage;
+    }
+
+    // Retrieve current customer id from localStorage
+    getCurrentCustomerId() {
+        if (typeof localStorage === 'undefined' || localStorage == null) return null;
+        return localStorage.getItem('customer_id') || localStorage.getItem('customerId') || localStorage.getItem('user_id');
     }
 
     // Fetch schedule history from the API
@@ -189,7 +196,13 @@ window.scheduleHistoryManager = new ScheduleHistoryManager();
 // Helper function to initialize and fetch schedule history
 async function initializeScheduleHistory(userId) {
     try {
-        window.scheduleHistoryManager.setUserId(userId);
+        // If no userId is provided, try to read from localStorage
+        const idFromStorage = (typeof localStorage !== 'undefined') ? (localStorage.getItem('customer_id') || localStorage.getItem('customerId') || localStorage.getItem('user_id')) : null;
+        const effectiveUserId = userId || idFromStorage;
+        if (!effectiveUserId) {
+            throw new Error('No authenticated user id found in localStorage');
+        }
+        window.scheduleHistoryManager.setUserId(effectiveUserId);
         const result = await window.scheduleHistoryManager.fetchScheduleHistory();
         console.log('Schedule history loaded:', result);
         return result;

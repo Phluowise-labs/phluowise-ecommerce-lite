@@ -30,6 +30,8 @@
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=verified" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=transition_slide" />
     <link rel="stylesheet" href="css/notifications.css" />
     <link rel="stylesheet" href="css/mobile-responsive.css" />
     <script>
@@ -1994,9 +1996,15 @@
             <button id="toggleViewBtn" onclick="toggleView()"
                 class="mt-2 flex items-center justify-center rounded-[10px]"
                 style="height: 48px; width: 44px; background-color: #292B2F;">
+                <!-- List View Icon (Hamburger) -->
                 <svg id="toggleIcon" class="w-7 h-6" fill="none" stroke="#FFFFFF" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
+                <!-- Swipe View Icon (Transition Slide) -->
+                <span id="swipeViewIcon" class="material-symbols-outlined hidden"
+                    style="font-size: 28px; color: #FFFFFF;">
+                    transition_slide
+                </span>
             </button>
         </div>
 
@@ -2795,16 +2803,20 @@
 
         // Get verified icon CSS class based on verification tier
         function getVerifiedIconClass(tier) {
+            console.log(`🔍 [DEBUG] Getting icon class for tier: ${tier}`);
             let cssClass;
             switch (tier) {
                 case 2:
                     cssClass = 'verified-checkmark-tier2'; // Blue icon
+                    console.log(`🔍 [DEBUG] Tier 2 -> Blue icon: ${cssClass}`);
                     break;
                 case 3:
                     cssClass = 'verified-checkmark-tier3'; // Gold icon
+                    console.log(`🔍 [DEBUG] Tier 3 -> Gold icon: ${cssClass}`);
                     break;
                 default:
                     cssClass = 'verified-checkmark-tier2'; // Default to blue (tier2)
+                    console.log(`🔍 [DEBUG] Default tier (${tier}) -> Blue icon: ${cssClass}`);
                     break;
             }
             return cssClass;
@@ -2830,6 +2842,7 @@
                 if (window.distanceCalculator) {
                     const result = await window.distanceCalculator.calculateDistanceAndTime(fromCoords, toCoords, { mode: 'driving' });
                     const distance = result.distance ? result.distance.km : null;
+                    console.log(`✅ Distance API: ${distance?.toFixed(1)}km, Time: ${result.duration?.text}`);
                     return {
                         distance: distance,
                         time: result.duration ? result.duration.text : 'Unknown distance',
@@ -2839,6 +2852,7 @@
                     // Enhanced fallback calculation with road factors
                     const distanceKm = calculateEnhancedDistance(fromCoords, toCoords);
                     const timeEstimate = distanceKm ? generateEstimatedTime(distanceKm) : 'Unknown distance';
+                    console.log(`🔄 Fallback calculation: ${distanceKm?.toFixed(1)}km, Time: ${timeEstimate}`);
                     return {
                         distance: distanceKm,
                         time: timeEstimate,
@@ -2866,23 +2880,28 @@
                 !toCoords.lat || !toCoords.lng ||
                 isNaN(fromCoords.lat) || isNaN(fromCoords.lng) ||
                 isNaN(toCoords.lat) || isNaN(toCoords.lng)) {
+                console.warn('❌ Invalid coordinates in calculateEnhancedDistance', { fromCoords, toCoords });
                 return null;
             }
 
             // Calculate straight-line distance using Haversine
             const straightDistance = haversineDistance(fromCoords, toCoords);
+            console.log(`📏 Straight line distance: ${straightDistance?.toFixed(1)}km`);
 
             // Validate the calculated distance
             if (!straightDistance || isNaN(straightDistance) || straightDistance <= 0) {
+                console.warn('⚠️ Invalid distance calculated in haversine:', straightDistance);
                 return null;
             }
 
             // Apply road network factor (1.3 for urban areas)
             const roadFactor = 1.3;
             const enhancedDistance = straightDistance * roadFactor;
+            console.log(`🛣️ Enhanced distance (with ${roadFactor}x road factor): ${enhancedDistance?.toFixed(1)}km`);
 
             // Final validation
             if (isNaN(enhancedDistance) || enhancedDistance <= 0) {
+                console.warn('⚠️ Invalid enhanced distance calculated:', enhancedDistance);
                 return null;
             }
 
@@ -2926,8 +2945,12 @@
 
             // Validate calculated time
             if (isNaN(timeMinutes) || timeMinutes <= 0) {
+                console.warn('⚠️ Calculated time is invalid:', timeMinutes);
                 return 'Unknown time';
             }
+
+            // Log the calculation for debugging
+            console.log(`📋 Distance: ${distance.toFixed(1)}km → Time: ${timeMinutes}min`);
 
             if (timeMinutes < 5) return 'Less than 5 min';
             if (timeMinutes < 15) return `${timeMinutes} min`;
@@ -2939,6 +2962,8 @@
         }
 
         async function loadServiceData() {
+            console.log('🔄 Loading services with web2app cache-first strategy...');
+
             try {
                 // Check if user is authenticated
                 if (!window.account && loadRetryCount < MAX_RETRIES) {
@@ -2964,6 +2989,7 @@
                 if (window.cacheManager) {
                     const cachedServices = window.cacheManager.getCache('companies'); // Use same key as home.html
                     if (cachedServices && cachedServices.length > 0) {
+                        console.log('📦 Loading services from cache for instant UI:', cachedServices.length);
                         services = cachedServices;
                         servicesDataLoaded = true;
 
@@ -2999,6 +3025,7 @@
             }
 
             try {
+                console.log('🔄 Background refresh - checking for new service data...');
                 const freshData = await window.companyDataManager.fetchCompanyData();
 
                 // Always check for verification tier changes, even if timestamps haven't changed
@@ -3006,12 +3033,14 @@
 
                 // Check if data has changed OR verification tiers changed
                 if (hasServicesChanged(freshData, services) || verificationTiersChanged) {
+                    console.log('🆕 New service data or verification tiers detected - updating cache and UI');
                     services = freshData;
                     servicesDataLoaded = true;
 
                     // Update cache
                     if (window.cacheManager) {
                         window.cacheManager.setCache('companies', freshData);
+                        console.log('💾 Services cache updated with fresh data');
                     }
 
                     // Re-initialize serviceProducts
@@ -3024,6 +3053,8 @@
 
                     // Update UI
                     renderServices();
+                } else {
+                    console.log('📊 No new service data - cache is current');
                 }
             } catch (error) {
                 console.error('❌ Background refresh for services failed:', error);
@@ -3047,6 +3078,7 @@
                 const oldTier = oldService.verification_tier || 2;
 
                 if (newTier !== oldTier) {
+                    console.log(`🔄 Verification tier changed for ${newService.name}: ${oldTier} → ${newTier}`);
                     return true;
                 }
             }
@@ -3080,12 +3112,14 @@
         async function loadServicesFromDatabaseWithFallback() {
             try {
                 // Try database first
+                console.log('📡 Loading services from database...');
                 services = await window.companyDataManager.fetchCompanyData();
                 servicesDataLoaded = true;
 
                 // Cache the loaded services
                 if (window.cacheManager) {
                     window.cacheManager.setCache('companies', services);
+                    console.log('💾 Services cached for offline access');
                 }
 
                 // Initialize serviceProducts object for each company
@@ -3096,6 +3130,8 @@
                 });
 
                 renderServices();
+                console.log(`✅ Loaded ${services.length} services from database`);
+
             } catch (error) {
                 console.error('❌ Database load for services failed:', error);
 
@@ -3103,6 +3139,7 @@
                 if (window.cacheManager) {
                     const cachedServices = window.cacheManager.getCache('companies');
                     if (cachedServices && cachedServices.length > 0) {
+                        console.log('📦 Using cache manager as fallback for services:', cachedServices.length);
                         services = cachedServices;
                         servicesDataLoaded = true;
 
@@ -3119,6 +3156,7 @@
                 }
 
                 // Fallback 2: Use companyDataManager fallback data
+                console.log('🔄 Using companyDataManager fallback data for services...');
                 services = window.companyDataManager.getFallbackData();
                 servicesDataLoaded = true;
 
@@ -3135,22 +3173,30 @@
                 });
 
                 renderServices();
+                console.log('⚠️ Using fallback data for services - app works offline');
             }
         }
 
         // Render service cards dynamically
         async function renderServices() {
+            console.log('🔍 [DEBUG] renderServices() called');
+            console.log('🔍 [DEBUG] Total services array length:', services.length);
+            console.log('🔍 [DEBUG] Services array:', services);
+
             const listView = document.getElementById('listView');
             listView.innerHTML = '';
 
             // Calculate distances for all services if user location is available
             let servicesWithDistance = services;
             if (userLocation) {
+                console.log('📍 User location available:', userLocation);
+                console.log('📍 Calculating distances for', services.length, 'services...');
                 servicesWithDistance = await Promise.all(
                     services.map(async (service) => {
                         if (service.coordinates && service.coordinates.lat && service.coordinates.lng) {
                             try {
                                 const distanceResult = await calculateDistanceAndTime(userLocation, service.coordinates);
+                                console.log(`✅ ${service.name}: Distance=${distanceResult.distance?.toFixed(1)}km, Time=${distanceResult.time}, Accuracy=${distanceResult.accuracy}`);
                                 return {
                                     ...service,
                                     distance: distanceResult.distance,
@@ -3167,9 +3213,12 @@
                         }
                     })
                 );
+            } else {
+                console.log('📍 User location not available yet, using default/stored times');
             }
 
             if (servicesWithDistance.length === 0) {
+                console.log('🔍 [DEBUG] No services found - showing empty state');
                 // Show professional empty state when no companies are available
                 listView.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full text-white text-center p-8" style="min-height: 400px;">
@@ -3204,11 +3253,16 @@
             // Apply verification tier filtering - hide tier1 companies, show tier2 and tier3
             const filteredServices = servicesWithDistance.filter(service => {
                 const tier = service.verification_tier || 2; // Default to tier2 if not set
+                console.log(`🔍 [DEBUG] Service: ${service.name}, Tier: ${tier}, verification_tier field: ${service.verification_tier}`);
                 const shouldShow = tier !== 1; // Hide tier1 companies
+                console.log(`🔍 [DEBUG] Should show ${service.name}: ${shouldShow} (tier ${tier})`);
                 return shouldShow;
             });
 
+            console.log(`🔍 [DEBUG] Filtered services: ${filteredServices.length} out of ${servicesWithDistance.length}`);
+
             filteredServices.forEach((service, index) => {
+                console.log(`🔍 [DEBUG] Creating card for service: ${service.name}`);
                 const serviceCard = createServiceCard(service, index);
                 listView.appendChild(serviceCard);
             });
@@ -3536,18 +3590,21 @@
         function toggleView() {
             viewSwipe = !viewSwipe;
             const toggleIcon = document.getElementById('toggleIcon');
+            const swipeViewIcon = document.getElementById('swipeViewIcon');
             const listView = document.getElementById('listView');
             const swipeView = document.getElementById('swipeView');
 
             if (viewSwipe) {
                 // Switch to swipe view
-                toggleIcon.setAttribute('stroke', '#3B74FF');
+                toggleIcon.classList.add('hidden');
+                swipeViewIcon.classList.remove('hidden');
                 listView.classList.add('hidden');
                 swipeView.classList.remove('hidden');
                 renderSwipeCard(currentCardIndex);
             } else {
                 // Switch to list view
-                toggleIcon.setAttribute('stroke', '#FFFFFF');
+                toggleIcon.classList.remove('hidden');
+                swipeViewIcon.classList.add('hidden');
                 listView.classList.remove('hidden');
                 swipeView.classList.add('hidden');
             }
@@ -4534,6 +4591,8 @@
             if (addressField && userProfile.address) {
                 addressField.value = userProfile.address;
             }
+
+            console.log('🔍 Loaded user profile data:', { name, phone, email });
         }
 
         // Load user data for menu display
@@ -4593,7 +4652,7 @@
                 menuUserEmail.textContent = userData.email || '';
             }
 
-
+            console.log('Menu user data loaded:', { name: userData.name || userData.full_name, email: userData.email });
         }
 
         // Save user address to localStorage when updated
@@ -4640,14 +4699,17 @@
                 // Get current user from Appwrite
                 if (window.account) {
                     const user = await window.account.get();
+                    console.log('🔍 Current user:', user.$id);
 
                     // Get customer profile from database
                     const customerProfile = await getCustomerProfile(user.$id);
+                    console.log(' Customer profile found:', !!customerProfile);
 
                     if (customerProfile) {
                         // Fix common name variations from database
                         if (customerProfile.full_name === 'Asar') {
                             customerProfile.full_name = 'Asare';
+                            console.log(' Fixed DB name: Asar → Asare');
                         }
 
                         // Update orderData with customer details
@@ -4689,10 +4751,14 @@
                         // Update cache manager if available
                         if (window.cacheManager) {
                             window.cacheManager.setCache('user_profile', userProfileData);
+                            console.log('💾 User profile cached with fresh database data');
                         }
 
                         // Also store as currentUserId
                         localStorage.setItem('currentUserId', customerProfile.$id);
+
+                        console.log(' Customer data loaded:', orderData.customer);
+                        console.log(' Customer data stored in localStorage for schedule history');
 
                         // Update "You" display fields
                         const youNameDisplay = document.getElementById('youNameDisplay');
@@ -4776,11 +4842,14 @@
             try {
                 // Get current user
                 const user = await window.account.get();
+                console.log('🔍 Current user:', user.$id);
 
                 // Fetch saved recipients from database
                 if (window.OrderManager) {
                     const orderManager = new window.OrderManager();
                     const recipients = await orderManager.getSavedRecipients(user.$id);
+
+                    console.log('📋 Retrieved recipients:', recipients);
 
                     // Update global savedRecipients array
                     savedRecipients = recipients || [];
@@ -5391,10 +5460,10 @@
                 const productItem = document.createElement('div');
                 productItem.className = 'review-product-item';
                 productItem.innerHTML = `
-                    <img src="${sanitize(product.image)}" alt="${sanitize(product.name || product.product_name || 'Unknown Product')}" class="review-product-image">
+                    <img src="${product.image}" alt="${product.name || product.product_name || 'Unknown Product'}" class="review-product-image">
                     <div class="review-product-details">
-                        <div class="review-product-name">${sanitize(product.quantity)}x ${sanitize(product.name || product.product_name || 'Unknown Product')}</div>
-                        <div class="review-product-price">GHS ${sanitize((parseFloat(product.price) * product.quantity).toFixed(2))}</div>
+                        <div class="review-product-name">${product.quantity}x ${product.name || product.product_name || 'Unknown Product'}</div>
+                        <div class="review-product-price">GHS ${(parseFloat(product.price) * product.quantity).toFixed(2)}</div>
                     </div>
                 `;
                 productsList.appendChild(productItem);
@@ -5555,7 +5624,7 @@
 
             // Initialize Paystack payment
             const handler = PaystackPop.setup({
-                key: window.appwriteConfig.PAYSTACK_PUBLIC_KEY, // SECURITY FIX (VULN-01): key centralised in appwriteConfig.js
+                key: window.appwriteConfig.PAYSTACK_PUBLIC_KEY, // SECURITY FIX: key centralised in appwriteConfig.js
                 email: orderData.recipient.email || orderData.customer.email || 'customer@example.com',
                 amount: serviceFee * 100, // Convert to kobo/cents
                 currency: 'GHS',
@@ -5572,8 +5641,6 @@
         }
 
         function handleServiceFeePaymentSuccess(response) {
-            // SECURITY: no PII in success log
-            devLog('Service fee payment callback received.');
 
             // Hide processing modal
             const processingModal = document.getElementById('paymentProcessingModal');
@@ -5590,11 +5657,12 @@
                 paidAt: new Date().toISOString()
             };
 
-            // Show success and verify server-side before creating order (SECURITY FIX VULN-02)
+            // Store transaction ref but do NOT overwrite payment network
+            orderData.transactionId = response.reference;
+
+            // SECURITY: Verify payment server-side before proceeding
             showSuccess('Service fee paid! Confirming payment...');
             setTimeout(async () => {
-                // Only attempt server verification when hosted on a real server.
-                // Skip in Cordova/WebView (file:// protocol) — no backend available.
                 const isWebServer = window.location.protocol === 'https:' || window.location.protocol === 'http:';
                 if (isWebServer) {
                     try {
@@ -5603,8 +5671,7 @@
                             expectedAmount: Math.round(calculateServiceFee() * 100),
                             currency: 'GHS'
                         };
-                        // SECURITY: HMAC-SHA256 sign the payload so the server
-                        // can detect tampering in transit
+                        // HMAC-SHA256 sign the payload to detect tampering in transit
                         const signature = await PhluowiseEncryption.signPaymentPayload(verifyPayload);
                         const verifyResp = await fetch('/api/verify-payment', {
                             method: 'POST',
@@ -5617,12 +5684,12 @@
                         if (verifyResp.ok) {
                             const verifyData = await verifyResp.json();
                             if (!verifyData.verified) {
-                                showError('Payment verification failed. Please contact support if you were charged.');
+                                showError('Payment verification failed. Please contact support if charged.');
                                 return;
                             }
                         }
                     } catch (verifyErr) {
-                        devWarn('Payment verification API not reachable.');
+                        // Payment verification API not reachable — continue in Cordova
                     }
                 }
                 nextStep();
@@ -5630,7 +5697,7 @@
         }
 
         function handleServiceFeePaymentClose() {
-            devLog('Service fee payment window closed.');
+            // Payment window closed by user
 
             // Hide processing modal
             const processingModal = document.getElementById('paymentProcessingModal');
@@ -5652,6 +5719,16 @@
             if (!validateCurrentStep()) {
                 return;
             }
+
+            // Prevent double submission
+            const payBtn = document.getElementById('payBtn');
+            if (payBtn && payBtn.disabled) {
+                return;
+            }
+            if (payBtn) {
+                payBtn.disabled = true;
+            }
+
             nextStep();
         }
 
@@ -5791,7 +5868,7 @@
                 if (!resp.ok) throw new Error('Server API failed');
 
                 const data = await resp.json();
-                devLog('Rating saved via server API (services).');
+                console.log('✅ Rating saved via server API (services)', data);
                 currentStep = 11;
                 goToStep('ratingSuccess');
                 return;
@@ -5830,7 +5907,7 @@
                         window.ID.unique(),
                         payload
                     );
-                    devLog('Rating saved to Appwrite (services).');
+                    console.log('✅ Rating saved to Appwrite (services)', payload);
 
                     // Proceed to success only after saving
                     currentStep = 11;
@@ -5866,7 +5943,7 @@
 
                 reviewsLocal.push(newReview);
                 localStorage.setItem(storageKey, JSON.stringify(reviewsLocal));
-                devLog('Rating saved locally (services).')
+                console.log('💾 Rating saved locally (services)', { storageKey, newReview });
 
                 currentStep = 11;
                 goToStep('ratingSuccess');
@@ -5896,20 +5973,24 @@
         }
 
         async function completeOrderFlow() {
-            // SECURITY: do NOT log orderData — contains customer PII
-            devLog('completeOrderFlow called.');
-            devLog('completeOrderFlow: selectedProducts count:', selectedProducts?.length);
+            // console.log('📝 Order completed with rating:', userRating);
+            // console.log('💾 Order data to save:', orderData);
+
+            // CRITICAL: Ensure products are preserved before saving
+            console.log('🔍 completeOrderFlow - selectedProducts before save:', selectedProducts);
+            console.log('🔍 completeOrderFlow - orderData.products before save:', orderData.products);
 
             // Make sure products are set in orderData
             if (!orderData.products || orderData.products.length === 0) {
-                devLog('Products missing in orderData, copying from selectedProducts.');
-                orderData.products = [...selectedProducts];
-                devLog('Products count copied:', orderData.products.length);
+                console.log('⚠️ Products missing in orderData, copying from selectedProducts');
+                orderData.products = [...selectedProducts]; // Create a copy
+                console.log('✅ Products copied to orderData:', orderData.products);
             }
 
-            devLog('About to save order...');
+            // CRITICAL: Save order to database and AWAIT completion before clearing products
+            console.log('⏳ About to save order... waiting for completion');
             await saveOrderToHistory();
-            devLog('Order save completed.');
+            console.log('✅ Order save completed');
 
             // Show success message (GREEN)
             showSuccess(`Thank you for your order! Order ID: ${orderData.orderId}. Your order has been confirmed and will be processed.`);
@@ -5945,13 +6026,15 @@
         // Save order to database with caching support
         async function saveOrderToHistory() {
             try {
-                devLog('Starting to save order to database...');
+                console.log('🚀 Starting to save order to database...');
+                console.log('📦 Order data to save:', orderData);
+                console.log('📦 selectedProducts at save time:', selectedProducts);
 
                 // CRITICAL: Ensure products are set - use selectedProducts as ultimate fallback
                 if (!orderData.products || orderData.products.length === 0) {
-                    devLog('orderData.products empty, using selectedProducts.');
+                    console.log('⚠️ orderData.products is empty, using selectedProducts as fallback');
                     orderData.products = selectedProducts || [];
-                    devLog('Products count set:', orderData.products.length);
+                    console.log('📦 Products set from selectedProducts:', orderData.products);
 
                     // Double-check that we have products
                     if (!orderData.products || orderData.products.length === 0) {
@@ -5979,7 +6062,11 @@
                 }
 
                 // Save to database using OrderManager
-                devLog('Checking OrderManager/Appwrite availability.');
+                console.log('🔍 Checking OrderManager availability:', !!window.OrderManager);
+                console.log('🔍 Checking Appwrite config:', !!window.appwriteConfig);
+                console.log('🔍 Checking databases SDK:', !!window.databases);
+                console.log('🔍 Checking customer data:', !!orderData.customer);
+                console.log('🔍 Customer ID:', orderData.customer?.id);
 
                 if (window.OrderManager && window.appwriteConfig && window.databases && orderData.customer && orderData.customer.id) {
                     try {
@@ -5990,20 +6077,31 @@
                         console.log('🔍 Selected company data:', selectedCompanyData);
                         console.log('🔍 Branch ID from company:', selectedCompanyData?.branch_id);
 
+                        // Resolve paymentMethod: 'delivery' or the actual network (mtn, vodafone, airteltigo)
+                        let resolvedPaymentMethod = 'delivery';
+                        if (selectedPaymentMethod === 'delivery') {
+                            resolvedPaymentMethod = 'delivery';
+                        } else if (orderData.payment && orderData.payment.network) {
+                            resolvedPaymentMethod = orderData.payment.network; // 'mtn', 'vodafone', 'airteltigo'
+                        } else {
+                            const networkSelect = document.getElementById('mobileNetwork');
+                            resolvedPaymentMethod = (networkSelect && networkSelect.value) ? networkSelect.value : 'mobile';
+                        }
+
                         const dbOrderData = {
                             // Required customer field
                             customer_id: orderData.customer.id,
 
-                            // Order details (other customer details to be added later when columns exist)
-                            company_id: selectedCompanyData?.id || '',
+                            // Order details
+                            company_id: selectedCompanyData?.company_id || '',
                             branch_id: selectedCompanyData?.branch_id || '',
                             deliveryTime: orderData.deliveryTime,
                             deliveryDate: orderData.deliveryDate,
                             orderComment: orderData.deliveryInstructions || '',
                             deliveryAddress: orderData.recipient.address,
-                            paymentMethod: orderData.payment?.network || selectedPaymentMethod || 'mobile',
+                            paymentMethod: resolvedPaymentMethod,
                             transactionId: orderData.transactionId || '',
-                            deliveryName: orderData.purchase_recipient_type === 'you' ? (orderData.customer?.full_name || orderData.customer?.name || 'User') : (orderData.recipient.name || ''),
+                            deliveryName: orderData.customer?.full_name || orderData.customer?.name || 'User',
                             deliveryOrgType: orderData.recipient.type || '',
                             total: Number(orderData.total || 0),
                             buyerId: orderData.customer.id
@@ -6142,6 +6240,7 @@
                 try {
                     const sessionData = JSON.parse(customerSession);
                     userName = sessionData.name || 'User';
+                    console.log('🔍 Greeting - customerSession name:', userName);
                 } catch (e) {
                     console.log('Error parsing customerSession for greeting:', e);
                 }
@@ -6152,9 +6251,11 @@
                 if (window.cacheManager) {
                     const userProfile = window.cacheManager.getCache('user_profile') || {};
                     userName = userProfile.name || userProfile.full_name || 'User';
+                    console.log('🔍 Greeting - userProfile name:', userName);
                 } else {
                     const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
                     userName = userProfile.name || userProfile.full_name || 'User';
+                    console.log('🔍 Greeting - localStorage userProfile name:', userName);
                 }
             }
 
@@ -6165,6 +6266,7 @@
                     try {
                         const customer = JSON.parse(customerData);
                         userName = customer.full_name || 'User';
+                        console.log('🔍 Greeting - customerData full_name:', userName);
                     } catch (e) {
                         console.log('Error parsing customerData for greeting:', e);
                     }
@@ -6174,6 +6276,7 @@
             // Fix common name variations
             if (userName === 'Asar') {
                 userName = 'Asare';
+                console.log('🔧 Fixed name: Asar → Asare');
             }
 
             // Get first name only and capitalize properly
@@ -6189,6 +6292,7 @@
                 greeting = `Good Evening, ${displayName}`;
             }
 
+            console.log('🎯 Final greeting:', greeting);
             document.getElementById('greetingText').textContent = greeting;
         }
 
@@ -6200,6 +6304,7 @@
                 }
 
                 const user = await window.account.get();
+                console.log('🔍 Authenticated user:', user.$id);
 
                 // Check if customer data exists
                 if (!orderData.customer || !orderData.customer.id) {
@@ -6249,6 +6354,8 @@
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
+                        console.log("📍 User location obtained");
+                        console.log(`📍 Current location: ${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`);
                         userLocation = {
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
@@ -6257,6 +6364,7 @@
                         renderServices();
                     },
                     (error) => {
+                        console.log("🏠 Using default location (user location unavailable)");
                         userLocation = { lat: 5.6037, lng: -0.1870 }; // Default Accra location
                         // Re-render services with calculated distances
                         renderServices();
@@ -6823,7 +6931,7 @@
                         });
                     })
                     .catch((error) => {
-                        // Suppress service worker registration errors
+                        console.log('Service Worker registration failed:', error);
                     });
             });
         }
@@ -6833,7 +6941,6 @@
 
 <!-- Appwrite SDK and Config -->
 <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
-<script src="js/encryption.js"></script>
 <script src="js/appwriteConfig.js"></script>
 <script src="js/companyData.js"></script>
 <script src="js/cacheManager.js"></script>

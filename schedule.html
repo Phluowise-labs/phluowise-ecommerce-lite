@@ -4586,12 +4586,15 @@
                             paidAt: new Date().toISOString()
                         };
 
-                        // Add payment info to orderData
-                        orderData.payment = {
-                            network: 'Paystack',
-                            transactionRef: response.reference,
-                            status: 'completed'
-                        };
+                        // Store Paystack transaction ref but do NOT overwrite payment network
+                        // The user's actual payment method (delivery/mtn/vodafone/airteltigo) 
+                        // was already set in validatePaymentDetails() — preserve it
+                        orderData.transactionId = response.reference;
+                        if (!orderData.payment) {
+                            orderData.payment = {};
+                        }
+                        orderData.payment.transactionRef = response.reference;
+                        orderData.payment.status = 'completed';
 
                         // SECURITY FIX (VULN-02): Verify payment server-side before creating order.
                         showSuccess('Service fee paid! Confirming payment...');
@@ -4671,10 +4674,10 @@
                             // Initialize OrderManager
                             const orderManager = new OrderManager();
 
-                            // Get current user/customer data
-                            let customerData = null;
+                            // Get current authenticated user
+                            let authUser = null;
                             try {
-                                customerData = await window.account.get();
+                                authUser = await window.account.get();
                             } catch (err) {
                                 // SECURITY FIX (VULN-07): Never fall back to stale localStorage for payment auth.
                                 // Stale data could allow order creation under an expired or revoked session.
@@ -4685,6 +4688,22 @@
                                     return;
                                 }
                                 showError('Unable to verify your session. Please refresh and sign in again.');
+                                return;
+                            }
+
+                            // Fetch the actual customer_tb profile using Auth uid
+                            // customer_id in orders must be customer_tb.$id, NOT the Auth user ID
+                            let customerProfile = null;
+                            try {
+                                customerProfile = await fetchCustomerData(authUser.$id);
+                            } catch (e) {
+                                // silent - will check below
+                            }
+                            if (!customerProfile || !customerProfile.$id) {
+                                showError('Customer profile not found. Please log out and log in again.');
+                                payBtn.disabled = false;
+                                payBtnText?.classList.remove('hidden');
+                                payBtnLoading?.classList.add('hidden');
                                 return;
                             }
 
@@ -4712,20 +4731,35 @@
                             // Generate transaction ID before creating order
                             const transactionId = 'TXN' + Date.now().toString().slice(-8);
 
-                            // Prepare order data
+                            // Resolve paymentMethod correctly:
+                            // - If delivery selected: 'delivery'
+                            // - If mobile money: use the actual network name (mtn, vodafone, airteltigo)
+                            let resolvedPaymentMethod = 'delivery';
+                            if (selectedPaymentMethod === 'delivery') {
+                                resolvedPaymentMethod = 'delivery';
+                            } else if (orderData.payment && orderData.payment.network) {
+                                resolvedPaymentMethod = orderData.payment.network; // 'mtn', 'vodafone', 'airteltigo'
+                            } else {
+                                // Fallback: read directly from the select element
+                                const networkSelect = document.getElementById('mobileNetwork');
+                                resolvedPaymentMethod = (networkSelect && networkSelect.value) ? networkSelect.value : 'mobile';
+                            }
+
+                            // Prepare order data — all IDs come from customer_tb, not Auth
                             const orderPayload = {
-                                buyerId: customerData.$id,
-                                customer_id: customerData.$id,
+                                company_id: branchData.company_id || '',
+                                buyerId: customerProfile.$id,
+                                customer_id: customerProfile.$id,
                                 branchId: branchData.branch_id,
                                 deliveryDate: orderData.deliveryDate,
                                 deliveryTime: orderData.deliveryTime,
                                 deliveryAddress: orderData.recipient.address,
                                 orderComment: orderData.deliveryInstructions || '',
-                                paymentMethod: orderData.payment?.network || 'Pay on Delivery',
-                                transactionId: transactionId, // Add transaction ID
-                                deliveryName: selectedProducts.map(p => p.name).join(', '),
+                                paymentMethod: resolvedPaymentMethod,
+                                transactionId: transactionId,
+                                deliveryName: customerProfile.full_name || authUser.name || 'User',
                                 deliveryOrgType: orderData.recipient.type || 'individual',
-                                total: Number(orderData.total || 0), // Add total amount
+                                total: Number(orderData.total || 0),
                                 purchase_type: orderData.recipient.type === 'you' ? 'self' :
                                     orderData.recipient.type === 'business' ? 'business' : 'someone_else',
                                 // Recipient details (if different from buyer)
@@ -4772,14 +4806,13 @@
 
                                 // If we couldn't get from orderData.recipient (shouldn't happen), try to fetch from customer
                                 if (!recipientName && orderData.recipient.type === 'you') {
-                                    try {
-                                        const customerProfile = await fetchCustomerData(customerData.$id);
-                                        recipientName = customerProfile?.full_name || customerData.name || '';
-                                        recipientPhone = customerProfile?.phone_number || '';
-                                        recipientEmail = customerProfile?.email || customerData.email || '';
-                                    } catch (err) {
-                                    }
+                                    recipientName = customerProfile.full_name || authUser.name || '';
+                                    recipientPhone = customerProfile.phone_number || '';
+                                    recipientEmail = customerProfile.email || authUser.email || '';
                                 }
+
+                                // Determine self_pickup and self_delivery_address from recipient type
+                                const isSelfPickup = (orderData.recipient.type === 'you');
 
                                 const recipientPayload = {
                                     purchase_recipient_type: orderData.recipient.type || 'you',
@@ -4790,8 +4823,8 @@
                                     recipient_type: orderData.recipient.type || '',
                                     business_name: orderData.recipient.type === 'business' ? orderData.recipient.businessName : '',
                                     business_type: orderData.recipient.type === 'business' ? orderData.recipient.businessType : '',
-                                    self_pickup: orderData.recipient.selfPickup || false,
-                                    self_delivery_address: orderData.recipient.selfDeliveryAddress || ''
+                                    self_pickup: isSelfPickup,
+                                    self_delivery_address: isSelfPickup ? (orderData.recipient.address || '') : ''
                                 };
 
 
