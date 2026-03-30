@@ -304,6 +304,7 @@ class ScheduleNotificationManager {
         // Play sound if needed (the timestamp check is handled in playBellSound method)
         if (shouldPlaySound) {
             this.playBellSound();
+            this.sendSystemPushNotification(notificationsToShow);
             this.soundPlayedForCurrentState = true;
         }
 
@@ -363,6 +364,59 @@ class ScheduleNotificationManager {
         }
     }
 
+    // Call System Push Notifications
+    sendSystemPushNotification(notificationsToShow) {
+        // Only send if the user has enabled it in settings
+        const isPushEnabled = localStorage.getItem('phluowisePushEnabled');
+        if (isPushEnabled !== 'true') {
+            return;
+        }
+
+        // Make sure the browser supports the Notification API
+        if (!('Notification' in window)) {
+            return;
+        }
+
+        // Only send a push notification if permissions are granted
+        if (Notification.permission === 'granted') {
+            let title = 'Order Update';
+            let body = 'One of your orders has a new status update.';
+
+            // Customize the message slightly based on status
+            if (notificationsToShow.includes('accepted')) {
+                title = 'Order Accepted!';
+                body = 'Your order has been accepted. Click here to view the schedule history.';
+            } else if (notificationsToShow.includes('pending')) {
+                title = 'Order Pending';
+                body = 'Your order is currently pending and waiting for approval.';
+            } else if (notificationsToShow.includes('completed')) {
+                title = 'Order Completed!';
+                body = 'Your recent order was completed successfully.';
+            }
+
+            const options = {
+                body: body,
+                icon: 'images/icons/icon-192x192.png',
+                vibrate: [200, 100, 200],
+                tag: 'phluowise-order-update',
+                renotify: true,
+                requireInteraction: false
+            };
+
+            // On Android & PWAs, it is best to use the Service Worker to show notifications
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.showNotification(title, options);
+                }).catch(function(err) {
+                    // Fallback to normal Notification
+                    new Notification(title, options);
+                });
+            } else {
+                new Notification(title, options);
+            }
+        }
+    }
+
     // Method to manually trigger notification update (for testing)
     forceUpdate() {
         this.loadOrders();
@@ -412,6 +466,165 @@ window.getNotificationManager = function() {
     return notificationManager;
 };
 
+// UI Toggle logic
+window.togglePushNotifications = function(checkbox) {
+    if (checkbox.checked) {
+        if ('Notification' in window) {
+            Notification.requestPermission().then(function(permission) {
+                if (permission === 'granted') {
+                    localStorage.setItem('phluowisePushEnabled', 'true');
+                } else {
+                    checkbox.checked = false;
+                    localStorage.setItem('phluowisePushEnabled', 'false');
+                    alert('Push notifications permission was denied. Please enable them in your browser settings.');
+                }
+            });
+        } else {
+            checkbox.checked = false;
+            alert('Push notifications are not supported in this browser.');
+        }
+    } else {
+        localStorage.setItem('phluowisePushEnabled', 'false');
+    }
+};
+
+window.updatePushNotificationToggleUI = function() {
+    const toggles = document.querySelectorAll('input[type="checkbox"][onchange*="togglePushNotifications"]');
+    const isEnabled = localStorage.getItem('phluowisePushEnabled') === 'true';
+    toggles.forEach(toggle => {
+        toggle.checked = isEnabled && Notification.permission === 'granted';
+    });
+};
+
+function getSettingsModalHTML() {
+    const isEnabled = localStorage.getItem('phluowisePushEnabled') === 'true' && Notification.permission === 'granted';
+    const isChecked = isEnabled ? 'checked' : '';
+    return `
+    <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+        <div class="w-full h-full flex flex-col items-center justify-center p-5">
+            <!-- Back Button -->
+            <div class="w-full max-w-[400px] mb-4">
+                <style>
+                    .glass-back-btn {
+                        width: 40px;
+                        height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        background: rgba(255, 255, 255, 0.1);
+                        backdrop-filter: blur(10px);
+                        -webkit-backdrop-filter: blur(10px);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+                        cursor: pointer;
+                        transition: all 0.2s ease-in-out;
+                    }
+                    .glass-back-btn:active {
+                        transform: scale(0.95);
+                        background: rgba(255, 255, 255, 0.15);
+                    }
+                </style>
+                <button onclick="closeSettingsModal()" class="glass-back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Settings Options Container -->
+            <div class="w-full max-w-[400px] rounded-[15px] overflow-hidden border" 
+                 style="border-color: var(--model-border, #DADADA); background-color: var(--model-bg, #101010);">
+                
+                <!-- Settings Header -->
+                <div class="h-[60px] flex items-center px-6 border-b border-[#3A3B3F]"
+                     style="background-color: var(--bg-third, #101010);">
+                    <span class="text-white text-lg font-semibold">Settings</span>
+                </div>
+
+                <!-- Push Notifications -->
+                <label class="w-full h-[60px] flex flex-row justify-between items-center px-6 cursor-pointer border-b border-[#3A3B3F]"
+                    style="background-color: var(--bg-third, #101010);"
+                    for="pushNotificationToggleInput">
+                    <div class="flex flex-row items-center gap-[30px]">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span class="text-white text-lg font-semibold">Push Notifications</span>
+                    </div>
+                    <!-- Premium Mobile App Style Toggle (CSS Included) -->
+                    <div class="relative inline-flex items-center">
+                        <style>
+                            .premium-toggle-input {
+                                display: none;
+                            }
+                            .premium-toggle-track {
+                                position: relative;
+                                display: inline-block;
+                                width: 50px;
+                                height: 26px;
+                                background-color: #40444B;
+                                border-radius: 9999px;
+                                cursor: pointer;
+                                transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                border: 1px solid rgba(255,255,255,0.1);
+                            }
+                            .premium-toggle-track::after {
+                                content: '';
+                                position: absolute;
+                                top: 1px;
+                                left: 2px;
+                                width: 22px;
+                                height: 22px;
+                                background-color: white;
+                                border-radius: 50%;
+                                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                            }
+                            .premium-toggle-input:checked + .premium-toggle-track {
+                                background-color: #3B74FF;
+                                border-color: #3B74FF;
+                            }
+                            .premium-toggle-input:checked + .premium-toggle-track::after {
+                                transform: translateX(22px);
+                            }
+                        </style>
+                        <input type="checkbox" id="pushNotificationToggleInput" onchange="togglePushNotifications(this)" class="premium-toggle-input" ${isChecked}>
+                        <div class="premium-toggle-track"></div>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+window.openSettingsModal = function() {
+    let modal = document.getElementById('settingsModal');
+
+    if (!modal) {
+        // Create modal if it doesn't exist
+        const modalContainer = document.createElement('div');
+        modalContainer.innerHTML = getSettingsModalHTML();
+        document.body.appendChild(modalContainer.firstElementChild);
+        modal = document.getElementById('settingsModal');
+    } else {
+        // Refresh HTML content to reflect current state
+        modal.outerHTML = getSettingsModalHTML();
+        modal = document.getElementById('settingsModal');
+    }
+
+    modal.style.display = 'flex';
+};
+
+window.closeSettingsModal = function() {
+    const modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+};
+
 // Auto-initialize when script loads - but only if no manager exists
 if (typeof window !== 'undefined' && typeof window.ScheduleNotificationManager === 'undefined') {
     notificationManager = new ScheduleNotificationManager();
@@ -421,6 +634,13 @@ if (typeof window !== 'undefined' && typeof window.ScheduleNotificationManager =
 } else if (window.notificationManagerInstance) {
     // Use existing instance if available
     notificationManager = window.notificationManagerInstance;
+}
+
+// Update UI toggle on load
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.updatePushNotificationToggleUI();
+    });
 }
 
 // Close the guard block
