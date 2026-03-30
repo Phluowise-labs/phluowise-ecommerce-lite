@@ -470,6 +470,15 @@ class CompanyDataManager {
 
         const locStr = String(location).trim();
 
+        // Check if location is actually a lat, lng pair
+        const coordsMatch = locStr.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+        if (coordsMatch) {
+            return {
+                lat: parseFloat(coordsMatch[1]),
+                lng: parseFloat(coordsMatch[2])
+            };
+        }
+
         // Try exact match first
         if (locationCoords[locStr]) {
             return locationCoords[locStr];

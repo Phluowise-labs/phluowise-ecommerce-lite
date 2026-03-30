@@ -21,7 +21,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Phluowise">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/tailwind-global.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <link rel="stylesheet"
@@ -1596,7 +1596,7 @@
 <body class="dark-theme h-screen flex flex-col overflow-hidden">
 
     <!-- Header with Back Button and Profile Image (Exact from schedule.tsx) -->
-    <div class="relative w-full z-10">
+    <div class="relative w-full z-30">
         <!-- Banner Background -->
         <div class="absolute inset-0 w-full h-[180px] overflow-hidden z-20">
             <img id="shopBannerImage" class="w-full h-full object-cover" style="display: none;" />
@@ -1651,7 +1651,7 @@
     </div>
 
     <!-- Main Scrollable Content -->
-    <div class="flex-1 overflow-y-auto hide-scrollbar pb-[70px] mt-0 relative z-10">
+    <div class="flex-1 overflow-y-auto hide-scrollbar pb-[70px] mt-0 relative">
 
         <!-- Top Spacer - Increased to move company data beneath banner -->
         <div class="h-[110px]"></div>
@@ -2154,7 +2154,7 @@
                     class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300"
                     style="background-color: rgba(0,0,0,0.5);">
                     <div id="productModalContent"
-                        class="pointer-events-auto bg-[#1D1D1D] w-full max-w-[400px] h-[400px] rounded-[30px] p-5 flex flex-col items-center relative transform translate-y-full transition-transform duration-300">
+                        class="bg-[#1D1D1D] w-full max-w-[400px] h-[400px] rounded-[30px] p-5 flex flex-col items-center relative transform translate-y-full transition-transform duration-300">
                         <button onclick="closeProductModal()"
                             class="absolute top-4 left-4 z-10 w-10 h-10 flex items-center justify-center">
                             <img src="images/main/ArrowLeftIcon.png" class="w-6 h-6">
@@ -6955,16 +6955,16 @@
                             const queryPrimary = hasGhana ? normalized : (hasAccra ? `${normalized}, Ghana` : `${normalized}, Accra, Ghana`);
 
                             // First attempt: restrict to Ghana and limit results
-                            // Use the Express server on port 3000 which has the /api/geocode endpoint
-                            let url = `http://127.0.0.1:3000/api/geocode?q=${encodeURIComponent(queryPrimary)}`;
-                            let response = await fetch(url);
+                            // Use Nominatim API directly
+                            let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryPrimary)}&limit=1`;
+                            let response = await fetch(url, { headers: { 'Accept-Language': 'en' } });
                             let data = await response.json();
 
                             // Fallback attempt: if no result, try with just Ghana
                             if (!data || data.length === 0) {
                                 const queryFallback = `${normalized}, Ghana`;
-                                url = `http://127.0.0.1:3000/api/geocode?q=${encodeURIComponent(queryFallback)}`;
-                                response = await fetch(url);
+                                url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryFallback)}&limit=1`;
+                                response = await fetch(url, { headers: { 'Accept-Language': 'en' } });
                                 data = await response.json();
                             }
 
@@ -7327,6 +7327,18 @@
                         } else {
                         }
 
+                        let resolvedCoords = branchData.coordinates || { lat: 5.6037, lng: -0.1870 };
+                        
+                        // If coordinates match the strict fallback meaning the dictionary lookup failed, try realtime geocoding
+                        if (resolvedCoords.lat === 5.6037 && resolvedCoords.lng === -0.1870 && branchData.location) {
+                            try {
+                                const geoCoords = await geocodeLocation(branchData.location);
+                                if (geoCoords && typeof geoCoords.lat === 'number') {
+                                    resolvedCoords = geoCoords;
+                                }
+                            } catch(e) { console.error('Geocode fallback failed', e); }
+                        }
+
                         // Update global currentCompany object with database values (this branch only)
                         window.currentCompany = {
                             ...window.currentCompany,
@@ -7341,10 +7353,7 @@
                             is_verified: branchData.is_verified || false,
                             tos_url: branchData.tos_url || null,   // This branch's terms of service URL
                             privacy_url: branchData.privacy_url || null, // This branch's privacy policy URL
-                            coordinates: branchData.coordinates || {
-                                lat: 5.6037,
-                                lng: -0.1870
-                            }
+                            coordinates: resolvedCoords
                         };
 
                         // Initialize working hours display
