@@ -142,8 +142,16 @@ class ScheduleNotificationManager {
                 
                 if (savedCount > 0 && currentCount > savedCount) {
                     // New company added!
+                    const numNew = currentCount - savedCount;
+                    // Assuming newest companies are at index 0 based on appwrite desc sort
+                    const newCompanies = companiesData.slice(0, numNew);
+                    
                     this.playBellSound();
                     this.sendSystemPushNotification(['new_company']);
+                    
+                    if (newCompanies.length > 0) {
+                        this.showNewCompaniesModal(newCompanies);
+                    }
                 }
                 
                 // Update the saved count
@@ -154,6 +162,179 @@ class ScheduleNotificationManager {
         } catch (error) {
             // Silently fail if cache is unavailable or malformed
         }
+    }
+
+    showNewCompaniesModal(companies) {
+        // Prevent multiple modals
+        const existingModal = document.getElementById('newCompaniesModal');
+        if (existingModal) existingModal.remove();
+
+        // 1. Create wrapper
+        const modal = document.createElement('div');
+        modal.id = 'newCompaniesModal';
+        modal.className = 'fixed inset-0 flex flex-col items-center justify-center';
+        modal.style.cssText = 'z-index: 9999; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); opacity: 0; transition: opacity 0.4s ease-out;';
+
+        // 2. HTML Structure
+        let cardsHTML = '';
+        companies.forEach((company, index) => {
+            const name = company.name_of_company || company.name || 'New Water Company';
+            const location = company.state || company.location || 'Your Area';
+            const imgUrl = company.profile_image || company.header_image || company.image_url || company.logo || 'images/logo.png';
+            const rating = (company.company_rating || company.average_rating) ? parseFloat(company.company_rating || company.average_rating).toFixed(1) : 'New';
+            
+            cardsHTML += `
+                <div class="stacked-company-card absolute top-0 w-full rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 cursor-pointer"
+                     data-index="${index}"
+                     style="background-color: var(--model-bg, #101010); border: 1px solid var(--model-border, #DADADA); z-index: ${(companies.length - index)};">
+                    
+                    <div class="w-full relative" style="height: 180px;">
+                        <img src="${imgUrl}" alt="${name}" class="w-full h-full object-cover" onerror="this.src='images/logo.png'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent" style="background: linear-gradient(to top, #101010, transparent);"></div>
+                        <div class="absolute text-white font-bold flex items-center justify-center transition-all"
+                             style="top: 14px; right: 14px; font-size: 13px; padding: 6px 12px; gap: 6px; border-radius: 12px; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                            <svg style="width: 15px; height: 15px; color: #FBBF24; filter: drop-shadow(0 0 3px rgba(251,191,36,0.6));" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                            <span style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${rating}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="relative text-center flex flex-col items-center" style="padding: 24px;">
+                        <h3 class="text-white font-bold mb-2 whitespace-nowrap overflow-hidden text-ellipsis w-full" style="font-size: 24px;">${name}</h3>
+                        <div class="flex items-center justify-center text-gray-400 mb-6" style="font-size: 15px;">
+                            <svg class="mr-2 text-blue-500" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            ${location}
+                        </div>
+                        
+                        <a href="services.html" class="block w-full font-semibold transition-all backdrop-blur-md" 
+                           style="padding: 14px 0; border-radius: 12px; background: linear-gradient(135deg, rgba(59, 116, 255, 0.35), rgba(59, 116, 255, 0.1)); border: 1px solid rgba(59, 116, 255, 0.5); box-shadow: 0 8px 32px rgba(59, 116, 255, 0.2); color: #E5F0FF; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                            Order Now
+                        </a>
+                    </div>
+                </div>
+            `;
+        });
+
+        modal.innerHTML = `
+            <!-- Pulse Effect -->
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+                <div class="rounded-full animate-pulse" style="width: 80vw; height: 80vw; background-color: rgba(37,99,235,0.1); filter: blur(80px);"></div>
+            </div>
+
+            <!-- Header -->
+            <div class="w-full text-center px-4 z-10 absolute transition-all duration-500 ease-out" id="newCompanyModalHeader" style="top: 10%; transform: translateY(-20px); opacity: 0;">
+                <h2 class="font-extrabold text-white mb-2 tracking-tight" style="font-size: 30px;">New Suppliers</h2>
+                <p class="mx-auto" style="font-size: 15px; color: var(--text-gray, #A0A0A0); max-width: 280px;">Tap a card to continue exploring.</p>
+            </div>
+
+            <!-- Stacked Deck Container -->
+            <div class="relative z-10" id="deckContainer" style="width: 85%; max-width: 320px; height: 380px; margin-top: 15vh;">
+                ${cardsHTML}
+            </div>
+            
+            <!-- Deck Progress Indicators -->
+            <div class="flex justify-center flex-row z-10" id="deckIndicators" style="gap: 8px; margin-top: 32px;">
+                ${companies.map((_, i) => '<div class="rounded-full transition-all duration-300" style="' + (i === 0 ? 'background-color: #3B74FF; width: 20px; height: 8px;' : 'background-color: #40444B; width: 8px; height: 8px;') + '"></div>').join('')}
+            </div>
+
+            <!-- Close Button -->
+            <button onclick="document.getElementById('newCompaniesModal').style.opacity='0'; setTimeout(()=>document.getElementById('newCompaniesModal').remove(), 400);" 
+                    class="absolute z-20 flex items-center justify-center rounded-full text-white backdrop-blur-md border transition-all"
+                    style="top: 24px; right: 24px; width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1);">
+                <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Stacked Deck Logic
+        const cards = modal.querySelectorAll('.stacked-company-card');
+        const indicators = modal.querySelectorAll('#deckIndicators > div');
+        let currentIndex = 0;
+
+        function updateDeck() {
+            cards.forEach((card, i) => {
+                const diff = i - currentIndex;
+
+                if (diff === 0) {
+                    // Active front card
+                    card.style.transform = 'translateY(0) scale(1)';
+                    card.style.opacity = '1';
+                    card.style.zIndex = '10';
+                    card.style.pointerEvents = 'auto';
+                } else if (diff === 1) {
+                    // Second card behind
+                    card.style.transform = 'translateY(-20px) scale(0.92)';
+                    card.style.opacity = '0.9';
+                    card.style.zIndex = '9';
+                    card.style.pointerEvents = 'none';
+                } else if (diff === 2) {
+                    // Third card behind
+                    card.style.transform = 'translateY(-40px) scale(0.84)';
+                    card.style.opacity = '0.6';
+                    card.style.zIndex = '8';
+                    card.style.pointerEvents = 'none';
+                } else if (diff > 2) {
+                    // Hidden deeply behind
+                    card.style.transform = 'translateY(-50px) scale(0.8)';
+                    card.style.opacity = '0';
+                    card.style.zIndex = '1';
+                    card.style.pointerEvents = 'none';
+                } else {
+                    // Swiped away / Next card (Diff < 0)
+                    card.style.transform = 'translateY(100px) scale(0.8)';
+                    card.style.opacity = '0';
+                    card.style.zIndex = '1';
+                    card.style.pointerEvents = 'none';
+                }
+            });
+
+            // Update Indicators
+            indicators.forEach((dot, i) => {
+                if (i === currentIndex) {
+                    dot.style.backgroundColor = '#3B74FF';
+                    dot.style.width = '20px';
+                } else {
+                    dot.style.backgroundColor = '#40444B';
+                    dot.style.width = '8px';
+                }
+            });
+        }
+
+        // Add Click listener to cycle deck
+        cards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                // If they click the Link, let it navigate. Otherwise advance card
+                if (e.target.tagName !== 'A') {
+                    if (currentIndex < cards.length - 1) {
+                        currentIndex++;
+                        updateDeck();
+                    } else if (currentIndex === cards.length - 1) {
+                        // Resets to beginning when clicking last card
+                        currentIndex = 0;
+                        updateDeck();
+                    }
+                }
+            });
+        });
+
+        // Initialize positions instantly before animating in
+        cards.forEach(card => card.style.transition = 'none');
+        updateDeck();
+        // Restore transitions
+        setTimeout(() => {
+            cards.forEach(card => card.style.transition = 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)');
+        }, 50);
+
+        // Animate In using requestAnimationFrame to ensure the DOM is painted first
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                modal.style.opacity = '1';
+                setTimeout(() => {
+                    document.getElementById('newCompanyModalHeader').style.transform = 'translateY(0)';
+                    document.getElementById('newCompanyModalHeader').style.opacity = '1';
+                }, 100);
+            });
+        });
     }
 
     setupNotifications() {
@@ -689,6 +870,7 @@ if (typeof window !== 'undefined' && typeof window.ScheduleNotificationManager =
     // Use existing instance if available
     notificationManager = window.notificationManagerInstance;
 }
+
 
 // Update UI toggle on load
 if (typeof document !== 'undefined') {
