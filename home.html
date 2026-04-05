@@ -21,7 +21,7 @@
     <link rel="manifest" href="manifest.json">
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#007ACC">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Phluowise">
     <link rel="stylesheet" href="css/home-tailwind.css" />
@@ -856,21 +856,19 @@
 
             // Apply location filter with enhanced distance calculation
             if (userLocation) {
-                // Calculate distances for all companies when user location is available
-                const companiesWithDistance = await Promise.all(
-                    filtered.map(async (company) => {
-                        if (company.coordinates) {
-                            const distanceResult = await calculateDistanceAndTime(userLocation, company.coordinates);
-                            return {
-                                ...company,
-                                distance: distanceResult.distance,
-                                time: distanceResult.time,
-                                accuracy: distanceResult.accuracy
-                            };
-                        }
-                        return { ...company, distance: null, time: company.time || 'Unknown distance' };
-                    })
-                );
+                // Calculate distances synchronously for instant results
+                const companiesWithDistance = filtered.map((company) => {
+                    if (company.coordinates) {
+                        const distanceKm = calculateEnhancedDistance(userLocation, company.coordinates);
+                        return {
+                            ...company,
+                            distance: distanceKm,
+                            time: distanceKm ? generateEstimatedTime(distanceKm) : 'Unknown distance',
+                            accuracy: 'estimated'
+                        };
+                    }
+                    return { ...company, distance: null, time: company.time || 'Unknown distance' };
+                });
 
                 // Apply location-based filtering only for 'around' filter
                 if (currentFilter === 'around') {
@@ -1151,6 +1149,8 @@
             localStorage.setItem('locationPermissionGranted', 'false');
             locationPermissionGranted = false;
             userLocation = { lat: 5.6037, lng: -0.1870 };
+            if (window.locationWatchId) navigator.geolocation.clearWatch(window.locationWatchId);
+            if (companies && companies.length > 0) updateDistances();
             renderCompanies();
         }
 
@@ -1158,7 +1158,9 @@
             closeLocationModal();
 
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
+                // Use watchPosition for real-time tracking
+                if (window.locationWatchId) navigator.geolocation.clearWatch(window.locationWatchId);
+                window.locationWatchId = navigator.geolocation.watchPosition(
                     (position) => {
                         // Store permission granted status
                         localStorage.setItem('locationPermissionGranted', 'true');
@@ -1168,6 +1170,9 @@
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
                         };
+                        if (companies && companies.length > 0) {
+                            updateDistances();
+                        }
                         renderCompanies();
                     },
                     (error) => {
@@ -1175,9 +1180,10 @@
                         localStorage.setItem('locationPermissionGranted', 'false');
                         locationPermissionGranted = false;
                         userLocation = { lat: 5.6037, lng: -0.1870 };
+                        if (companies && companies.length > 0) updateDistances();
                         renderCompanies();
                     },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
                 );
             }
         }
@@ -1421,10 +1427,7 @@
 
             companies.forEach(company => {
                 if (company.coordinates) {
-                    company.distance = calculateDistance(
-                        userLocation.lat, userLocation.lng,
-                        company.coordinates.lat, company.coordinates.lng
-                    );
+                    company.distance = calculateEnhancedDistance(userLocation, company.coordinates);
                 }
             });
 
@@ -1624,37 +1627,44 @@
             // Load company data from database
             loadInitialCompanyData();
 
-            // Check location permission after 5 seconds (simulating RN logic)
-            setTimeout(() => {
-                // Only show modal if permission hasn't been granted or denied before
-                const locationPermissionGranted = localStorage.getItem('locationPermissionGranted');
-                const locationModal = document.getElementById('locationModal');
-
-                if (locationPermissionGranted === null && locationModal) {
-                    locationModal.style.display = 'flex';
-                } else if (locationPermissionGranted === 'true') {
-                    // If permission was granted before, try to get location again
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                            (position) => {
-                                userLocation = {
-                                    lat: position.coords.latitude,
-                                    lng: position.coords.longitude
-                                };
-                                renderCompanies();
-                            },
-                            (error) => {
-                                userLocation = { lat: 5.6037, lng: -0.1870 };
-                                renderCompanies();
-                            },
-                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                        );
-                    }
-                } else if (locationPermissionGranted === 'false') {
-                    userLocation = { lat: 5.6037, lng: -0.1870 };
-                    renderCompanies();
+            // Fetch location immediately if permission was already granted previously
+            const locationPermissionGranted = localStorage.getItem('locationPermissionGranted');
+            
+            if (locationPermissionGranted === 'true') {
+                if (navigator.geolocation) {
+                    // Use watchPosition for real-time tracking
+                    if (window.locationWatchId) navigator.geolocation.clearWatch(window.locationWatchId);
+                    window.locationWatchId = navigator.geolocation.watchPosition(
+                        (position) => {
+                            userLocation = {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                            };
+                            // If companies are already loaded, update their distances
+                            if (companies && companies.length > 0) {
+                                updateDistances();
+                            }
+                            renderCompanies();
+                        },
+                        (error) => {
+                            userLocation = { lat: 5.6037, lng: -0.1870 };
+                            if (companies && companies.length > 0) updateDistances();
+                            renderCompanies();
+                        },
+                        { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
+                    );
                 }
-            }, 5000);
+            } else if (locationPermissionGranted === 'false') {
+                userLocation = { lat: 5.6037, lng: -0.1870 };
+            } else {
+                // Check location permission after 5 seconds for first-time visitors (simulating RN logic)
+                setTimeout(() => {
+                    const locationModal = document.getElementById('locationModal');
+                    if (locationModal) {
+                        locationModal.style.display = 'flex';
+                    }
+                }, 5000);
+            }
 
             renderToggleIcon();
             renderCompanies();
@@ -1677,6 +1687,21 @@
                 let user = null;
                 try {
                     user = await window.account.get();
+                    
+                    // Update UI immediately with confirmed user details
+                    if (user && user.name) {
+                        const firstName = user.name.split(' ')[0];
+                        const displayName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+                        const hour = new Date().getHours();
+                        const greeting = hour < 12 ? 'Good Morning' : (hour < 18 ? 'Good Afternoon' : 'Good Evening');
+                        const greetingEl = document.getElementById('greetingText');
+                        if (greetingEl) greetingEl.textContent = `${greeting}, ${displayName}`;
+                        
+                        const menuUserName = document.getElementById('menuUserName');
+                        const menuUserEmail = document.getElementById('menuUserEmail');
+                        if (menuUserName) menuUserName.textContent = user.name;
+                        if (menuUserEmail) menuUserEmail.textContent = user.email;
+                    }
                 } catch (authError) {
                     companies = window.companyDataManager.getFallbackData();
                     companiesDataLoaded = true;

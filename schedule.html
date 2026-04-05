@@ -18,7 +18,7 @@
     <link rel="manifest" href="manifest.json">
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#007ACC">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Phluowise">
     <link rel="stylesheet" href="css/tailwind-global.css" />
@@ -1868,16 +1868,27 @@
                             <div id="contactPopup"
                                 class="absolute bottom-[70px] right-[20px] hidden rounded-[10px] z-[99999]"
                                 style="width: 250px; background-color: var(--bottom-sheet-color);">
-                                <button id="contactPopupPhoneButton" onclick="callCompany()"
-                                    class="flex flex-row items-center gap-4 pl-4 w-full" style="height: 60px;">
-                                    <div
-                                        class="w-8 h-8 rounded-full border border-white flex items-center justify-center">
-                                        <span class="text-white text-xl font-bold">+</span>
-                                    </div>
+                                <div class="flex flex-row items-center justify-between px-3 w-full"
+                                    style="height: 60px;">
+                                    <button onclick="callCompany()"
+                                        class="w-8 h-8 rounded-full border border-white flex items-center justify-center flex-shrink-0 active:opacity-50">
+                                        <span class="text-white text-xl font-bold" style="line-height: 1;">+</span>
+                                    </button>
+
                                     <span id="contactPopupPhone"
-                                        class="text-white text-lg font-[600] capitalize px-4 leading-5 whitespace-nowrap">no
+                                        class="text-white text-[15px] font-[600] capitalize px-2 leading-5 whitespace-nowrap flex-1 text-center truncate">no
                                         contact</span>
-                                </button>
+
+                                    <button onclick="copyCompanyPhone()"
+                                        class="w-8 h-8 flex items-center justify-center flex-shrink-0 active:opacity-50"
+                                        style="background: rgba(255,255,255,0.1); border-radius: 6px;">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Call Button (height: 60, width: 60, rounded: 10, bottom: 5, right: 20, elevation: 5) -->
@@ -1923,9 +1934,9 @@
                         </div>
 
                         <!-- Schedule Pickup Button (height: 46, rounded: 30, paddingVertical: 15) -->
-                        <div class="px-4 relative py-[15px] flex justify-center z-[110]">
+                        <div class="px-4 relative py-[15px] flex justify-center z-10">
                             <button id="schedulePickupBtn"
-                                class="rounded-[30px] flex items-center justify-center border schedule-pickup-btn relative z-[110]"
+                                class="rounded-[30px] flex items-center justify-center border schedule-pickup-btn relative z-10"
                                 style="background-color: var(--btn-color); border-color: var(--btn-border); height: 46px; width: 242px; touch-action: manipulation;">
                                 <span class="text-white text-xl font-[500] capitalize leading-5">Schedule Pickup</span>
                             </button>
@@ -3531,7 +3542,7 @@
                                     nextBtn.textContent = 'Proceed to Payment';
                                 }
                             } else if (currentStep === 2) { // Product selection step
-                                nextBtn.textContent = selectedProducts.length > 0 ? 'Continue' : 'Skip for now';
+                                nextBtn.textContent = 'Continue';
                             } else {
                                 nextBtn.textContent = 'Continue';
                             }
@@ -3576,7 +3587,10 @@
                             case 1: // Terms - no validation needed
                                 break;
                             case 2: // Product Selection
-                                // Allow user to continue even if no products selected
+                                if (selectedProducts.length === 0) {
+                                    showMobileNotification('Please select at least one product first before scheduling an order.', 'error');
+                                    return false;
+                                }
                                 break;
                             case 3: // Recipient
                                 const address = document.getElementById('recipientAddress').value;
@@ -5224,8 +5238,65 @@
                         }
                     }
 
+                    // Prominent Disclosure for Play Store compliance
+                    function showStoragePermissionModal(callback) {
+                        const modalOverlay = document.createElement('div');
+                        modalOverlay.id = 'storagePermissionModal';
+                        modalOverlay.className = 'fixed inset-0 flex items-center justify-center p-6';
+                        modalOverlay.style.cssText = 'display: flex; z-index: 99999; backdrop-filter: blur(8px); background-color: rgba(0,0,0,0.6);';
+
+                        const modalContent = document.createElement('div');
+                        modalContent.className = 'rounded-[24px] w-full max-w-[340px] px-8 py-8 flex flex-col items-center justify-center border-[0.5px] shadow-2xl';
+                        modalContent.style.cssText = 'background-color: #1a1a1a; border-color: rgba(255,255,255,0.1);';
+
+                        modalContent.innerHTML = `
+                            <div class="flex flex-col items-center justify-center w-full">
+                                <div class="w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(59, 130, 246, 0.1);">
+                                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m-3-3l3 3 3-3" />
+                                    </svg>
+                                </div>
+                                
+                                <h2 class="text-white text-xl font-bold text-center mb-3">Storage Permission Required</h2>
+                                <p class="text-gray-400 text-sm text-center leading-relaxed mb-8">
+                                    Phluowise needs access to your device's files and storage so we can properly save your Order Summary PDF directly to your Downloads folder or allow you to share it.
+                                </p>
+                                
+                    <div class="w-full flex items-center gap-3 mt-2">
+                        <button id="denyStorageBtn" class="h-[54px] flex-1 rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 shadow-[0_4px_30px_rgba(0,0,0,0.1)] flex items-center justify-center">
+                            <span class="text-white/70 text-[16px] font-medium">Deny</span>
+                        </button>
+                        <button id="allowStorageBtn" class="h-[54px] flex-1 rounded-xl backdrop-blur-xl bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-[0_4px_30px_rgba(0,0,0,0.1)] flex items-center justify-center">
+                            <span class="text-white text-[16px] font-semibold">Allow</span>
+                        </button>
+                    </div>
+                            </div>
+                        `;
+
+                        modalOverlay.appendChild(modalContent);
+                        document.body.appendChild(modalOverlay);
+
+                        document.getElementById('denyStorageBtn').onclick = () => {
+                            modalOverlay.remove();
+                        };
+
+                        document.getElementById('allowStorageBtn').onclick = () => {
+                            modalOverlay.remove();
+                            window.storagePermissionGrantedForPDF = true;
+                            if (callback) callback();
+                        };
+                    }
+
                     function downloadOrderPDF() {
                         try {
+                            if (isMobileDevice() && !window.storagePermissionGrantedForPDF) {
+                                showStoragePermissionModal(() => {
+                                    downloadOrderPDF();
+                                });
+                                return;
+                            }
+
                             const orderId = document.getElementById('orderIdDisplay')?.textContent || 'N/A';
                             const orderDate = document.getElementById('orderDateDisplay')?.textContent || 'N/A';
                             const orderTime = document.getElementById('orderTimeDisplay')?.textContent || 'N/A';
@@ -5562,9 +5633,29 @@
 
                     // APK-specific PDF download methods
                     async function tryAPKPDFDownload(doc, filename) {
-                        return new Promise((resolve, reject) => {
+                        return new Promise(async (resolve, reject) => {
                             try {
-                                // Method 1: Try WebView APK specific method (Website 2 APK Pro)
+                                // Method 1: Web Share API (Best for bypassing Android storage permissions)
+                                // Works extremely well in modern Android WebViews to delegate to native share sheet
+                                if (navigator.share && navigator.canShare) {
+                                    try {
+                                        const pdfBlob = doc.output('blob');
+                                        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+                                        if (navigator.canShare({ files: [file] })) {
+                                            await navigator.share({
+                                                files: [file],
+                                                title: 'Order Summary PDF',
+                                                text: 'Here is your order summary PDF.'
+                                            });
+                                            resolve();
+                                            return;
+                                        }
+                                    } catch (shareError) {
+                                        console.log('Share API fallback:', shareError);
+                                    }
+                                }
+
+                                // Method 2: Try WebView APK specific method (Website 2 APK Pro)
                                 if (isWebViewAPK()) {
                                     tryWebViewAPKSave(doc, filename).then(resolve).catch(() => {
                                         // Fallback to other methods
@@ -5810,9 +5901,28 @@
                         });
                     }
                     async function tryMobilePDFDownload(doc, filename) {
-                        return new Promise((resolve, reject) => {
+                        return new Promise(async (resolve, reject) => {
                             try {
-                                // Method 1: Try standard download first
+                                // Method 1: Web Share API (Best for bypassing Android storage permissions)
+                                if (navigator.share && navigator.canShare) {
+                                    try {
+                                        const pdfBlob = doc.output('blob');
+                                        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+                                        if (navigator.canShare({ files: [file] })) {
+                                            await navigator.share({
+                                                files: [file],
+                                                title: 'Order Summary PDF',
+                                                text: 'Here is your order summary PDF.'
+                                            });
+                                            resolve();
+                                            return;
+                                        }
+                                    } catch (shareError) {
+                                        console.log('Share API fallback:', shareError);
+                                    }
+                                }
+
+                                // Method 2: Try standard download first
                                 doc.save(filename);
 
                                 // Method 2: Create blob and download link (fallback)
@@ -5938,7 +6048,8 @@
 
                         // Create notification element
                         const notification = document.createElement('div');
-                        notification.className = `mobile-notification fixed top-4 left-4 right-4 z-50 p-4 rounded-lg backdrop-blur-xl border transition-all duration-300 transform translate-y-[-100px]`;
+                        notification.className = `mobile-notification fixed top-4 left-4 right-4 p-4 rounded-lg backdrop-blur-xl border transition-all duration-300 transform translate-y-[-100px]`;
+                        notification.style.zIndex = '999999';
 
                         // Style based on type
                         if (type === 'error') {
@@ -5949,12 +6060,13 @@
                             notification.className += ' bg-blue-500/20 border-blue-500/40 text-blue-300';
                         }
 
-                        // Add Android-specific guidance
-                        const androidGuidance = isAPKEnvironment() ?
+                        // Add Android-specific guidance only for PDF download notifications
+                        const isDownload = message.toLowerCase().includes('pdf') || message.toLowerCase().includes('download');
+                        const androidGuidance = isDownload ? (isAPKEnvironment() ?
                             '<div class="mt-2 text-xs opacity-75"> Check Android notification panel for download progress</div>' :
                             isMobileDevice() ?
                                 '<div class="mt-2 text-xs opacity-75"> Check browser downloads and notifications</div>' :
-                                '';
+                                '') : '';
 
                         notification.innerHTML = `
                 <div class="flex items-center gap-3">
@@ -6899,10 +7011,44 @@
                     }
 
                     function callCompany() {
-                        const phone = window.currentCompany?.phone || currentCompany.phone;
+                        const phone = window.currentCompany?.phone || currentCompany?.phone;
                         if (phone) {
-                            window.location.href = `tel:${phone}`;
+                            // Use an invisible anchor tag with target="_system" to safely trigger Android OS external intents 
+                            // without causing ERR_UNKNOWN_URL_SCHEME error pages inside the WebView.
+                            const link = document.createElement('a');
+                            link.href = `tel:${phone}`;
+                            link.target = '_system';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
+                    }
+
+                    function copyCompanyPhone() {
+                        const phone = window.currentCompany?.phone || window.currentCompany?.phone;
+                        if (!phone) return;
+
+                        if (navigator.clipboard && window.isSecureContext) {
+                            navigator.clipboard.writeText(phone).then(() => {
+                                showMobileNotification('Number copied: ' + phone, 'success');
+                            });
                         } else {
+                            // Fallback for Android WebViews / non-HTTPS (Website2APK envs)
+                            let textArea = document.createElement("textarea");
+                            textArea.value = phone;
+                            textArea.style.position = "fixed";
+                            textArea.style.left = "-999999px";
+                            textArea.style.top = "-999999px";
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+                            try {
+                                document.execCommand('copy');
+                                showMobileNotification('Number copied: ' + phone, 'success');
+                            } catch (err) {
+                                showMobileNotification('Failed to copy', 'error');
+                            }
+                            textArea.remove();
                         }
                     }
 
@@ -7328,7 +7474,7 @@
                         }
 
                         let resolvedCoords = branchData.coordinates || { lat: 5.6037, lng: -0.1870 };
-                        
+
                         // If coordinates match the strict fallback meaning the dictionary lookup failed, try realtime geocoding
                         if (resolvedCoords.lat === 5.6037 && resolvedCoords.lng === -0.1870 && branchData.location) {
                             try {
@@ -7336,7 +7482,7 @@
                                 if (geoCoords && typeof geoCoords.lat === 'number') {
                                     resolvedCoords = geoCoords;
                                 }
-                            } catch(e) { console.error('Geocode fallback failed', e); }
+                            } catch (e) { console.error('Geocode fallback failed', e); }
                         }
 
                         // Update global currentCompany object with database values (this branch only)

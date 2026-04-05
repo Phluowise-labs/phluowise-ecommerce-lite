@@ -47,8 +47,12 @@ class ScheduleNotificationManager {
         setInterval(() => {
             // console.log('⏰ Periodic check for order updates...');
             this.loadOrders();
+            this.checkCompanies();
             this.updateNotifications();
         }, 2000);
+        
+        // Initial check for companies
+        this.checkCompanies();
         
         // // console.log('✅ Notification manager initialization complete');
     }
@@ -116,6 +120,39 @@ class ScheduleNotificationManager {
         } catch (error) {
             // console.error('❌ Error loading orders:', error);
             this.orders = [];
+        }
+    }
+
+    checkCompanies() {
+        try {
+            let companiesData = null;
+            if (window.cacheManager) {
+                companiesData = window.cacheManager.getCache('companies');
+            } else {
+                const cached = localStorage.getItem('phluowise_companies__1.0');
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    companiesData = parsed.data;
+                }
+            }
+            
+            if (companiesData && Array.isArray(companiesData)) {
+                const currentCount = companiesData.length;
+                const savedCount = parseInt(localStorage.getItem('phluowiseKnownCompaniesCount') || '0', 10);
+                
+                if (savedCount > 0 && currentCount > savedCount) {
+                    // New company added!
+                    this.playBellSound();
+                    this.sendSystemPushNotification(['new_company']);
+                }
+                
+                // Update the saved count
+                if (currentCount !== savedCount) {
+                    localStorage.setItem('phluowiseKnownCompaniesCount', currentCount.toString());
+                }
+            }
+        } catch (error) {
+            // Silently fail if cache is unavailable or malformed
         }
     }
 
@@ -383,7 +420,10 @@ class ScheduleNotificationManager {
             let body = 'One of your orders has a new status update.';
 
             // Customize the message slightly based on status
-            if (notificationsToShow.includes('accepted')) {
+            if (notificationsToShow.includes('new_company')) {
+                title = 'New Company Added!';
+                body = 'A new company is now available. Check them out!';
+            } else if (notificationsToShow.includes('accepted')) {
                 title = 'Order Accepted!';
                 body = 'Your order has been accepted. Click here to view the schedule history.';
             } else if (notificationsToShow.includes('pending')) {
@@ -402,8 +442,16 @@ class ScheduleNotificationManager {
                 renotify: true,
                 requireInteraction: false
             };
+            
+            // 1. Android Studio WebView Native Integration
+            if (typeof window.Android !== 'undefined' && typeof window.Android.showNotification === 'function') {
+                try {
+                    window.Android.showNotification(title, body);
+                    return; // Prevent standard browser API from firing since we just sent it natively
+                } catch(e) {}
+            }
 
-            // On Android & PWAs, it is best to use the Service Worker to show notifications
+            // 2. Standard Web & PWA Notification Integration
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.ready.then(function(registration) {
                     registration.showNotification(title, options);
@@ -469,35 +517,41 @@ window.getNotificationManager = function() {
 // UI Toggle logic
 window.togglePushNotifications = function(checkbox) {
     if (checkbox.checked) {
+        // ALWAYS enable local push preference so in-app notifications (dots/sounds) activate
+        localStorage.setItem('phluowisePushEnabled', 'true');
+        
         if ('Notification' in window) {
             Notification.requestPermission().then(function(permission) {
-                if (permission === 'granted') {
-                    localStorage.setItem('phluowisePushEnabled', 'true');
-                } else {
-                    checkbox.checked = false;
-                    localStorage.setItem('phluowisePushEnabled', 'false');
-                    alert('Push notifications permission was denied. Please enable them in your browser settings.');
+                if (permission !== 'granted') {
+                    // Browser permission denied, but we keep in-app notifications enabled
+                    console.log('Push notifications permission was denied by the OS. In-app notifications will still work.');
                 }
             });
-        } else {
-            checkbox.checked = false;
-            alert('Push notifications are not supported in this browser.');
+        }
+        
+        // Android WebView generic javascript interface fallback if one exists
+        if (typeof window.Android !== 'undefined' && typeof window.Android.requestNotificationPermission === 'function') {
+            try {
+                window.Android.requestNotificationPermission();
+            } catch(e) {}
         }
     } else {
         localStorage.setItem('phluowisePushEnabled', 'false');
     }
+    
+    window.updatePushNotificationToggleUI();
 };
 
 window.updatePushNotificationToggleUI = function() {
     const toggles = document.querySelectorAll('input[type="checkbox"][onchange*="togglePushNotifications"]');
     const isEnabled = localStorage.getItem('phluowisePushEnabled') === 'true';
     toggles.forEach(toggle => {
-        toggle.checked = isEnabled && Notification.permission === 'granted';
+        toggle.checked = isEnabled;
     });
 };
 
 function getSettingsModalHTML() {
-    const isEnabled = localStorage.getItem('phluowisePushEnabled') === 'true' && Notification.permission === 'granted';
+    const isEnabled = localStorage.getItem('phluowisePushEnabled') === 'true';
     const isChecked = isEnabled ? 'checked' : '';
     return `
     <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">

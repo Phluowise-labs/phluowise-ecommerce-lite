@@ -18,11 +18,11 @@
     <link rel="manifest" href="manifest.json">
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#007ACC">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Phluowise">
     <link rel="stylesheet" href="css/tailwind-global.css" />
-    <script src="capacitor.js"></script>
+    <!-- Capacitor script is automatically injected during native build, not needed statically -->
     <link rel="stylesheet" href="css/mobile-responsive.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -177,8 +177,8 @@
         async function shareApp() {
             const shareData = {
                 title: 'Phluowise',
-                text: 'Check out Phluowise - Your water delivery companion!',
-                url: 'https://phluowise.com'
+                text: 'Download Phluowise - Your water delivery companion! Get the Android app natively here:',
+                url: 'https://phluowise.com/app.apk'
             };
             const shareString = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
 
@@ -208,26 +208,36 @@
                 else if (navigator.share) {
                     await navigator.share(shareData);
                 } 
-                // Final fallback: Copy to clipboard
+                // Final fallback for missing APIs: try native Intent on Android, otherwise clipboard
                 else {
-                    await navigator.clipboard.writeText(shareData.url);
-                    alert('Link copied to clipboard: ' + shareData.url);
+                    const isAndroid = /android/i.test(navigator.userAgent);
+                    if (isAndroid) {
+                        const intentUrl = `intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodeURIComponent(shareString)};S.android.intent.extra.SUBJECT=${encodeURIComponent(shareData.title)};end`;
+                        window.location.href = intentUrl;
+                    } else {
+                        try {
+                            await navigator.clipboard.writeText(shareString);
+                            alert('Info copied to clipboard! You can paste it anywhere to share.');
+                        } catch (e) {
+                            alert('Sharing APIs not available on this device.');
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error sharing:', error);
-                // If it's an AbortError, user just cancelled the share pane
+                // If the user cancelled the Web Share dialog, it throws AbortError perfectly fine
                 if (error.name !== 'AbortError') {
-                    // Try an Android Intent as a last resort for generic Android WebViews
+                    // One final attempt with Intent in case navigator.share existed but failed silently
                     const isAndroid = /android/i.test(navigator.userAgent);
                     if (isAndroid) {
                         try {
-                            const intentUrl = `intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodeURIComponent(shareString)};end`;
+                            const intentUrl = `intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodeURIComponent(shareString)};S.android.intent.extra.SUBJECT=${encodeURIComponent(shareData.title)};end`;
                             window.location.href = intentUrl;
                         } catch (intentErr) {
-                            alert('Sharing failed. Copy link: ' + shareData.url);
+                            alert('Sharing failed. Please try again later.');
                         }
                     } else {
-                        alert('Sharing failed. Copy link: ' + shareData.url);
+                        alert('Sharing failed. Please try again later.');
                     }
                 }
             }

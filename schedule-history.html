@@ -1379,7 +1379,7 @@
                 } else {
                     orders = newOrders;
                 }
-                
+
                 // Save to localStorage for cross-page notifications (dots/sound)
                 localStorage.setItem('phluowiseOrders', JSON.stringify(orders));
                 if (window.getNotificationManager) {
@@ -2235,8 +2235,67 @@
             currentOrderForDetails = null;
         }
 
+        // Prominent Disclosure for Play Store compliance
+        function showStoragePermissionModal(callback) {
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'storagePermissionModal';
+            modalOverlay.className = 'fixed inset-0 flex items-center justify-center p-6';
+            modalOverlay.style.cssText = 'display: flex; z-index: 99999; backdrop-filter: blur(8px); background-color: rgba(0,0,0,0.6);';
+
+            const modalContent = document.createElement('div');
+            modalContent.className = 'rounded-[24px] w-full max-w-[340px] px-8 py-8 flex flex-col items-center justify-center border-[0.5px] shadow-2xl';
+            modalContent.style.cssText = 'background-color: #1a1a1a; border-color: rgba(255,255,255,0.1);';
+
+            modalContent.innerHTML = `
+                <div class="flex flex-col items-center justify-center w-full">
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(59, 130, 246, 0.1);">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m-3-3l3 3 3-3" />
+                        </svg>
+                    </div>
+                    
+                    <h2 class="text-white text-xl font-bold text-center mb-3">Storage Permission Required</h2>
+                    <p class="text-gray-400 text-sm text-center leading-relaxed mb-8">
+                        Phluowise needs access to your device's files and storage so we can properly save your Order Summary PDF directly to your Downloads folder or allow you to share it.
+                    </p>
+                    
+                    <div class="w-full flex items-center gap-3 mt-2">
+                        <button id="denyStorageBtn" class="h-[70px] flex-1 rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 shadow-[0_4px_30px_rgba(0,0,0,0.1)] flex items-center justify-center">
+                            <span class="text-white/70 text-[16px] font-medium">Deny</span>
+                        </button>
+                        <button id="allowStorageBtn" class="h-[70px] flex-1 rounded-xl backdrop-blur-xl bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-[0_4px_30px_rgba(0,0,0,0.1)] flex items-center justify-center">
+                            <span class="text-white text-[16px] font-semibold">Allow</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            modalOverlay.appendChild(modalContent);
+            document.body.appendChild(modalOverlay);
+
+            document.getElementById('denyStorageBtn').onclick = () => {
+                modalOverlay.remove();
+            };
+
+            document.getElementById('allowStorageBtn').onclick = () => {
+                modalOverlay.remove();
+                window.storagePermissionGrantedForPDF = true;
+                if (callback) callback();
+            };
+        }
+
         async function downloadOrderPDF() {
             if (!currentOrderForDetails) { alert('No order details available for PDF download'); return; }
+            const isMobileDevice = window.Capacitor?.isNativePlatform?.() || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (isMobileDevice && !window.storagePermissionGrantedForPDF) {
+                showStoragePermissionModal(() => {
+                    downloadOrderPDF();
+                });
+                return;
+            }
+
             try {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
@@ -2380,12 +2439,226 @@
     </script>
     <script src="js/notifications.js"></script>
 
-    <!-- Delete Account Modals (unchanged) -->
+    <!-- Delete Account Modals -->
     <script>
-        window.showDeleteConfirm = function () { /* ... unchanged ... */ };
-        window.cancelDeleteAccount = function () { /* ... unchanged ... */ };
-        window.confirmDeleteAccount = async function () { /* ... unchanged ... */ };
-        window.showDeleteSuccessModal = function () { /* ... unchanged ... */ };
+        // Use the same dynamic modal generation as home.html
+        window.showDeleteConfirm = function () {
+            // Create modal overlay
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'deleteAccountModal';
+            modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
+            modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
+
+            // Create modal content
+            const modalContent = document.createElement('div');
+            modalContent.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]';
+            modalContent.style.cssText = 'background-color: var(--modal-bg); border-color: var(--modal-border);';
+
+            modalContent.innerHTML = `
+                <div class="flex flex-col items-center justify-center w-full h-full">
+                    <!-- Warning Icon Section -->
+                    <div class="flex flex-col items-center justify-center mb-6">
+                        <div class="w-[80px] h-[80px] rounded-full flex items-center justify-center mb-4"
+                             style="background-color: rgba(245, 125, 125, 0.1);">
+                            <svg class="w-[40px] h-[40px] text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
+                        
+                        <h2 class="text-white text-[20px] font-bold text-center mb-3">Delete Account</h2>
+                        <p class="text-gray-400 text-[14px] text-center leading-[20px] mb-6">
+                            Are you sure you want to delete your account? This action cannot be undone and will permanently delete:
+                        </p>
+                        
+                        <div class="w-full text-left mb-6">
+                            <div class="text-gray-400 text-[13px] space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-[4px] h-[4px] text-red-500" fill="currentColor" viewBox="0 0 8 8">
+                                        <circle cx="4" cy="4" r="2"/>
+                                    </svg>
+                                    <span>Your profile information</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-[4px] h-[4px] text-red-500" fill="currentColor" viewBox="0 0 8 8">
+                                        <circle cx="4" cy="4" r="2"/>
+                                    </svg>
+                                    <span>Order history</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-[4px] h-[4px] text-red-500" fill="currentColor" viewBox="0 0 8 8">
+                                        <circle cx="4" cy="4" r="2"/>
+                                    </svg>
+                                    <span>Saved preferences</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-[4px] h-[4px] text-red-500" fill="currentColor" viewBox="0 0 8 8">
+                                        <circle cx="4" cy="4" r="2"/>
+                                    </svg>
+                                    <span>All associated data</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Button Section -->
+                    <div class="w-full flex items-center gap-3">
+                        <!-- Cancel Button -->
+                        <button onclick="cancelDeleteAccount()"
+                                class="h-[37px] flex-1 rounded-[100px] flex items-center justify-center border transition-all hover:opacity-80"
+                                style="background-color: var(--btn-second-color); border-color: var(--btn-second-border);">
+                            <span class="text-white text-base font-semibold capitalize">Cancel</span>
+                        </button>
+                        
+                        <!-- Delete Button -->
+                        <button onclick="confirmDeleteAccount()"
+                                class="h-[37px] flex-1 rounded-[100px] flex items-center justify-center border transition-all hover:opacity-80"
+                                style="background-color: #F57D7D; border-color: #F57D7D;">
+                            <span class="text-white text-base font-semibold capitalize">Delete</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            modalOverlay.appendChild(modalContent);
+            document.body.appendChild(modalOverlay);
+
+            // Close modal when clicking overlay
+            modalOverlay.addEventListener('click', function (e) {
+                if (e.target === modalOverlay) {
+                    cancelDeleteAccount();
+                }
+            });
+        };
+
+        window.showDeleteSuccessModal = function () {
+            // Close the delete confirmation modal first
+            const deleteModal = document.getElementById('deleteAccountModal');
+            if (deleteModal) {
+                deleteModal.remove();
+            }
+
+            // Create success modal overlay
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'deleteSuccessModal';
+            modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
+            modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
+
+            // Create modal content
+            const modalContent = document.createElement('div');
+            modalContent.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]';
+            modalContent.style.cssText = 'background-color: var(--modal-bg); border-color: var(--modal-border);';
+
+            modalContent.innerHTML = `
+                <div class="flex flex-col items-center justify-center w-full h-full">
+                    <!-- Success Icon Section -->
+                    <div class="flex flex-col items-center justify-center mb-6">
+                        <div class="w-[80px] h-[80px] rounded-full flex items-center justify-center mb-4"
+                             style="background-color: rgba(34, 197, 94, 0.1);">
+                            <svg class="w-[40px] h-[40px] text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        
+                        <h2 class="text-white text-[20px] font-bold text-center mb-3">Account Deleted</h2>
+                        <p class="text-gray-400 text-[14px] text-center leading-[20px] mb-4">
+                            Your account has been successfully deleted.
+                        </p>
+                        <p class="text-gray-500 text-[13px] text-center leading-[18px]">
+                            Redirecting to sign-in page...
+                        </p>
+                        
+                        <!-- Loading indicator -->
+                        <div class="flex items-center gap-1 mt-4">
+                            <div class="w-[6px] h-[6px] rounded-full bg-green-500 animate-pulse"></div>
+                            <div class="w-[6px] h-[6px] rounded-full bg-green-500 animate-pulse" style="animation-delay: 0.2s"></div>
+                            <div class="w-[6px] h-[6px] rounded-full bg-green-500 animate-pulse" style="animation-delay: 0.4s"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modalOverlay.appendChild(modalContent);
+            document.body.appendChild(modalOverlay);
+
+            setTimeout(() => {
+                const modal = document.getElementById('deleteSuccessModal');
+                if (modal) {
+                    modal.remove();
+                }
+            }, 3000);
+        };
+
+        window.cancelDeleteAccount = function () {
+            const modal = document.getElementById('deleteAccountModal');
+            if (modal) {
+                modal.remove();
+            }
+        };
+
+        window.confirmDeleteAccount = async function () {
+            try {
+                // Show loading state
+                const deleteBtn = document.querySelector('#deleteAccountModal button[onclick="confirmDeleteAccount()"] span');
+                if (deleteBtn) {
+                    deleteBtn.textContent = 'Deleting...';
+                    deleteBtn.parentElement.disabled = true;
+                }
+
+                // Get current user
+                const user = await window.account.get();
+                const userEmail = user.email;
+
+                // Delete from customer_tb first
+                try {
+                    const customerDocs = await window.databases.listDocuments(
+                        window.appwriteConfig.DATABASE_ID,
+                        window.appwriteConfig.CUSTOMER_TABLE,
+                        [window.Query.equal('email', userEmail.toLowerCase())]
+                    );
+
+                    // Delete customer records
+                    for (const doc of customerDocs.documents) {
+                        await window.databases.deleteDocument(
+                            window.appwriteConfig.DATABASE_ID,
+                            window.appwriteConfig.CUSTOMER_TABLE,
+                            doc.$id
+                        );
+                    }
+                } catch (dbError) {
+                    console.error("Error deleting from database:", dbError);
+                }
+
+                // Immediately logout user by deleting all sessions
+                try {
+                    const sessions = await window.account.listSessions();
+                    for (const session of sessions.sessions) {
+                        await window.account.deleteSession(session.$id);
+                    }
+                } catch (sessionError) {
+                    try {
+                        await window.account.deleteSession('current');
+                    } catch (fallbackError) {
+                    }
+                }
+
+                localStorage.clear();
+                showDeleteSuccessModal();
+
+                setTimeout(() => {
+                    window.location.href = 'signin.html';
+                }, 2500);
+
+            } catch (error) {
+                const deleteBtn = document.querySelector('#deleteAccountModal button[onclick="confirmDeleteAccount()"] span');
+                if (deleteBtn) {
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.parentElement.disabled = false;
+                }
+                alert('Failed to delete account. Please try again or contact support. Error: ' + error.message);
+            }
+        };
     </script>
 
 </body>
