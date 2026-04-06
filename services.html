@@ -3401,13 +3401,50 @@
             return card;
         }
 
+        // Helper function to check if a service matches swipe view criteria
+        function isSwipeServiceVisible(service) {
+            const tier = Number(service.verification_tier) || 2;
+            if (tier === 1) return false; // Hide tier1 companies
+            
+            if (!searchQuery) return true;
+            
+            const serviceName = (service.name || '').toLowerCase();
+            const serviceLocation = (service.location || '').toLowerCase();
+            
+            return serviceName.includes(searchQuery) || serviceLocation.includes(searchQuery);
+        }
+
         // Handle search input
         function handleSearch() {
             const searchInput = document.getElementById('searchInput');
             searchQuery = searchInput.value.toLowerCase();
 
             if (viewSwipe) {
-                renderSwipeCard(currentCardIndex);
+                const currentService = services[currentCardIndex];
+                
+                if (!currentService || !isSwipeServiceVisible(currentService)) {
+                    const firstMatchIndex = services.findIndex(isSwipeServiceVisible);
+                    if (firstMatchIndex !== -1) {
+                        currentCardIndex = firstMatchIndex;
+                        renderSwipeCard(currentCardIndex);
+                    } else {
+                        // Empty state when no match is found
+                        const container = document.getElementById('swipeCard');
+                        if (container) {
+                            container.innerHTML = `
+                                <div class="w-full flex flex-col items-center justify-center py-20">
+                                    <svg class="w-16 h-16 text-gray-500 opacity-50 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                    <h4 class="text-gray-400 text-lg font-semibold mb-2">No Companies Found</h4>
+                                    <p class="text-gray-500 text-sm text-center">Try adjusting your search query</p>
+                                </div>
+                            `;
+                        }
+                    }
+                } else {
+                    renderSwipeCard(currentCardIndex);
+                }
             } else {
                 filterServicesList();
             }
@@ -3595,9 +3632,9 @@
             const swipeView = document.getElementById('swipeView');
 
             if (viewSwipe) {
-                // Ensure currentCardIndex does not point to a hidden tier 1 company
-                if (services[currentCardIndex] && services[currentCardIndex].verification_tier === 1) {
-                    const firstValidIndex = services.findIndex(service => service.verification_tier !== 1);
+                // Ensure currentCardIndex does not point to a hidden tier 1 company or non-matching search
+                if (services[currentCardIndex] && !isSwipeServiceVisible(services[currentCardIndex])) {
+                    const firstValidIndex = services.findIndex(isSwipeServiceVisible);
                     if (firstValidIndex !== -1) {
                         currentCardIndex = firstValidIndex;
                     }
@@ -3608,7 +3645,23 @@
                 swipeViewIcon.classList.remove('hidden');
                 listView.classList.add('hidden');
                 swipeView.classList.remove('hidden');
-                renderSwipeCard(currentCardIndex);
+                
+                if (currentCardIndex !== undefined && services[currentCardIndex] && isSwipeServiceVisible(services[currentCardIndex])) {
+                    renderSwipeCard(currentCardIndex);
+                } else {
+                    const container = document.getElementById('swipeCard');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="w-full flex flex-col items-center justify-center py-20">
+                                <svg class="w-16 h-16 text-gray-500 opacity-50 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                <h4 class="text-gray-400 text-lg font-semibold mb-2">No Companies Found</h4>
+                                <p class="text-gray-500 text-sm text-center">Try adjusting your search query</p>
+                            </div>
+                        `;
+                    }
+                }
             } else {
                 // Switch to list view
                 toggleIcon.classList.remove('hidden');
@@ -3716,34 +3769,24 @@
 
         // Navigate to previous card
         function prevCard() {
-            // Get filtered services (excluding tier1)
-            const filteredServices = services.filter(service => {
-                const tier = service.verification_tier || 2;
-                return tier !== 1; // Hide tier1 companies
-            });
-
-            if (filteredServices.length === 0) return;
+            const hasVisibleCard = services.some(isSwipeServiceVisible);
+            if (!hasVisibleCard) return;
 
             do {
                 currentCardIndex = (currentCardIndex - 1 + services.length) % services.length;
-            } while (services[currentCardIndex].verification_tier === 1); // Skip tier1 companies
+            } while (!isSwipeServiceVisible(services[currentCardIndex]));
 
             renderSwipeCard(currentCardIndex);
         }
 
         // Navigate to next card
         function nextCard() {
-            // Get filtered services (excluding tier1)
-            const filteredServices = services.filter(service => {
-                const tier = service.verification_tier || 2;
-                return tier !== 1; // Hide tier1 companies
-            });
-
-            if (filteredServices.length === 0) return;
+            const hasVisibleCard = services.some(isSwipeServiceVisible);
+            if (!hasVisibleCard) return;
 
             do {
                 currentCardIndex = (currentCardIndex + 1) % services.length;
-            } while (services[currentCardIndex].verification_tier === 1); // Skip tier1 companies
+            } while (!isSwipeServiceVisible(services[currentCardIndex]));
 
             renderSwipeCard(currentCardIndex);
         }
