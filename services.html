@@ -3623,6 +3623,75 @@
             }
         }
 
+        // Tinder-like Swipe Functionality
+        let swipeCardElement;
+        let isSwiping = false;
+        let swipeStartX = 0;
+        let swipeCurrentX = 0;
+
+        function initSwipeInteraction() {
+            swipeCardElement = document.getElementById('swipeCard');
+            if (!swipeCardElement) return;
+
+            const handleDragStart = (e) => {
+                if(e.target.closest('.swipe-product-item') || e.target.closest('button')) {
+                    // Do not initiate swipe if clicking intractable elements
+                    return; 
+                }
+                isSwiping = true;
+                swipeStartX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
+                swipeCardElement.style.transition = 'none'; 
+            };
+
+            const handleDragMove = (e) => {
+                if (!isSwiping) return;
+                swipeCurrentX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
+                const deltaX = swipeCurrentX - swipeStartX;
+                const rotate = deltaX * 0.05; // slight rotation effect
+                swipeCardElement.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg)`;
+            };
+
+            const handleDragEnd = (e) => {
+                if (!isSwiping) return;
+                isSwiping = false;
+                const deltaX = swipeCurrentX - swipeStartX;
+                
+                if (Math.abs(deltaX) > 100) {
+                    // Swiped far enough - trigger card change
+                    swipeCardElement.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+                    const direction = deltaX > 0 ? 1 : -1;
+                    swipeCardElement.style.transform = `translateX(${direction * window.innerWidth}px) rotate(${direction * 20}deg)`;
+                    swipeCardElement.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        // Reset transforms
+                        swipeCardElement.style.transition = 'none';
+                        swipeCardElement.style.transform = '';
+                        swipeCardElement.style.opacity = '1';
+                        
+                        // Switch card based on swipe direction
+                        if (direction < 0) {
+                            nextCard(); // swipe left -> next card
+                        } else {
+                            prevCard(); // swipe right -> previous card
+                        }
+                    }, 300);
+                } else {
+                    // Not far enough - snap back
+                    swipeCardElement.style.transition = 'transform 0.3s ease-out';
+                    swipeCardElement.style.transform = '';
+                }
+            };
+
+            swipeCardElement.addEventListener('touchstart', handleDragStart, {passive: true});
+            swipeCardElement.addEventListener('touchmove', handleDragMove, {passive: true});
+            swipeCardElement.addEventListener('touchend', handleDragEnd);
+            
+            swipeCardElement.addEventListener('mousedown', handleDragStart);
+            document.addEventListener('mousemove', handleDragMove);
+            document.addEventListener('mouseup', handleDragEnd);
+        }
+
         // Toggle between list and swipe view
         function toggleView() {
             viewSwipe = !viewSwipe;
@@ -6381,6 +6450,9 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async function () {
+            // Initialize swipe interaction
+            initSwipeInteraction();
+
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.body.classList.remove('dark-theme', 'gray-theme', 'light-theme');
             document.body.classList.add(savedTheme + '-theme');
