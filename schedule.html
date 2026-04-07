@@ -5290,12 +5290,6 @@
 
                     function downloadOrderPDF() {
                         try {
-                            if (isMobileDevice() && !window.storagePermissionGrantedForPDF) {
-                                showStoragePermissionModal(() => {
-                                    downloadOrderPDF();
-                                });
-                                return;
-                            }
 
                             const orderId = document.getElementById('orderIdDisplay')?.textContent || 'N/A';
                             const orderDate = document.getElementById('orderDateDisplay')?.textContent || 'N/A';

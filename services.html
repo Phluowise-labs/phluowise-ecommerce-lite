@@ -3181,6 +3181,16 @@
             }
         }
 
+        // Fisher-Yates shuffle utility
+        function shuffleArray(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
         // Render service cards dynamically
         async function renderServices() {
             console.log('🔍 [DEBUG] renderServices() called');
@@ -3265,7 +3275,10 @@
 
             console.log(`🔍 [DEBUG] Filtered services: ${filteredServices.length} out of ${servicesWithDistance.length}`);
 
-            filteredServices.forEach((service, index) => {
+            // Randomize the order of company cards on each render
+            const randomisedServices = shuffleArray(filteredServices);
+
+            randomisedServices.forEach((service, index) => {
                 console.log(`🔍 [DEBUG] Creating card for service: ${service.name}`);
                 const serviceCard = createServiceCard(service, index);
                 listView.appendChild(serviceCard);
@@ -3701,21 +3714,20 @@
             const swipeView = document.getElementById('swipeView');
 
             if (viewSwipe) {
-                // Ensure currentCardIndex does not point to a hidden tier 1 company or non-matching search
-                if (services[currentCardIndex] && !isSwipeServiceVisible(services[currentCardIndex])) {
-                    const firstValidIndex = services.findIndex(isSwipeServiceVisible);
-                    if (firstValidIndex !== -1) {
-                        currentCardIndex = firstValidIndex;
-                    }
-                }
-                
+                // Randomize the services order for the swipe view each time it is opened
+                services = shuffleArray(services);
+
+                // After shuffling, find first visible card for current search/tier filter
+                const firstValidIndex = services.findIndex(isSwipeServiceVisible);
+                currentCardIndex = firstValidIndex !== -1 ? firstValidIndex : 0;
+
                 // Switch to swipe view
                 toggleIcon.classList.add('hidden');
                 swipeViewIcon.classList.remove('hidden');
                 listView.classList.add('hidden');
                 swipeView.classList.remove('hidden');
-                
-                if (currentCardIndex !== undefined && services[currentCardIndex] && isSwipeServiceVisible(services[currentCardIndex])) {
+
+                if (services[currentCardIndex] && isSwipeServiceVisible(services[currentCardIndex])) {
                     renderSwipeCard(currentCardIndex);
                 } else {
                     const container = document.getElementById('swipeCard');
