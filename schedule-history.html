@@ -249,6 +249,89 @@
             }
         }
 
+        .floating-filter-btn {
+            position: fixed;
+            bottom: 155px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .floating-filter-btn:hover {
+            transform: scale(1.1);
+            background: rgba(16, 185, 129, 0.35);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.3);
+        }
+
+        .filter-toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+            margin-bottom: 0 !important;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #40444B;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #3B74FF;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
         /* Bottle Status Styles */
         .tag-pending {
             background: rgba(245, 158, 11, 0.15);
@@ -533,7 +616,7 @@
 
     <!-- Order Cards List (ScheduleProduct.tsx - Exact) -->
     <div class="flex-1 overflow-y-auto hide-scrollbar no-horizontal-scroll mobile-scrollable instant-load"
-        id="ordersList" style="background-color: var(--bg-color); gap: 6px;">
+        id="ordersList" style="background-color: var(--bg-color); gap: 6px; padding-bottom: 220px;">
         <!-- Loading Skeleton -->
         <div id="loadingSkeleton" class="p-4 space-y-3">
             <div class="skeleton skeleton-card"></div>
@@ -785,7 +868,7 @@
     <!-- Order Details Bottom Sheet -->
     <div id="orderDetailsSheet"
         class="fixed inset-0 z-20 flex items-end justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet"
-        style="background-color: rgba(0,0,0,0.5);">
+        style="background-color: rgba(0,0,0,0.5); z-index: -1;">
         <div id="orderDetailsContent"
             class="pointer-events-auto w-full max-w-[400px] transform translate-y-full transition-transform duration-300">
 
@@ -896,6 +979,71 @@
                         class="w-full h-[50px] rounded-[16px] border border-white/20 backdrop-blur-xl bg-white/10 hover:bg-white/20 transition-all duration-300 shadow-lg flex items-center justify-center">
                         <span class="text-white text-base font-medium">Cancel</span>
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Filter Button -->
+    <div id="floatingFilterBtn" class="floating-filter-btn instant-load" onclick="openFilterSheet()">
+        <svg fill="none" stroke="white" viewBox="0 0 24 24" width="28" height="28" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+        </svg>
+    </div>
+
+    <!-- Filter Bottom Sheet -->
+    <div id="filterSheet"
+        class="fixed inset-0 z-50 flex items-end justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet"
+        style="background-color: rgba(0,0,0,0.5); z-index: -1;">
+        <div id="filterSheetContent"
+            class="pointer-events-auto w-full max-w-[400px] transform translate-y-full transition-transform duration-300">
+            <div class="w-full rounded-t-[20px] overflow-hidden backdrop-blur-xl bg-black/80 shadow-2xl pb-6"
+                style="border: 1px solid rgba(255, 255, 255, 0.1);">
+                <div class="w-full flex justify-center py-3">
+                    <div class="w-12 h-1 rounded-full bg-white/30"></div>
+                </div>
+                <div class="px-6 pb-4">
+                    <h2 class="text-white text-xl font-bold">Filter Options</h2>
+                </div>
+                <div class="px-6 pt-2 pb-6 space-y-2">
+                    <div class="filter-toggle-container">
+                        <span class="text-white font-medium">Newest First</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleNewest" onchange="applyFilters('newest')" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="filter-toggle-container">
+                        <span class="text-white font-medium">Oldest First</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleOldest" onchange="applyFilters('oldest')">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="filter-toggle-container">
+                        <span class="text-white font-medium">Highest Price First</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="togglePriceHigh" onchange="applyFilters('price_high')">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="filter-toggle-container">
+                        <span class="text-white font-medium">Only Mobile Money</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleMoMo" onchange="applyFilters('momo')">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="filter-toggle-container">
+                        <span class="text-white font-medium">Only Cash Payments</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleCash" onchange="applyFilters('cash')">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="px-6">
+                    <button onclick="closeFilterSheet()" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all">Apply & Close</button>
                 </div>
             </div>
         </div>
@@ -1750,6 +1898,69 @@
             return map[status] || '#F2A78C';
         }
 
+        let activeFilters = {
+            sortNewest: true,
+            sortOldest: false,
+            priceHighToLow: false,
+            onlyMobileMoney: false,
+            onlyCash: false
+        };
+
+        function openFilterSheet() {
+            const sheet = document.getElementById('filterSheet');
+            const content = document.getElementById('filterSheetContent');
+            sheet.style.zIndex = '9999';
+            sheet.classList.remove('opacity-0', 'pointer-events-none');
+            sheet.classList.add('opacity-100');
+            setTimeout(() => content.classList.remove('translate-y-full'), 10);
+        }
+
+        function closeFilterSheet() {
+            const sheet = document.getElementById('filterSheet');
+            const content = document.getElementById('filterSheetContent');
+            content.classList.add('translate-y-full');
+            setTimeout(() => {
+                sheet.classList.remove('opacity-100');
+                sheet.classList.add('opacity-0', 'pointer-events-none');
+                sheet.style.zIndex = '-1';
+            }, 300);
+        }
+
+        function applyFilters(changedToggle) {
+            let toggleNewest = document.getElementById('toggleNewest').checked;
+            let toggleOldest = document.getElementById('toggleOldest').checked;
+            let togglePriceHigh = document.getElementById('togglePriceHigh').checked;
+            let toggleMoMo = document.getElementById('toggleMoMo').checked;
+            let toggleCash = document.getElementById('toggleCash').checked;
+            
+            if (changedToggle === 'newest' && toggleNewest) {
+                toggleOldest = false; document.getElementById('toggleOldest').checked = false;
+                togglePriceHigh = false; document.getElementById('togglePriceHigh').checked = false;
+            } else if (changedToggle === 'oldest' && toggleOldest) {
+                toggleNewest = false; document.getElementById('toggleNewest').checked = false;
+                togglePriceHigh = false; document.getElementById('togglePriceHigh').checked = false;
+            } else if (changedToggle === 'price_high' && togglePriceHigh) {
+                toggleNewest = false; document.getElementById('toggleNewest').checked = false;
+                toggleOldest = false; document.getElementById('toggleOldest').checked = false;
+            }
+
+            if (changedToggle === 'momo' && toggleMoMo) {
+                toggleCash = false;
+                document.getElementById('toggleCash').checked = false;
+            } else if (changedToggle === 'cash' && toggleCash) {
+                toggleMoMo = false;
+                document.getElementById('toggleMoMo').checked = false;
+            }
+
+            activeFilters.sortNewest = toggleNewest;
+            activeFilters.sortOldest = toggleOldest;
+            activeFilters.priceHighToLow = togglePriceHigh;
+            activeFilters.onlyMobileMoney = toggleMoMo;
+            activeFilters.onlyCash = toggleCash;
+
+            renderOrders();
+        }
+
         function setStatusView(view) {
             currentView = view;
             ['status', 'ongoing', 'denied', 'completed'].forEach(btn => {
@@ -1771,13 +1982,33 @@
             const container = document.getElementById('ordersList');
             hideLoadingSkeleton();
             while (container.firstChild) container.removeChild(container.firstChild);
-            const filtered = orders.filter(o => {
+            let filtered = orders.filter(o => {
                 if (currentView === 'status') return o.status === 'pending';
                 if (currentView === 'ongoing') return o.status === 'accepted';
                 if (currentView === 'denied') return o.status === 'denied';
                 if (currentView === 'completed') return o.status === 'ongoing';
                 return true;
             });
+
+            if (typeof activeFilters !== 'undefined') {
+                if (activeFilters.onlyMobileMoney) {
+                    filtered = filtered.filter(o => o.payment && o.payment.toLowerCase().includes('mobile'));
+                } else if (activeFilters.onlyCash) {
+                    filtered = filtered.filter(o => o.payment && o.payment.toLowerCase().includes('cash'));
+                }
+                
+                if (activeFilters.priceHighToLow) {
+                    filtered.sort((a, b) => (parseFloat(b.total) || 0) - (parseFloat(a.total) || 0));
+                } else if (activeFilters.sortOldest) {
+                    filtered.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+                } else {
+                    // Default to Newest
+                    filtered.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+                }
+            } else {
+                filtered.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+            }
+
             if (filtered.length === 0) {
                 container.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full text-white text-center p-8">
@@ -2050,6 +2281,7 @@
             const area = document.getElementById('orderDetailsContentArea');
             try {
                 area.innerHTML = `<div class="flex items-center justify-center h-64"><div class="text-center"><div class="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div><p class="text-white/60">Loading order details...</p></div></div>`;
+                sheet.style.zIndex = '9999';
                 sheet.classList.remove('opacity-0', 'pointer-events-none');
                 sheet.classList.add('opacity-100', 'z-50');
                 setTimeout(() => content.classList.remove('translate-y-full'), 10);
@@ -2217,6 +2449,7 @@
             const sheet = document.getElementById('orderDetailsSheet');
             const content = document.getElementById('orderDetailsContent');
             if (sheet && content) {
+                sheet.style.zIndex = '9999';
                 sheet.classList.remove('opacity-0', 'pointer-events-none');
                 sheet.classList.add('opacity-100', 'z-50');
                 setTimeout(() => content.classList.remove('translate-y-full'), 10);
@@ -2231,6 +2464,7 @@
             setTimeout(() => {
                 sheet.classList.remove('opacity-100', 'z-50');
                 sheet.classList.add('opacity-0', 'pointer-events-none');
+                sheet.style.zIndex = '-1';
             }, 300);
             currentOrderForDetails = null;
         }
