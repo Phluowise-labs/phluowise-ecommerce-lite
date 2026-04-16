@@ -42,22 +42,22 @@ const THEMES = {
         tabBg: '#292B2F'
     },
     light: {
-        backgroundColor: '#202225',
-        backgroundSecondColor: '#40444B',
-        backgroundThirdColor: '#292B2F',
-        bottomSheetColor: '#40444B',
-        buttonColor: '#007ACC',
-        buttonBorderColor: '#007ACC',
-        buttonSecondColor: '#F57D7D',
-        buttonSecondBorderColor: '#F57D7D',
-        inputFieldColor: '#40444B',
-        inputFieldBorderColor: '#40444B',
-        inputFieldSecondColor: '#40444B',
-        inputFieldSecondBorderColor: '#40444B',
-        modelBackgroundColor: '#40444B',
-        modelBorderColor: '#40444B',
-        headerBg: '#292B2F',
-        tabBg: '#292B2F'
+        backgroundColor: '#F8FAFC',
+        backgroundSecondColor: '#FFFFFF',
+        backgroundThirdColor: '#F1F5F9',
+        bottomSheetColor: '#FFFFFF',
+        buttonColor: '#2563EB',
+        buttonBorderColor: '#2563EB',
+        buttonSecondColor: '#FBCFE8',
+        buttonSecondBorderColor: '#DB2777',
+        inputFieldColor: '#E5E7EB',
+        inputFieldBorderColor: '#D1D5DB',
+        inputFieldSecondColor: '#F3F4F6',
+        inputFieldSecondBorderColor: '#D1D5DB',
+        modelBackgroundColor: '#FFFFFF',
+        modelBorderColor: '#D1D5DB',
+        headerBg: '#FFFFFF',
+        tabBg: '#FFFFFF'
     }
 };
 
@@ -73,13 +73,16 @@ function saveTheme(theme) {
 
 // Update theme on page
 function updateTheme(theme) {
-    const colors = THEMES[theme] || THEMES.dark;
+    const resolvedTheme = theme === 'system'
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : theme;
+    const colors = THEMES[resolvedTheme] || THEMES.dark;
 
     // Remove existing theme classes
-    document.body.classList.remove('dark-theme', 'gray-theme', 'light-theme');
+    document.body.classList.remove('dark-theme', 'gray-theme', 'light-theme', 'system-theme');
 
-    // Add new theme class
-    document.body.classList.add(theme + '-theme');
+    // Add new theme class for the resolved theme
+    document.body.classList.add(resolvedTheme + '-theme');
 
     // Update CSS variables
     document.documentElement.style.setProperty('--bg-color', colors.backgroundColor);
@@ -88,10 +91,10 @@ function updateTheme(theme) {
     document.documentElement.style.setProperty('--header-bg', colors.headerBg);
     document.documentElement.style.setProperty('--tab-bg', colors.tabBg);
     document.documentElement.style.setProperty('--bottom-sheet', colors.bottomSheetColor);
-    document.documentElement.style.setProperty('--model-bg', colors.modelBackgroundColor);
-    document.documentElement.style.setProperty('--model-border', colors.modelBorderColor);
+    document.documentElement.style.setProperty('--modal-bg', colors.modelBackgroundColor);
+    document.documentElement.style.setProperty('--modal-border', colors.modelBorderColor);
 
-    // Save to localStorage
+    // Save user choice; system uses preference fallback
     saveTheme(theme);
 
     // Update body background
@@ -141,57 +144,57 @@ function getThemeModalHTML() {
     const currentTheme = getCurrentTheme();
 
     return `
-    <div id="themeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none;">
-        <div class="w-full h-full flex flex-col items-center justify-center p-5">
+    <div id="themeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+        <div class="w-full min-h-full flex flex-col items-center justify-center px-4 py-5">
             <!-- Back Button -->
             <div class="w-full max-w-[400px] mb-4">
-                <button onclick="closeThemeModal()" class="w-10 h-10 flex items-center justify-center">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <button onclick="closeThemeModal()" class="w-10 h-10 flex items-center justify-center" style="color: var(--text-color);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
                 </button>
             </div>
             
             <!-- Theme Options Container -->
-            <div class="w-full max-w-[400px] rounded-[15px] overflow-hidden border" 
-                 style="height: 301px; border-color: var(--model-border, #DADADA);">
+            <div class="w-full max-w-[400px] rounded-[15px] overflow-hidden border shadow-xl"
+                 style="min-height: 301px; border-color: var(--modal-border, #DADADA); background-color: var(--modal-bg); color: var(--text-color);">
                 
                 <!-- Choose Theme Header -->
-                <div class="h-[60px] flex items-center px-6 border-b border-[#3A3B3F]"
-                     style="background-color: var(--bg-third, #101010);">
-                    <span class="text-white text-lg font-semibold">Choose Theme</span>
+                <div class="h-[60px] flex items-center px-6 border-b"
+                     style="background-color: var(--bg-third, #101010); color: var(--text-color); border-color: var(--modal-border, #DADADA);">
+                    <span class="text-lg font-semibold">Choose Theme</span>
                 </div>
                 
                 <!-- Light Option -->
-                <button onclick="selectTheme('light')" 
+                <button data-theme="light" onclick="selectTheme('light')" 
                         class="w-full h-[60px] flex items-center px-6 gap-5 border-b border-[#3A3B3F]"
-                        style="background-color: var(--bg-third, #101010);">
+                        style="background-color: var(--bg-third, #101010); color: var(--text-color);">
                     <div class="w-6 h-6 rounded-full bg-[#40444B]"></div>
-                    <span class="${currentTheme === 'light' ? 'text-white' : 'text-white/50'} text-lg font-semibold">Light</span>
+                    <span class="text-lg font-semibold">Light</span>
                 </button>
                 
                 <!-- Gray Option -->
-                <button onclick="selectTheme('gray')" 
+                <button data-theme="gray" onclick="selectTheme('gray')" 
                         class="w-full h-[60px] flex items-center px-6 gap-5 border-b border-[#3A3B3F]"
-                        style="background-color: var(--bg-third, #101010);">
+                        style="background-color: var(--bg-third, #101010); color: var(--text-color);">
                     <div class="w-6 h-6 rounded-full bg-[#40444B]"></div>
-                    <span class="${currentTheme === 'gray' ? 'text-white' : 'text-white/50'} text-lg font-semibold">Gray</span>
+                    <span class="text-lg font-semibold">Gray</span>
                 </button>
                 
                 <!-- Dark Option -->
-                <button onclick="selectTheme('dark')" 
+                <button data-theme="dark" onclick="selectTheme('dark')" 
                         class="w-full h-[60px] flex items-center px-6 gap-5 border-b border-[#3A3B3F]"
-                        style="background-color: var(--bg-third, #101010);">
+                        style="background-color: var(--bg-third, #101010); color: var(--text-color);">
                     <div class="w-6 h-6 rounded-full bg-[#40444B]"></div>
-                    <span class="${currentTheme === 'dark' ? 'text-white' : 'text-white/50'} text-lg font-semibold">Dark</span>
+                    <span class="text-lg font-semibold">Dark</span>
                 </button>
-                
+
                 <!-- System Default Option -->
-                <button onclick="selectTheme('dark')" 
+                <button data-theme="system" onclick="selectTheme('system')" 
                         class="w-full h-[60px] flex items-center px-6 gap-5"
-                        style="background-color: var(--bg-third, #101010);">
+                        style="background-color: var(--bg-third, #101010); color: var(--text-color);">
                     <div class="w-6 h-6 rounded-full bg-[#40444B]"></div>
-                    <span class="text-white/50 text-lg font-semibold">System Default</span>
+                    <span class="text-lg font-semibold">System Default</span>
                 </button>
                 
             </div>
@@ -247,20 +250,23 @@ function updateThemeModalHighlight() {
 
     if (!modal) return;
 
-    // Get all theme buttons (skip the header which is index 0)
-    const buttons = modal.querySelectorAll('button[onclick^="selectTheme"]');
+    const buttons = modal.querySelectorAll('button[data-theme]');
 
     buttons.forEach(button => {
-        const themeName = button.getAttribute('onclick').match(/'(\w+)'/)?.[1];
+        const themeName = button.dataset.theme;
         const span = button.querySelector('span');
 
-        if (span) {
-            if (themeName === currentTheme) {
-                span.classList.remove('text-white/50');
-                span.classList.add('text-white');
-            } else {
-                span.classList.remove('text-white');
-                span.classList.add('text-white/50');
+        if (themeName === currentTheme) {
+            button.style.backgroundColor = 'rgba(59, 130, 246, 0.12)';
+            button.style.borderColor = 'rgba(59, 130, 246, 0.35)';
+            if (span) {
+                span.style.opacity = '1';
+            }
+        } else {
+            button.style.backgroundColor = 'transparent';
+            button.style.borderColor = 'var(--border-color, rgba(148, 163, 184, 0.35))';
+            if (span) {
+                span.style.opacity = '0.65';
             }
         }
     });

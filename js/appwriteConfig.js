@@ -14,6 +14,8 @@ if (typeof Appwrite === "undefined") {
 
   const account = new Appwrite.Account(client);
   const databases = new Appwrite.Databases(client);
+  const storage = new Appwrite.Storage(client);
+  const functions = new Appwrite.Functions(client);
 
   const appwriteConfig = {
     DATABASE_ID: "68b1b7590035346a3be9",
@@ -33,10 +35,14 @@ if (typeof Appwrite === "undefined") {
     COMMUNITY_VOTES_TABLE: "community_votes",
     COMMUNITY_COMMENTS_TABLE: "community_comments",
     COMMUNITY_COMMENT_VOTES_TABLE: "community_comment_votes",
-    STORAGE_BUCKET_ID: "68b1c57b001542be7fbe",
+    STORAGE_BUCKET_ID: "695fec72003b8ba4fb22",
     PROJECT_ID: "695f826500067c381616",
     BUCKETS: {
       PRODUCTS: "695fec72003b8ba4fb22",
+      RECEIPTS: "695fec72003b8ba4fb22",
+    },
+    FUNCTIONS: {
+      SEND_RECEIPT_EMAIL: "69d9b1f200018684524b",
     },
     // PAYSTACK: public key centralised here. Rotate in ONE place only.
     // The secret key (sk_live_...) must NEVER appear in client code — use an Appwrite Function.
@@ -44,6 +50,8 @@ if (typeof Appwrite === "undefined") {
     client,
     account,
     databases,
+    storage,
+    functions,
     ID,
     Query,
   };
@@ -52,6 +60,8 @@ if (typeof Appwrite === "undefined") {
   window.appwriteConfig = appwriteConfig;
   window.account = account;
   window.databases = databases;
+  window.storage = storage;
+  window.functions = functions;
   window.ID = ID;
   window.Query = Query;
   window.client = client;

@@ -24,11 +24,15 @@
     <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
     <link rel="stylesheet" href="css/tailwind-global.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="js/pdfReceiptGenerator.js"></script>
 
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=verified" />
     <link rel="stylesheet" href="css/notifications.css" />
     <link rel="stylesheet" href="css/mobile-responsive.css" />
+    <link rel="stylesheet" href="css/nav-animations.css" />
+    <script src="js/navAnimations.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
@@ -55,6 +59,240 @@
             --btn-second-border: #F57D7D;
             --modal-bg: #101010;
             --modal-border: #DADADA;
+        }
+
+        body.light-theme {
+            --bg-color: #F8FAFC;
+            --bg-second: #F1F5F9;
+            --header-bg: #FFFFFF;
+            --btn-color: rgba(59, 116, 255, 0.18);
+            --btn-border: #3B74FF;
+            --btn-second-color: rgba(251, 207, 232, 0.45);
+            --btn-second-border: #DB2777;
+            --modal-bg: #FFFFFF;
+            --modal-border: #CBD5E1;
+            --text-color: #0F172A;
+            --bottom-sheet-color: rgba(255, 255, 255, 0.94);
+            --input-bg: #F8FAFC;
+            --input-border: #E2E8F0;
+            --bg-third: #FFFFFF;
+        }
+
+        body.light-theme {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        body.light-theme .status-tabs {
+            background-color: #F8FAFC !important;
+        }
+
+        body.light-theme .header-icon-btn {
+            background-color: rgba(148, 163, 184, 0.18) !important;
+            border-color: rgba(148, 163, 184, 0.45) !important;
+        }
+
+        body.light-theme .profile-avatar-wrapper {
+            background-color: #E2E8F0 !important;
+            border-color: rgba(148, 163, 184, 0.45) !important;
+        }
+
+        body.light-theme .profile-avatar-edit-btn {
+            background-color: rgba(148, 163, 184, 0.2) !important;
+        }
+
+        body.light-theme .menu-overlay {
+            background-color: rgba(255, 255, 255, 0.75);
+        }
+
+        body.light-theme .tab-bar {
+            background-color: #F8FAFC !important;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        body.light-theme .tab-bar [class*="text-white"] {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .tab-bar svg[stroke="#FFFFFF"],
+        body.light-theme .tab-bar svg[fill="#FFFFFF"],
+        body.light-theme .tab-bar svg[stroke="white"],
+        body.light-theme .tab-bar svg[fill="white"] {
+            stroke: var(--text-color) !important;
+            fill: var(--text-color) !important;
+        }
+
+        .tab-bar > a:first-child svg,
+        .tab-bar > a:first-child svg path,
+        #floatingFilterBtn svg,
+        #floatingFilterBtn svg path {
+            fill: none !important;
+        }
+
+        .tab-bar a {
+            padding-top: 10px;
+        }
+
+        body.light-theme .sliding-menu {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        body.light-theme [class*="text-white"] {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .sliding-menu a,
+        body.light-theme .sliding-menu button {
+            background-color: transparent !important;
+            border-color: rgba(203, 213, 225, 0.45) !important;
+        }
+
+        body.light-theme .modal-overlay {
+            background-color: rgba(255, 255, 255, 0.65) !important;
+        }
+
+        body.light-theme .modal-overlay [class*="text-white"] {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .modal-overlay .text-gray-400,
+        body.light-theme .modal-overlay .text-gray-500 {
+            color: rgba(71, 85, 105, 0.8) !important;
+        }
+
+        body.light-theme .bottom-sheet-content,
+        body.light-theme .bg-black\/40,
+        body.light-theme .bg-black\/80 {
+            background-color: rgba(255, 255, 255, 0.98) !important;
+            border-color: rgba(148, 163, 184, 0.35) !important;
+            color: var(--text-color);
+        }
+
+        body.light-theme .bottom-sheet-content {
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08) !important;
+        }
+
+        body.light-theme .bottom-sheet-content [class*="text-white"] {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .text-white\/60,
+        body.light-theme .bottom-sheet-content .text-white\/40 {
+            color: rgba(15, 23, 42, 0.72) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .text-gray-400,
+        body.light-theme .bottom-sheet-content .text-gray-500 {
+            color: rgba(71, 85, 105, 0.8) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .border-white\/20 {
+            border-color: rgba(148, 163, 184, 0.28) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .border-white\/10 {
+            border-color: rgba(148, 163, 184, 0.25) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .bg-white\/5 {
+            background-color: rgba(248, 250, 252, 0.88) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .bg-white\/10 {
+            background-color: rgba(248, 250, 252, 0.92) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .bg-white\/20 {
+            background-color: rgba(248, 250, 252, 0.96) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .text-white\/70 {
+            color: rgba(15, 23, 42, 0.85) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .bg-gray-800\/50,
+        body.light-theme .bottom-sheet-content .bg-gray-900\/50,
+        body.light-theme .bottom-sheet-content .bg-gray-700\/50,
+        body.light-theme .bottom-sheet-content .bg-gray-900\/70 {
+            background-color: rgba(248, 250, 252, 0.96) !important;
+            border-color: rgba(203, 213, 225, 0.5) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .border-gray-700,
+        body.light-theme .bottom-sheet-content .border-gray-700\/50 {
+            border-color: rgba(203, 213, 225, 0.55) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .text-gray-500,
+        body.light-theme .bottom-sheet-content .text-gray-400 {
+            color: rgba(71, 85, 105, 0.75) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .text-white\/80 {
+            color: rgba(15, 23, 42, 0.88) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .bg-black\/40,
+        body.light-theme .bottom-sheet-content .bg-black\/80 {
+            background-color: rgba(255, 255, 255, 0.98) !important;
+        }
+
+        body.light-theme .company-name-text {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .company-name-container .verified-icon {
+            color: #D97706 !important;
+        }
+
+        body.light-theme .text-white {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme svg[stroke="#FFFFFF"],
+        body.light-theme svg[fill="#FFFFFF"],
+        body.light-theme svg[stroke="white"],
+        body.light-theme svg[fill="white"] {
+            stroke: var(--text-color) !important;
+            fill: var(--text-color) !important;
+        }
+
+        body.light-theme .filter-toggle-container {
+            background: rgba(15, 23, 42, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        body.light-theme .toggle-slider {
+            background-color: #CBD5E1;
+        }
+
+        body.light-theme .toggle-switch input:checked + .toggle-slider {
+            background-color: #3B74FF;
+        }
+
+        body.light-theme .floating-return-btn {
+            background: rgba(59, 116, 255, 0.15);
+            border-color: rgba(59, 116, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(59, 116, 255, 0.15);
+        }
+
+        body.light-theme .floating-return-btn:hover {
+            background: rgba(59, 116, 255, 0.2);
+            border-color: rgba(59, 116, 255, 0.3);
+            box-shadow: 0 12px 40px rgba(59, 116, 255, 0.18);
+        }
+
+        body.light-theme .floating-filter-btn {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: rgba(16, 185, 129, 0.25);
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.14);
+        }
+
+        body.light-theme .floating-filter-btn:hover {
+            background: rgba(16, 185, 129, 0.22);
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.16);
         }
 
         body {
@@ -437,10 +675,15 @@
 
         /* Skeleton Loading */
         .skeleton {
-            background: linear-gradient(90deg, #1D1D1D 25%, #2a2a2a 50%, #1D1D1D 75%);
+            background: linear-gradient(90deg, #E2E8F0 25%, #F8FAFC 50%, #E2E8F0 75%);
             background-size: 200% 100%;
             animation: loading 1.5s infinite;
             border-radius: 8px;
+        }
+
+        body.light-theme .skeleton {
+            background: linear-gradient(90deg, #E2E8F0 25%, #F8FAFC 50%, #E2E8F0 75%) !important;
+            box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
         }
 
         .skeleton-text {
@@ -451,6 +694,12 @@
         .skeleton-card {
             height: 120px;
             margin-bottom: 12px;
+        }
+
+        body.light-theme .skeleton-card {
+            background: linear-gradient(90deg, #E2E8F0 25%, #F8FAFC 50%, #E2E8F0 75%) !important;
+            box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
+            border-radius: 16px;
         }
 
         @keyframes loading {
@@ -566,7 +815,7 @@
         style="height: 110px; background-color: var(--header-bg);">
         <h1 class="text-white text-xl font-medium">Schedule History</h1>
         <button onclick="toggleMenu()"
-            class="relative overflow-hidden rounded-full flex justify-center items-center border"
+            class="header-icon-btn relative overflow-hidden rounded-full flex justify-center items-center border"
             style="height: 45px; width: 45px; border-width: 0.5px; border-color: #808080; background-color: #40444B4D;">
             <div class="w-full h-full flex justify-center items-center">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -579,7 +828,7 @@
     </div>
 
     <!-- Status Tabs Component (Exact from Status.tsx: bg: #101010, height: 40, py-4, px-10) -->
-    <div style="background-color: #101010;">
+    <div class="status-tabs" style="background-color: #101010;">
         <div class="py-4 px-10 overflow-x-auto">
             <div class="flex flex-row items-center gap-1 min-w-max justify-start">
                 <!-- Status Button -->
@@ -642,13 +891,13 @@
         <!-- Avatar Section -->
         <div class="flex flex-col items-center justify-center gap-4 py-6">
             <!-- Profile Image Container -->
-            <div class="relative flex items-center justify-center rounded-full border-[0.5px] border-[#292B2F]"
+            <div class="profile-avatar-wrapper relative flex items-center justify-center rounded-full border-[0.5px] border-[#292B2F]"
                 style="height: 110px; width: 110px; background-color: #292B2F;">
                 <img src="images/main/ProfileImage.png" class="w-[62px] h-[62px] object-contain" alt="Profile">
 
                 <!-- Edit Button -->
                 <button onclick="openProfileImagePicker()"
-                    class="absolute rounded-full flex items-center justify-center"
+                    class="profile-avatar-edit-btn absolute rounded-full flex items-center justify-center"
                     style="top: 2px; right: 0; height: 38px; width: 38px; background-color: #40444B;">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -844,10 +1093,10 @@
 
     <!-- Order Status Modal (Exact from schedulepickup.tsx) -->
     <div id="orderModal"
-        class="fixed inset-0 z-30 flex items-center justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet"
+        class="fixed inset-0 z-30 flex items-center justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet modal-overlay"
         style="background-color: rgba(0,0,0,0.5);">
         <div id="orderModalContent"
-            class="pointer-events-auto w-full max-w-[400px] p-5 flex flex-col items-center relative transform translate-y-full transition-transform duration-300">
+            class="pointer-events-auto w-full max-w-[400px] p-5 flex flex-col items-center relative transform translate-y-full transition-transform duration-300 bottom-sheet-content">
             <!-- Back Button -->
             <div class="relative w-full">
                 <button onclick="closeOrderModal()" class="relative w-10 h-10 flex justify-center items-center">
@@ -883,13 +1132,13 @@
 
     <!-- Order Details Bottom Sheet -->
     <div id="orderDetailsSheet"
-        class="fixed inset-0 z-20 flex items-end justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet"
+        class="fixed inset-0 z-20 flex items-end justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet modal-overlay"
         style="background-color: rgba(0,0,0,0.5); z-index: -1;">
         <div id="orderDetailsContent"
             class="pointer-events-auto w-full max-w-[400px] transform translate-y-full transition-transform duration-300">
 
             <!-- Bottom Sheet Container -->
-            <div class="w-full rounded-t-[20px] overflow-hidden backdrop-blur-xl bg-black/40 shadow-2xl"
+            <div class="w-full rounded-t-[20px] overflow-hidden backdrop-blur-xl bg-black/40 shadow-2xl bottom-sheet-content"
                 style="border: 1px solid rgba(255, 255, 255, 0.1);">
 
                 <!-- Handle Bar -->
@@ -916,13 +1165,13 @@
 
     <!-- Return Pickups Bottom Sheet -->
     <div id="returnPickupsSheet"
-        class="fixed inset-0 z-20 flex items-end justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet"
+        class="fixed inset-0 z-20 flex items-end justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet modal-overlay"
         style="background-color: rgba(0,0,0,0.5);">
         <div id="returnPickupsContent"
             class="pointer-events-auto w-full max-w-[400px] transform translate-y-full transition-transform duration-300">
 
             <!-- Bottom Sheet Container -->
-            <div class="w-full rounded-t-[20px] overflow-hidden backdrop-blur-xl bg-black/40 shadow-2xl"
+            <div class="w-full rounded-t-[20px] overflow-hidden backdrop-blur-xl bg-black/40 shadow-2xl bottom-sheet-content"
                 style="border: 1px solid rgba(255, 255, 255, 0.1);">
 
                 <!-- Handle Bar -->
@@ -1009,11 +1258,11 @@
 
     <!-- Filter Bottom Sheet -->
     <div id="filterSheet"
-        class="fixed inset-0 z-50 flex items-end justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet"
+        class="fixed inset-0 z-50 flex items-end justify-center pointer-events-none opacity-0 transition-all duration-300 bottom-sheet modal-overlay"
         style="background-color: rgba(0,0,0,0.5); z-index: -1;">
         <div id="filterSheetContent"
             class="pointer-events-auto w-full max-w-[400px] transform translate-y-full transition-transform duration-300">
-            <div class="w-full rounded-t-[20px] overflow-hidden backdrop-blur-xl bg-black/80 shadow-2xl pb-6"
+            <div class="w-full rounded-t-[20px] overflow-hidden backdrop-blur-xl bg-black/80 shadow-2xl pb-6 bottom-sheet-content"
                 style="border: 1px solid rgba(255, 255, 255, 0.1);">
                 <div class="w-full flex justify-center py-3">
                     <div class="w-12 h-1 rounded-full bg-white/30"></div>
@@ -2485,37 +2734,39 @@
             currentOrderForDetails = null;
         }
 
-        // Prominent Disclosure for Play Store compliance
-        function showStoragePermissionModal(callback) {
+        // PDF email notice on mobile instead of storage permission prompt
+        function showPdfEmailNoticeModal(callback) {
+            const isLightTheme = document.body.classList.contains('light-theme');
             const modalOverlay = document.createElement('div');
-            modalOverlay.id = 'storagePermissionModal';
-            modalOverlay.className = 'fixed inset-0 flex items-center justify-center p-6';
-            modalOverlay.style.cssText = 'display: flex; z-index: 99999; backdrop-filter: blur(8px); background-color: rgba(0,0,0,0.6);';
+            modalOverlay.id = 'pdfEmailNoticeModal';
+            modalOverlay.className = 'fixed inset-0 flex items-center justify-center p-6 modal-overlay';
+            modalOverlay.style.cssText = `display: flex; z-index: 99999; backdrop-filter: blur(8px); background-color: ${isLightTheme ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.6)'};`;
 
             const modalContent = document.createElement('div');
-            modalContent.className = 'rounded-[24px] w-full max-w-[340px] px-8 py-8 flex flex-col items-center justify-center border-[0.5px] shadow-2xl';
-            modalContent.style.cssText = 'background-color: #1a1a1a; border-color: rgba(255,255,255,0.1);';
+            modalContent.className = 'rounded-[24px] w-full max-w-[340px] px-8 py-8 flex flex-col items-center justify-center border-[0.5px] shadow-2xl bottom-sheet-content';
+            modalContent.style.cssText = `background-color: ${isLightTheme ? 'rgba(255,255,255,0.98)' : '#1a1a1a'}; border-color: ${isLightTheme ? 'rgba(148,163,184,0.35)' : 'rgba(255,255,255,0.1)'};`;
 
             modalContent.innerHTML = `
                 <div class="flex flex-col items-center justify-center w-full">
-                    <div class="w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(59, 130, 246, 0.1);">
-                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m-3-3l3 3 3-3" />
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(59, 130, 246, 0.12);">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11v6a2 2 0 01-2 2H7a2 2 0 01-2-2v-6" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5 5 5" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12" />
                         </svg>
                     </div>
                     
-                    <h2 class="text-white text-xl font-bold text-center mb-3">Storage Permission Required</h2>
+                    <h2 class="text-white text-xl font-bold text-center mb-3">PDF Email Notice</h2>
                     <p class="text-gray-400 text-sm text-center leading-relaxed mb-8">
-                        Phluowise needs access to your device's files and storage so we can properly save your Order Summary PDF directly to your Downloads folder or allow you to share it.
+                        Phluowise will generate your Order Summary PDF and send it to your registered email address. This avoids asking for storage access on mobile devices.
                     </p>
                     
                     <div class="w-full flex items-center gap-3 mt-2">
-                        <button id="denyStorageBtn" class="h-[70px] flex-1 rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 shadow-[0_4px_30px_rgba(0,0,0,0.1)] flex items-center justify-center">
-                            <span class="text-white/70 text-[16px] font-medium">Deny</span>
+                        <button id="cancelPdfEmailBtn" class="h-[70px] flex-1 rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 shadow-[0_4px_30px_rgba(0,0,0,0.1)] flex items-center justify-center">
+                            <span class="text-white/70 text-[16px] font-medium">Cancel</span>
                         </button>
-                        <button id="allowStorageBtn" class="h-[70px] flex-1 rounded-xl backdrop-blur-xl bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-[0_4px_30px_rgba(0,0,0,0.1)] flex items-center justify-center">
-                            <span class="text-white text-[16px] font-semibold">Allow</span>
+                        <button id="sendPdfEmailBtn" class="h-[70px] flex-1 rounded-xl backdrop-blur-xl bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-[0_4px_30px_rgba(0,0,0,0.1)] flex items-center justify-center">
+                            <span class="text-white text-[16px] font-semibold">Send Email</span>
                         </button>
                     </div>
                 </div>
@@ -2524,13 +2775,13 @@
             modalOverlay.appendChild(modalContent);
             document.body.appendChild(modalOverlay);
 
-            document.getElementById('denyStorageBtn').onclick = () => {
+            document.getElementById('cancelPdfEmailBtn').onclick = () => {
                 modalOverlay.remove();
             };
 
-            document.getElementById('allowStorageBtn').onclick = () => {
+            document.getElementById('sendPdfEmailBtn').onclick = () => {
                 modalOverlay.remove();
-                window.storagePermissionGrantedForPDF = true;
+                window.pdfEmailNoticeAccepted = true;
                 if (callback) callback();
             };
         }
@@ -2539,67 +2790,104 @@
             if (!currentOrderForDetails) { alert('No order details available for PDF download'); return; }
             const isMobileDevice = window.Capacitor?.isNativePlatform?.() || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-            if (isMobileDevice && !window.storagePermissionGrantedForPDF) {
-                showStoragePermissionModal(() => {
-                    downloadOrderPDF();
-                });
+            if (isMobileDevice && !window.pdfEmailNoticeAccepted) {
+                showPdfEmailNoticeModal(() => { downloadOrderPDF(); });
                 return;
             }
 
+            // 1. Ask user which theme they want
+            let chosenTheme;
             try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                doc.setFontSize(18).text('Order Details', 20, 20);
-                let y = 40;
-                doc.setFontSize(14).text('Order Summary', 20, y); y += 10;
-                doc.setFontSize(11);
-                doc.text(`Order ID: ${currentOrderForDetails.orderId || 'N/A'}`, 20, y); y += 8;
-                doc.text(`Company: ${currentOrderForDetails.company || 'N/A'}`, 20, y); y += 8;
-                doc.text(`Status: ${currentOrderForDetails.statusText || 'Pending'}`, 20, y); y += 8;
-                if (currentOrderForDetails.deliveryDate) { doc.text(`Delivery Date: ${new Date(currentOrderForDetails.deliveryDate).toLocaleDateString()}`, 20, y); y += 8; }
-                if (currentOrderForDetails.deliveryTime) { doc.text(`Delivery Time: ${currentOrderForDetails.deliveryTime}`, 20, y); y += 8; }
-                if (currentOrderForDetails.customerDetails) {
-                    y += 5; doc.setFontSize(14).text('Recipient Information', 20, y); y += 10; doc.setFontSize(11);
-                    doc.text(`Recipient: ${currentOrderForDetails.customerDetails.recipient_name || currentOrderForDetails.customerDetails.full_name || currentOrderForDetails.customerDetails.name || 'N/A'}`, 20, y); y += 8;
-                    doc.text(`Phone: ${currentOrderForDetails.customerDetails.recipient_phone || currentOrderForDetails.customerDetails.phone_number || 'N/A'}`, 20, y); y += 8;
-                    doc.text(`Email: ${currentOrderForDetails.customerDetails.recipient_email || currentOrderForDetails.customerDetails.email || 'N/A'}`, 20, y); y += 8;
-                }
-                if (currentOrderForDetails.orderItems?.length) {
-                    y += 5; doc.setFontSize(14).text('Order Items', 20, y); y += 10; doc.setFontSize(11);
-                    currentOrderForDetails.orderItems.forEach((it, i) => {
-                        const name = it.productName || it.name || 'Unknown Product';
-                        const qty = it.productQty || 1;
-                        const price = it.productPrice || 0;
-                        doc.text(`${i + 1}. ${name} (Qty: ${qty}) - GHS${(price * qty).toFixed(2)}`, 20, y); y += 8;
-                        if (y > 270) { doc.addPage(); y = 20; }
-                    });
-                }
-                y += 5; doc.setFontSize(14).text('Price Breakdown', 20, y); y += 10; doc.setFontSize(11);
-                const sub = parseFloat(currentOrderForDetails.subtotal) || parseFloat(currentOrderForDetails.total) || 0;
-                const fee = parseFloat(currentOrderForDetails.serviceFee) || 0.20;
-                const tot = parseFloat(currentOrderForDetails.total) || 0;
-                doc.text(`Subtotal: GHS${sub.toFixed(2)}`, 20, y); y += 8;
-                doc.text(`Service Fee: GHS${fee.toFixed(2)}`, 20, y); y += 8;
-                doc.text(`Total: GHS${tot.toFixed(2)}`, 20, y);
-                const fileName = `order_${currentOrderForDetails.orderId || Date.now()}.pdf`;
-                const isMobile = window.Capacitor?.isNativePlatform?.();
-                if (isMobile) await savePdfToMobile(doc, fileName);
-                else doc.save(fileName);
-            } catch (err) { alert('Error generating PDF: ' + err.message); }
-        }
+                chosenTheme = await window.showPdfThemePicker();
+            } catch (e) {
+                return; // user cancelled
+            }
 
-        async function savePdfToMobile(doc, fileName) {
             try {
-                const pdfData = doc.output('datauristring');
-                const base64 = pdfData.split(',')[1];
-                const result = await Filesystem.writeFile({ path: `Phluowise_Orders/${fileName}`, data: base64, directory: Directory.Documents, encoding: Encoding.UTF8, recursive: true });
-                alert(`✅ PDF saved!\nFile: ${fileName}`);
-                if (window.Capacitor?.Plugins?.FileOpener) {
-                    try { await window.Capacitor.Plugins.FileOpener.open({ filePath: result.uri, contentType: 'application/pdf' }); } catch { }
+                const btn = document.querySelector('button[onclick="downloadOrderPDF()"]');
+                const originalText = btn ? btn.innerText : 'Download PDF';
+                if (btn) { btn.innerText = 'Generating...'; btn.disabled = true; }
+
+                // 2. Get actual signed-in user email
+                let userEmail = 'customer@phluowise.com';
+                try {
+                    const authUser = await window.account.get();
+                    userEmail = authUser.email;
+                } catch (_) {
+                    userEmail = currentOrderForDetails.customerDetails?.recipient_email
+                              || currentOrderForDetails.customerDetails?.email
+                              || 'customer@phluowise.com';
+                }
+
+                // 3. Generate PDF (theme-aware) & upload + email in background
+                const pdfBlob = await window.generateAndUploadReceipt(currentOrderForDetails, userEmail, chosenTheme);
+                if (btn) { btn.innerText = originalText; btn.disabled = false; }
+
+                if (!pdfBlob) throw new Error('PDF generation returned empty.');
+
+                const fileName = `Phluowise-Receipt-${currentOrderForDetails.orderId || Date.now()}.pdf`;
+
+                if (isMobileDevice) {
+                    await savePdfToMobileBlob(pdfBlob, fileName);
+                } else {
+                    const url = URL.createObjectURL(pdfBlob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = fileName;
+                    document.body.appendChild(a); a.click();
+                    document.body.removeChild(a); URL.revokeObjectURL(url);
                 }
             } catch (err) {
-                alert(`⚠️ Could not save PDF. Error: ${err.message}\nAttempting web fallback...`);
-                try { new jsPDF().text('Order PDF', 20, 20).save(fileName); } catch { alert('Could not save PDF.'); }
+                if (err.message !== 'Cancelled') alert('Error generating PDF: ' + err.message);
+                const btn = document.querySelector('button[onclick="downloadOrderPDF()"]');
+                if (btn) { btn.innerText = 'Download PDF'; btn.disabled = false; }
+            }
+        }
+
+        async function savePdfToMobileBlob(pdfBlob, fileName) {
+            try {
+                const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+                // Try Web Share API First (Invokes Android Share System directly)
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Order Summary PDF',
+                            text: 'Please find the attached Order Summary PDF from Phluowise.'
+                        });
+                        console.log('Successfully shared via Android Share System');
+                        return; // Stop here if share was successful
+                    } catch (shareError) {
+                        console.log('Share API error:', shareError);
+                        if (shareError.name === 'AbortError') return; // User cancelled
+                    }
+                }
+
+                // Fallback to Capacitor Filesystem
+                const reader = new FileReader();
+                reader.readAsDataURL(pdfBlob);
+                reader.onloadend = async function() {
+                    const base64Data = reader.result.split(',')[1];
+                    try {
+                        const result = await Filesystem.writeFile({ path: `Phluowise_Orders/${fileName}`, data: base64Data, directory: Directory.Documents, encoding: Encoding.UTF8, recursive: true });
+                        alert(`✅ PDF saved!\nFile: ${fileName}`);
+                        if (window.Capacitor?.Plugins?.FileOpener) {
+                            try { await window.Capacitor.Plugins.FileOpener.open({ filePath: result.uri, contentType: 'application/pdf' }); } catch { }
+                        }
+                    } catch (fsError) {
+                        // Final fallback for mobile browser without Capacitor
+                        const url = URL.createObjectURL(pdfBlob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }
+                }
+            } catch (err) {
+                alert(`⚠️ Could not save PDF.`);
             }
         }
 
@@ -2679,7 +2967,7 @@
         document.addEventListener('DOMContentLoaded', () => { if (!localStorage.getItem('previousPage')) localStorage.setItem('previousPage', 'schedule-history.html'); });
 
         window.showComingSoonModal = function () {
-            const o = document.createElement('div'); o.id = 'comingSoonModal'; o.className = 'fixed inset-0 z-50 flex items-center justify-center p-9'; o.style.cssText = 'display:flex;backdrop-filter:blur(20px);background-color:rgba(0,0,0,0.5);';
+            const o = document.createElement('div'); o.id = 'comingSoonModal'; o.className = 'fixed inset-0 z-50 flex items-center justify-center p-9 modal-overlay'; o.style.cssText = 'display:flex;backdrop-filter:blur(20px);background-color:rgba(0,0,0,0.5);';
             const c = document.createElement('div'); c.className = 'rounded-[30px] w-full max-w-[350px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]'; c.style.cssText = 'background-color:var(--modal-bg);border-color:var(--modal-border);';
             c.innerHTML = `<div class="flex flex-col items-center justify-center w-full h-full"><div class="flex flex-col items-center justify-center mb-6"><div class="w-[80px] h-[80px] rounded-full flex items-center justify-center mb-4" style="background-color:rgba(59,116,255,0.1);"><svg class="w-[40px] h-[40px] text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></div><h2 class="text-white text-[20px] font-bold text-center mb-3">Coming Soon!</h2><p class="text-gray-400 text-[14px] text-center leading-[20px] mb-6">We're working on an exciting new feature for returning dispenser bottles to companies after use. This will help you easily manage returns and contribute to sustainability.</p><div class="w-full text-left mb-6"><div class="text-gray-400 text-[13px] space-y-2"><div class="flex items-center gap-2"><svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2"/></svg><span>Easy bottle return scheduling</span></div><div class="flex items-center gap-2"><svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2"/></svg><span>Track return status</span></div><div class="flex items-center gap-2"><svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2"/></svg><span>Eco-friendly recycling program</span></div><div class="flex items-center gap-2"><svg class="w-[4px] h-[4px] text-blue-500" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2"/></svg><span>Rewards for returns</span></div></div></div></div><div class="w-full flex items-center"><button onclick="closeComingSoonModal()" class="h-[37px] flex-1 rounded-[100px] flex items-center justify-center border transition-all hover:opacity-80" style="background-color:rgba(59,116,255,0.25);border-color:rgba(59,116,255,0.3);"><span class="text-white text-base font-semibold capitalize">Got it!</span></button></div></div>`;
             o.appendChild(c); document.body.appendChild(o);
@@ -2696,7 +2984,7 @@
             // Create modal overlay
             const modalOverlay = document.createElement('div');
             modalOverlay.id = 'deleteAccountModal';
-            modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
+            modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9 modal-overlay';
             modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
 
             // Create modal content
@@ -2791,7 +3079,7 @@
             // Create success modal overlay
             const modalOverlay = document.createElement('div');
             modalOverlay.id = 'deleteSuccessModal';
-            modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
+            modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9 modal-overlay';
             modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
 
             // Create modal content

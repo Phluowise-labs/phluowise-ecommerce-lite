@@ -30,30 +30,72 @@
         :root {
             --bg-color: #060606;
             --bg-third: #101010;
+            --text-color: #FFFFFF;
+            --muted-text: rgba(148, 163, 184, 0.9);
+            --border-color: #DADADA;
+            --icon-color: #94A3B8;
         }
 
         body.dark-theme {
             --bg-color: #060606;
             --bg-third: #101010;
+            --text-color: #FFFFFF;
+            --muted-text: rgba(148, 163, 184, 0.9);
+            --border-color: #DADADA;
+            --icon-color: #94A3B8;
         }
 
         body.gray-theme {
             --bg-color: #202225;
             --bg-third: #292B2F;
+            --text-color: #FFFFFF;
+            --muted-text: rgba(148, 163, 184, 0.9);
+            --border-color: #DADADA;
+            --icon-color: #94A3B8;
         }
 
         body.light-theme {
-            --bg-color: #202225;
-            --bg-third: #292B2F;
+            --bg-color: #F8FAFC;
+            --bg-third: #FFFFFF;
+            --text-color: #0F172A;
+            --muted-text: rgba(15, 23, 42, 0.55);
+            --border-color: #CBD5E1;
+            --icon-color: #475569;
         }
 
         body {
             background-color: var(--bg-color);
-            color: white;
+            color: var(--text-color);
         }
 
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
+        }
+
+        .about-card {
+            border-color: var(--border-color);
+        }
+
+        .about-link {
+            border-color: var(--border-color) !important;
+        }
+
+        .about-link svg,
+        .share-button svg {
+            color: var(--icon-color);
+        }
+
+        body.light-theme .text-white {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .text-gray-400 {
+            color: var(--muted-text) !important;
+        }
+
+        body.light-theme .header-bar svg,
+        body.light-theme .header-bar .text-white {
+            color: var(--text-color) !important;
         }
     </style>
 </head>
@@ -75,11 +117,11 @@
         <div class="p-4">
 
             <!-- About Content Card -->
-            <div class="rounded-[15px] overflow-hidden border-[0.5px]" style="border-color: #DADADA;">
+            <div class="rounded-[15px] overflow-hidden border-[0.5px] about-card" style="border-color: var(--border-color);">
 
                 <!-- Newsletter -->
                 <a href="newsletter.html"
-                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F] about-link"
                     style="background-color: var(--bg-third);">
                     <div class="flex flex-row items-center gap-[30px]">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,7 +137,7 @@
 
                 <!-- Disclaimer -->
                 <a href="disclaimer.html"
-                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F] about-link"
                     style="background-color: var(--bg-third);">
                     <div class="flex flex-row items-center gap-[30px]">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +153,7 @@
 
                 <!-- Terms of Service -->
                 <a href="terms.html"
-                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F] about-link"
                     style="background-color: var(--bg-third);">
                     <div class="flex flex-row items-center gap-[30px]">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,7 +168,7 @@
                 </a>
 
                 <!-- Privacy Policy -->
-                <a href="privacy.html" class="h-[60px] flex flex-row justify-between items-center px-6"
+                <a href="privacy.html" class="h-[60px] flex flex-row justify-between items-center px-6 about-link"
                     style="background-color: var(--bg-third);">
                     <div class="flex flex-row items-center gap-[30px]">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,7 +186,7 @@
 
             <!-- Share Button -->
             <button onclick="shareApp()"
-                class="h-[62px] flex flex-row justify-between items-center px-6 mt-4 w-full rounded-[15px] shadow-md"
+                class="share-button h-[62px] flex flex-row justify-between items-center px-6 mt-4 w-full rounded-[15px] shadow-md"
                 style="background-color: var(--bg-third);">
                 <div class="flex flex-row items-center gap-[30px]">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,6 +205,7 @@
 
     <script src="js/theme.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', initTheme);
         // Navigation State Management
         function goBack() {
             const previousPage = localStorage.getItem('previousPage');

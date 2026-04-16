@@ -43,6 +43,20 @@
             --card-radius: 20px;
         }
 
+        body.light-theme {
+            --bg-color: #F8FAFC;
+            --bg-second: rgba(255, 255, 255, 0.95);
+            --bg-third: #FFFFFF;
+            --header-bg: rgba(255, 255, 255, 0.92);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(148, 163, 184, 0.28);
+            --primary-glow: rgba(59, 116, 255, 0.16);
+            --text-main: #0F172A;
+            --text-secondary: #475569;
+            --primary: #3B74FF;
+            --card-radius: 20px;
+        }
+
         body {
             background-color: var(--bg-color);
             background-image: radial-gradient(circle at 50% 10%, rgba(59, 116, 255, 0.05) 0%, transparent 40%);
@@ -52,6 +66,106 @@
             padding: 0;
             min-height: 100vh;
             overflow-x: hidden;
+        }
+
+        body.light-theme {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 10%, rgba(59, 116, 255, 0.08) 0%, transparent 40%);
+        }
+
+        body.light-theme .text-white {
+            color: var(--text-main) !important;
+        }
+
+        body.light-theme .text-gray-400,
+        body.light-theme .text-gray-500,
+        body.light-theme .text-gray-600,
+        body.light-theme .text-gray-700 {
+            color: var(--text-secondary) !important;
+        }
+
+        body.light-theme .header-bar {
+            background: var(--header-bg);
+            border-bottom-color: rgba(148, 163, 184, 0.24);
+        }
+
+        body.light-theme .header-bar svg {
+            color: var(--text-main);
+        }
+
+        body.light-theme .glass-card,
+        body.light-theme .vote-group,
+        body.light-theme .comment-input-group,
+        body.light-theme .comment-bubble,
+        body.light-theme .form-container,
+        body.light-theme .search-input,
+        body.light-theme .filter-select,
+        body.light-theme .modal-content,
+        body.light-theme .confirm-card,
+        body.light-theme .confirm-overlay {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(148, 163, 184, 0.25);
+            color: var(--text-main);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        body.light-theme .search-input,
+        body.light-theme .filter-select,
+        body.light-theme .comment-input,
+        body.light-theme .form-input-large,
+        body.light-theme .form-textarea-large {
+            color: var(--text-main);
+        }
+
+        body.light-theme .search-input:focus,
+        body.light-theme .form-input-large:focus,
+        body.light-theme .form-textarea-large:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(59, 116, 255, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        body.light-theme .filter-select:hover,
+        body.light-theme .tab-btn:hover:not(.active) {
+            background: rgba(59, 116, 255, 0.08);
+        }
+
+        body.light-theme .tab-btn {
+            color: var(--text-secondary);
+        }
+
+        body.light-theme .tab-btn.active {
+            background: rgba(59, 116, 255, 0.18);
+            color: var(--text-main);
+            border-color: rgba(59, 116, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(59, 116, 255, 0.12), inset 0 0 10px rgba(59, 116, 255, 0.05);
+        }
+
+        body.light-theme .toast {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(148, 163, 184, 0.25);
+            color: var(--text-main);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        body.light-theme .toast.error {
+            background: rgba(254, 226, 226, 0.9);
+        }
+
+        body.light-theme .toast.success {
+            background: rgba(220, 252, 231, 0.9);
+        }
+
+        body.light-theme .fab,
+        body.light-theme .fab-toggler,
+        body.light-theme .fab-whatsapp {
+            color: var(--text-main);
+        }
+
+        body.light-theme .fab svg,
+        body.light-theme .fab-toggler svg,
+        body.light-theme .fab-whatsapp svg {
+            color: currentColor !important;
         }
 
         .header-bar {
@@ -670,6 +784,7 @@
             -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(59, 116, 255, 0.4);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 30px rgba(59, 116, 255, 0.2);
+            color: #fff;
         }
 
         .fab:hover {
@@ -1279,6 +1394,11 @@
         <!-- Will be populated dynamically -->
     </div>
 
+    <!-- Theme Loader -->
+    <script src="js/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', initTheme);
+    </script>
     <!-- Appwrite Config & Logic -->
     <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
     <script src="js/appwriteConfig.js"></script>

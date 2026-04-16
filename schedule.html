@@ -23,11 +23,15 @@
     <meta name="apple-mobile-web-app-title" content="Phluowise">
     <link rel="stylesheet" href="css/tailwind-global.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="js/pdfReceiptGenerator.js"></script>
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="css/notifications.css" />
     <link rel="stylesheet" href="css/mobile-responsive.css" />
+    <link rel="stylesheet" href="css/nav-animations.css" />
+    <script src="js/navAnimations.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -45,11 +49,356 @@
             --input-bg: #292B2F;
             --input-border: #40444B;
             --card-bg-dark: #8080804D;
+            --card-border-color: rgba(218, 218, 218, 0.35);
+            --icon-pill-bg: #333333;
+            --tag-pill-bg: #40444B;
         }
 
         body.dark-theme {
             --bg-color: #060606;
             --card-bg-dark: #8080804D;
+        }
+
+        body.light-theme {
+            --bg-color: #F8FAFC;
+            --bg-second: #F1F5F9;
+            --bg-third: #FFFFFF;
+            --header-bg: #FFFFFF;
+            --tab-bg: #F8FAFC;
+            --btn-color: rgba(59, 116, 255, 0.16);
+            --btn-border: #3B74FF;
+            --text-color: #0F172A;
+            --bottom-sheet-color: #FFFFFF;
+            --input-bg: #F8FAFC;
+            --input-border: #CBD5E1;
+            --card-bg-dark: rgba(148, 163, 184, 0.18);
+            --card-border-color: rgba(203, 213, 225, 0.45);
+            --icon-pill-bg: rgba(148, 163, 184, 0.25);
+            --tag-pill-bg: rgba(15, 23, 42, 0.08);
+        }
+
+        body.light-theme {
+            color: var(--text-color) !important;
+            background-color: var(--bg-color) !important;
+        }
+
+        body.light-theme [class*="text-white"] {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme [class*="text-white/"] {
+            color: rgba(15, 23, 42, 0.9) !important;
+        }
+
+        body.light-theme .glass-blur-70,
+        body.light-theme .glass-blur-50,
+        body.light-theme .form-container,
+        body.light-theme .modal-content,
+        body.light-theme .review-card,
+        body.light-theme .product-select-card,
+        body.light-theme .terms-radio-item,
+        body.light-theme .terms-container,
+        body.light-theme .payment-method-card,
+        body.light-theme .price-display,
+        body.light-theme .info-card,
+        body.light-theme .mobile-payment-note,
+        body.light-theme .recipient-type-btn,
+        body.light-theme .toggle-container,
+        body.light-theme .time-slot-btn,
+        body.light-theme .step-navigation,
+        body.light-theme .toggle-slider {
+            background: rgba(255, 255, 255, 0.92) !important;
+            border-color: rgba(203, 213, 225, 0.45) !important;
+            color: var(--text-color) !important;
+            box-shadow: none !important;
+        }
+
+        body.light-theme .delivery-info-note {
+            background-color: rgba(245, 158, 11, 0.12) !important;
+            border-color: rgba(245, 158, 11, 0.25) !important;
+            color: #92400E !important;
+        }
+
+        body.light-theme .bottom-sheet-container {
+            background: rgba(255, 255, 255, 0.72) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            border-color: rgba(148, 163, 184, 0.5) !important;
+            box-shadow: none !important;
+        }
+
+        body.light-theme .bottom-sheet-content {
+            background: rgba(255, 255, 255, 0.96) !important;
+            border-color: rgba(203, 213, 225, 0.92) !important;
+            box-shadow: 0 -20px 60px rgba(15, 23, 42, 0.08) !important;
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .sheet-drag-handle {
+            background-color: rgba(148, 163, 184, 0.45) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .bottom-sheet-close-btn {
+            background: rgba(148, 163, 184, 0.18) !important;
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .bottom-sheet-close-btn:hover {
+            background: rgba(148, 163, 184, 0.28) !important;
+        }
+
+        body.light-theme .form-label,
+        body.light-theme .section-subheader,
+        body.light-theme .text-gray-400,
+        body.light-theme .text-gray-500,
+        body.light-theme .text-gray-600 {
+            color: rgba(71, 85, 105, 0.85) !important;
+        }
+
+        body.light-theme .form-input,
+        body.light-theme .form-textarea,
+        body.light-theme [class*="bg-[#202225]"],
+        body.light-theme [class*="bg-[#1D1D1D]"],
+        body.light-theme [class*="bg-[#0F172A]"],
+        body.light-theme [class*="bg-[#101010]"],
+        body.light-theme [class*="bg-[rgba(30,30,30,0.9)]"],
+        body.light-theme [class*="bg-black"],
+        body.light-theme [class*="bg-gray-800"],
+        body.light-theme [class*="bg-gray-900"] {
+            background-color: rgba(255, 255, 255, 0.94) !important;
+            color: var(--text-color) !important;
+            border-color: rgba(203, 213, 225, 0.55) !important;
+        }
+
+        body.light-theme .form-input:focus,
+        body.light-theme .form-textarea:focus {
+            background-color: rgba(255, 255, 255, 0.98) !important;
+            border-color: #3B74FF !important;
+            box-shadow: 0 0 0 3px rgba(59, 116, 255, 0.12) !important;
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme [class*="bg-[#40444B]"] {
+            background-color: rgba(59, 116, 255, 0.12) !important;
+            color: var(--text-color) !important;
+            border-color: rgba(59, 116, 255, 0.18) !important;
+        }
+
+        body.light-theme [class*="bg-[#40444B]"] .text-white,
+        body.light-theme [class*="bg-[#40444B]"].text-white {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme [class*="bg-white/"] {
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .terms-radio-item.selected,
+        body.light-theme .recipient-type-btn.active,
+        body.light-theme .saved-recipient-item.selected,
+        body.light-theme .time-slot-btn.selected,
+        body.light-theme .payment-method-card.selected,
+        body.light-theme .product-select-card.selected,
+        body.light-theme .step-indicator-item.active,
+        body.light-theme .step-indicator-item.completed {
+            background-color: rgba(59, 116, 255, 0.15) !important;
+            border-color: #3B74FF !important;
+            color: #0F172A !important;
+        }
+
+        body.light-theme .terms-radio-item.selected .terms-radio-circle,
+        body.light-theme .recipient-type-btn.active,
+        body.light-theme .saved-recipient-item.selected,
+        body.light-theme .time-slot-btn.selected,
+        body.light-theme .payment-method-card.selected,
+        body.light-theme .product-select-card.selected {
+            color: #3B74FF !important;
+        }
+
+        body.light-theme .time-slot-btn.selected {
+            background-color: rgba(59, 116, 255, 0.18) !important;
+            color: #3B74FF !important;
+        }
+
+        body.light-theme .toggle-slider {
+            background-color: rgba(15, 23, 42, 0.12) !important;
+        }
+
+        body.light-theme input:checked + .toggle-slider {
+            background-color: #3B74FF !important;
+        }
+
+        body.light-theme .payment-method-card.selected .payment-check {
+            background: rgba(59, 116, 255, 0.2) !important;
+            border-color: rgba(59, 116, 255, 0.45) !important;
+        }
+
+        body.light-theme [class*="bg-gray-900"] {
+            background-color: rgba(248, 250, 252, 0.96) !important;
+            color: var(--text-color) !important;
+            border-color: rgba(203, 213, 225, 0.45) !important;
+        }
+
+        body.light-theme [class*="bg-black/50"] {
+            background-color: rgba(15, 23, 42, 0.06) !important;
+        }
+
+        body.light-theme [class*="bg-[rgba(59,116,255,0.2)]"],
+        body.light-theme [class*="bg-[rgba(59,116,255,0.3)]"] {
+            background-color: rgba(59, 116, 255, 0.12) !important;
+        }
+
+        body.light-theme [class*="border-white"] {
+            border-color: rgba(203, 213, 225, 0.4) !important;
+        }
+
+        body.light-theme [class*="border-gray-700"],
+        body.light-theme [class*="border-gray-800"] {
+            border-color: rgba(203, 213, 225, 0.45) !important;
+        }
+
+        body.light-theme [class*="bg-[rgba(59,116,255,0.2)]"],
+        body.light-theme [class*="bg-[rgba(59,116,255,0.3)]"] {
+            background-color: rgba(59, 116, 255, 0.12) !important;
+        }
+
+        body.light-theme .leaflet-container {
+            background: #F8FAFC !important;
+        }
+
+        body.light-theme .leaflet-popup-content-wrapper,
+        body.light-theme .leaflet-popup-tip {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border-color: rgba(148, 163, 184, 0.4) !important;
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .leaflet-control-zoom a {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            border-color: rgba(148, 163, 184, 0.75) !important;
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .leaflet-control-zoom a:hover {
+            background-color: rgba(241, 245, 249, 0.95) !important;
+            border-color: rgba(148, 163, 184, 0.9) !important;
+        }
+
+        body.light-theme #ratingTags button {
+            background-color: var(--tag-pill-bg) !important;
+            border-color: transparent !important;
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme #ratingTags button.selected {
+            background-color: rgba(59, 116, 255, 0.18) !important;
+            border-color: #3B74FF !important;
+            color: #0F172A !important;
+        }
+
+        body.light-theme .tab-bar svg {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .tab-bar svg path,
+        body.light-theme .tab-bar svg circle,
+        body.light-theme .tab-bar svg rect,
+        body.light-theme .tab-bar svg polygon,
+        body.light-theme .tab-bar svg line,
+        body.light-theme .tab-bar svg polyline {
+            stroke: currentColor !important;
+            fill: none !important;
+        }
+
+        body.light-theme .tab-bar a span {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .map-control-button,
+        body.light-theme .map-call-button,
+        body.light-theme .copy-phone-button {
+            background-color: rgba(255, 255, 255, 0.92) !important;
+            border-color: rgba(148, 163, 184, 0.55) !important;
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .map-control-button:hover,
+        body.light-theme .copy-phone-button:hover {
+            background-color: rgba(241, 245, 249, 0.95) !important;
+        }
+
+        body.light-theme .map-control-button svg,
+        body.light-theme .map-call-button svg,
+        body.light-theme .copy-phone-button svg {
+            color: currentColor !important;
+            fill: none !important;
+            stroke: currentColor !important;
+        }
+
+        body.light-theme .map-control-button svg path,
+        body.light-theme .map-control-button svg circle,
+        body.light-theme .map-control-button svg rect,
+        body.light-theme .map-call-button svg path,
+        body.light-theme .map-call-button svg circle,
+        body.light-theme .map-call-button svg rect,
+        body.light-theme .copy-phone-button svg path,
+        body.light-theme .copy-phone-button svg circle,
+        body.light-theme .copy-phone-button svg rect {
+            stroke: currentColor !important;
+            fill: none !important;
+        }
+
+        body.light-theme .modal-overlay {
+            background-color: rgba(255, 255, 255, 0.88) !important;
+        }
+
+        .social-icon-pill svg {
+            fill: white;
+            transition: fill 0.2s ease;
+        }
+
+        body.light-theme .social-icon-pill svg {
+            fill: var(--text-color) !important;
+        }
+
+        body.light-theme .material-symbols-outlined:not(.verified-checkmark):not(.verified-checkmark-tier2):not(.verified-checkmark-tier3) {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme .back-icon {
+            filter: invert(0) brightness(0.8) !important;
+        }
+
+        body.light-theme .back-btn {
+            background: rgba(15, 23, 42, 0.08) !important;
+            border-color: rgba(148, 163, 184, 0.35) !important;
+        }
+
+        body.light-theme .back-btn:hover {
+            background: rgba(15, 23, 42, 0.12) !important;
+        }
+
+        body.light-theme .nav-btn.prev {
+            background: rgba(255, 255, 255, 0.92) !important;
+            border-color: rgba(203, 213, 225, 0.5) !important;
+            color: var(--text-color) !important;
+            box-shadow: none !important;
+        }
+
+        body.light-theme .nav-btn.next {
+            background: rgba(59, 116, 255, 0.22) !important;
+            border-color: rgba(59, 116, 255, 0.35) !important;
+            color: #FFFFFF !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
+            box-shadow: 0 18px 45px rgba(59, 116, 255, 0.14) !important;
+        }
+
+        body.light-theme .nav-btn.next:hover {
+            background: rgba(59, 116, 255, 0.3) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 20px 50px rgba(59, 116, 255, 0.18) !important;
         }
 
         body {
@@ -1243,45 +1592,48 @@
         }
 
         .nav-btn.next {
-            background: rgba(59, 116, 255, 0.2);
+            background: rgba(59, 116, 255, 0.18);
             color: white;
-            border: 1px solid rgba(59, 116, 255, 0.4);
+            border: 1px solid rgba(59, 116, 255, 0.35);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 18px 45px rgba(59, 116, 255, 0.16);
         }
 
         .nav-btn.next:hover {
-            background: rgba(59, 116, 255, 0.3);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(59, 116, 255, 0.28);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 116, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(59, 116, 255, 0.2);
         }
 
         .nav-btn.pay {
-            background: rgba(16, 185, 129, 0.2);
+            background: rgba(16, 185, 129, 0.18);
             color: white;
-            border: 1px solid rgba(16, 185, 129, 0.4);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 18px 45px rgba(16, 185, 129, 0.16);
         }
 
         .nav-btn.pay:hover {
-            background: rgba(16, 185, 129, 0.3);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(16, 185, 129, 0.28);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 20px 50px rgba(16, 185, 129, 0.2);
         }
 
         .nav-btn.done {
-            background: rgba(59, 116, 255, 0.2);
+            background: rgba(59, 116, 255, 0.18);
             color: white;
-            border: 1px solid rgba(59, 116, 255, 0.4);
+            border: 1px solid rgba(59, 116, 255, 0.35);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 18px 45px rgba(59, 116, 255, 0.16);
         }
 
         .nav-btn.done:hover {
-            background: rgba(59, 116, 255, 0.3);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(59, 116, 255, 0.28);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 116, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(59, 116, 255, 0.2);
         }
 
         /* Error and Success Messages */
@@ -1617,8 +1969,8 @@
         <!-- Back Button -->
         <div class="absolute top-5 left-4 z-40">
             <button onclick="window.history.back()"
-                class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all shadow-lg">
-                <img src="images/main/ArrowLeftIcon.png" class="w-6 h-6 object-contain">
+                class="back-btn w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all shadow-lg">
+                <img src="images/main/ArrowLeftIcon.png" class="back-icon w-6 h-6 object-contain">
             </button>
         </div>
 
@@ -1738,7 +2090,7 @@
                     </div>
                     <!-- Time Display Row (exact bg #292B2F, rounded, padding) -->
                     <div class="mt-2 w-full flex flex-row items-center justify-center p-1 rounded gap-6"
-                        style="background-color: #292B2F;">
+                        style="background-color: var(--card-bg-dark);">
                         <div class="flex flex-row justify-between w-[45%] items-center">
                             <span class="text-white text-base font-medium">Opening:</span>
                             <span id="openingTime" class="text-white text-base font-medium">08:00</span>
@@ -1759,8 +2111,8 @@
                             style="gap: 8px; max-width: 200px;">
                             <!-- Facebook -->
                             <div onclick="showSocialModal('Facebook')"
-                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity"
-                                style="background-color: #333333; height: 28px; width: 28px;">
+                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity social-icon-pill"
+                                style="background-color: var(--icon-pill-bg); height: 28px; width: 28px;">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                                     <path
                                         d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -1768,8 +2120,8 @@
                             </div>
                             <!-- Instagram -->
                             <div onclick="showSocialModal('Instagram')"
-                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity"
-                                style="background-color: #333333; height: 28px; width: 28px;">
+                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity social-icon-pill"
+                                style="background-color: var(--icon-pill-bg); height: 28px; width: 28px;">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                                     <path
                                         d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
@@ -1777,8 +2129,8 @@
                             </div>
                             <!-- Twitter -->
                             <div onclick="showSocialModal('Twitter')"
-                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity"
-                                style="background-color: #333333; height: 28px; width: 28px;">
+                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity social-icon-pill"
+                                style="background-color: var(--icon-pill-bg); height: 28px; width: 28px;">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                                     <path
                                         d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
@@ -1786,8 +2138,8 @@
                             </div>
                             <!-- LinkedIn -->
                             <div onclick="showSocialModal('LinkedIn')"
-                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity"
-                                style="background-color: #333333; height: 28px; width: 28px;">
+                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity social-icon-pill"
+                                style="background-color: var(--icon-pill-bg); height: 28px; width: 28px;">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                                     <path
                                         d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
@@ -1795,8 +2147,8 @@
                             </div>
                             <!-- Discord -->
                             <div onclick="showSocialModal('Discord')"
-                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity"
-                                style="background-color: #333333; height: 28px; width: 28px;">
+                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity social-icon-pill"
+                                style="background-color: var(--icon-pill-bg); height: 28px; width: 28px;">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                                     <path
                                         d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
@@ -1804,8 +2156,8 @@
                             </div>
                             <!-- WhatsApp -->
                             <div onclick="showSocialModal('WhatsApp')"
-                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity"
-                                style="background-color: #333333; height: 28px; width: 28px;">
+                                class="flex flex-row justify-center items-center p-1 cursor-pointer hover:opacity-80 transition-opacity social-icon-pill"
+                                style="background-color: var(--icon-pill-bg); height: 28px; width: 28px;">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                                     <path
                                         d="M17.471 3.549C15.579 1.614 13.109 0.584 10.459 0.584 4.751 0.584.084 5.251.084 10.959c0 1.928.503 3.81 1.459 5.469L0 24l6.752-1.422c1.594.871 3.393 1.332 5.26 1.332 5.708 0 10.375-4.667 10.375-10.375 0-2.772-1.087-5.374-3.063-7.32zm-7.012 18.032c-1.64 0-3.248-.436-4.666-1.263l-.335-.199-3.49.735.748-3.377-.222-.354c-1.031-1.639-1.577-3.522-1.577-5.485 0-4.746 3.862-8.608 8.608-8.608 2.296 0 4.454.894 6.08 2.52 1.627 1.626 2.52 3.792 2.52 6.088 0 4.746-3.862 8.608-8.608 8.608zm4.709-6.459c-.258-.129-1.522-.753-1.758-.838-.236-.085-.408-.129-.58.129-.172.258-.667.838-.816 1.01-.15.172-.3.194-.558.064-.259-.129-1.092-.402-2.081-1.286-.77-.686-1.291-1.532-1.441-1.79-.15-.258-.016-.397.112-.525.116-.114.258-.3.387-.449.129-.15.172-.258.258-.43.086-.172.043-.323-.021-.452-.064-.129-.58-1.396-.796-1.911-.209-.492-.422-.426-.58-.434-.15-.007-.322-.007-.494-.007-.172 0-.451.065-.688.322-.237.258-.904.883-.904 2.15 0 1.268.926 2.496 1.055 2.668.129.172 1.826 2.79 4.426 3.911.618.268 1.1.427 1.476.547.62.197 1.184.169 1.629.103.497-.074 1.522-.622 1.737-1.222.216-.6.216-1.114.151-1.222-.065-.108-.237-.172-.494-.301z" />
@@ -1880,7 +2232,7 @@
                                         contact</span>
 
                                     <button onclick="copyCompanyPhone()"
-                                        class="w-8 h-8 flex items-center justify-center flex-shrink-0 active:opacity-50"
+                                        class="copy-phone-button w-8 h-8 flex items-center justify-center flex-shrink-0 active:opacity-50"
                                         style="background: rgba(255,255,255,0.1); border-radius: 6px;">
                                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -1893,7 +2245,7 @@
 
                             <!-- Call Button (height: 60, width: 60, rounded: 10, bottom: 5, right: 20, elevation: 5) -->
                             <button onclick="toggleContactPopup()"
-                                class="absolute bottom-[5px] right-[20px] rounded-[10px] flex items-center justify-center z-[1000]"
+                                class="map-call-button absolute bottom-[5px] right-[20px] rounded-[10px] flex items-center justify-center z-[1000]"
                                 style="background-color: var(--bottom-sheet-color); width: 60px; height: 60px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);">
                                 <svg class="w-8 h-8" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
                                     <path
@@ -1904,8 +2256,8 @@
                             <!-- Map Controls -->
                             <div class="absolute top-[10px] right-[20px] z-[1000] flex flex-col gap-2">
                                 <button onclick="toggleMapType()"
-                                    class="w-10 h-10 bg-[rgba(30,30,30,0.9)] backdrop-blur-lg border border-[rgba(59,116,255,0.3)] rounded-lg flex items-center justify-center text-white hover:bg-[rgba(59,116,255,0.2)] transition-all"
-                                    title="Toggle Map View">
+                                    class="map-control-button w-10 h-10 bg-[rgba(30,30,30,0.9)] backdrop-blur-lg border border-[rgba(59,116,255,0.3)] rounded-lg flex items-center justify-center text-white hover:bg-[rgba(59,116,255,0.2)] transition-all"
+                                    title="Toggle satellite view">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2">
                                         <circle cx="12" cy="12" r="3" />
@@ -1914,8 +2266,17 @@
                                         <circle cx="12" cy="12" r="8" stroke-dasharray="2 2" />
                                     </svg>
                                 </button>
+                                <button onclick="toggleMapStyle()"
+                                    class="map-control-button w-10 h-10 bg-[rgba(30,30,30,0.9)] backdrop-blur-lg border border-[rgba(59,116,255,0.3)] rounded-lg flex items-center justify-center text-white hover:bg-[rgba(59,116,255,0.2)] transition-all"
+                                    title="Toggle map style">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="12" cy="12" r="5" />
+                                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                                    </svg>
+                                </button>
                                 <button onclick="zoomInMap()"
-                                    class="w-10 h-10 bg-[rgba(30,30,30,0.9)] backdrop-blur-lg border border-[rgba(59,116,255,0.3)] rounded-lg flex items-center justify-center text-white hover:bg-[rgba(59,116,255,0.2)] transition-all">
+                                    class="map-control-button w-10 h-10 bg-[rgba(30,30,30,0.9)] backdrop-blur-lg border border-[rgba(59,116,255,0.3)] rounded-lg flex items-center justify-center text-white hover:bg-[rgba(59,116,255,0.2)] transition-all">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2">
                                         <circle cx="11" cy="11" r="8" />
@@ -1923,7 +2284,7 @@
                                     </svg>
                                 </button>
                                 <button onclick="zoomOutMap()"
-                                    class="w-10 h-10 bg-[rgba(30,30,30,0.9)] backdrop-blur-lg border border-[rgba(59,116,255,0.3)] rounded-lg flex items-center justify-center text-white hover:bg-[rgba(59,116,255,0.2)] transition-all">
+                                    class="map-control-button w-10 h-10 bg-[rgba(30,30,30,0.9)] backdrop-blur-lg border border-[rgba(59,116,255,0.3)] rounded-lg flex items-center justify-center text-white hover:bg-[rgba(59,116,255,0.2)] transition-all">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2">
                                         <circle cx="11" cy="11" r="8" />
@@ -2041,7 +2402,7 @@
                                         <div class="flex flex-row gap-4">
                                             <!-- Avatar (height: 63, width: 63, rounded-full, bg: #292B2F99, border: #DADADA) -->
                                             <div class="rounded-full border"
-                                                style="height: 63px; width: 63px; background-color: #292B2F99; border-color: #DADADA;">
+                                                style="height: 63px; width: 63px; background-color: var(--card-bg-dark); border-color: var(--card-border-color);">
                                             </div>
                                             <div class="flex flex-col justify-between py-1">
                                                 <span class="text-white font-medium text-lg pl-8">Anonymous name</span>
@@ -2055,7 +2416,7 @@
                                         </div>
                                         <!-- Comment Bubble (rounded: 12, height: 90, bg: #292B2FCC) -->
                                         <div class="w-full rounded-[12px] p-2"
-                                            style="height: 90px; background-color: #292B2FCC;">
+                                            style="height: 90px; background-color: var(--card-bg-dark);">
                                             <p class="text-white px-5 py-2 text-lg font-normal">
                                                 Lorem ipsum dolor sit amet consectetur adipisicing elit.
                                             </p>
@@ -2127,9 +2488,9 @@
                                 <!-- Static Input Row with larger height and star icon -->
                                 <div class="flex flex-row items-center gap-4">
                                     <div class="border rounded-[46px] relative"
-                                        style="height: 56px; background-color: #292B2FCC; border-color: var(--input-border); width: calc(100% - 60px); display: flex; align-items: center; padding: 0 20px;">
+                                        style="height: 56px; background-color: var(--card-bg-dark); border-color: var(--input-border); width: calc(100% - 60px); display: flex; align-items: center; padding: 0 20px;">
                                         <input type="text" id="ratingCommentInput" placeholder="Write a review.."
-                                            style="background: transparent; border: none; outline: none; color: white; font-size: 18px; flex: 1; padding-right: 40px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            style="background: transparent; border: none; outline: none; color: var(--text-color); font-size: 18px; flex: 1; padding-right: 40px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                         <!-- Star Icon Trigger -->
                                         <button onclick="toggleStaticRatingStars()"
                                             style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer;"
@@ -2168,7 +2529,7 @@
                         class="bg-[#1D1D1D] w-full max-w-[400px] h-[400px] rounded-[30px] p-5 flex flex-col items-center relative transform translate-y-full transition-transform duration-300">
                         <button onclick="closeProductModal()"
                             class="absolute top-4 left-4 z-10 w-10 h-10 flex items-center justify-center">
-                            <img src="images/main/ArrowLeftIcon.png" class="w-6 h-6">
+                            <img src="images/main/ArrowLeftIcon.png" class="back-icon w-6 h-6">
                         </button>
                         <div class="w-full h-full flex flex-col items-center justify-center gap-4">
                             <div id="modalImageContainer"
@@ -2185,10 +2546,10 @@
                 </div>
 
                 <!-- Social Media Modal -->
-                <div id="socialModal" class="fixed inset-0 z-50 flex items-center justify-center p-9 hidden"
-                    style="background-color: rgba(0,0,0,0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+<div id="socialModal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-9"
+                    style="backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
                     <div class="rounded-[30px] w-full max-w-[350px] h-[200px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]"
-                        style="background-color: #1D1D1D; border-color: rgba(255,255,255,0.1);">
+                        style="background-color: var(--bottom-sheet-color); border-color: var(--card-border-color);">
 
                         <div class="flex-1 w-full items-center flex-col justify-center relative">
                             <!-- Icon Section -->
@@ -2296,7 +2657,7 @@
 
                         <!-- Close Button -->
                         <button onclick="closeScheduleFlow()"
-                            class="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] transition-colors">
+                            class="bottom-sheet-close-btn absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] transition-colors">
                             <span class="text-white text-2xl">×</span>
                         </button>
 
@@ -3101,6 +3462,7 @@
                     let userMarker = null;
                     let currentTileLayer = null;
                     let isSatelliteView = false;
+                    let mapTheme = 'dark';
 
                     // Current company data (will be populated from database)
                     let currentCompany = {
@@ -4856,6 +5218,12 @@
                             orderData.timestamp = new Date().toISOString();
                             orderData.orderStatus = 'pending';
 
+                            // Generate PDF receipt and upload to Appwrite sequentially
+                            if (window.generateAndUploadReceipt) {
+                                let customerEmailForReceipt = orderData.recipient?.email || authUser.email || '';
+                                // We don't await here so we don't block the UI transition
+                                window.generateAndUploadReceipt(orderData, customerEmailForReceipt);
+                            }
 
                             // Cache order locally
                             if (window.cacheManager) {
@@ -5242,12 +5610,12 @@
                     function showStoragePermissionModal(callback) {
                         const modalOverlay = document.createElement('div');
                         modalOverlay.id = 'storagePermissionModal';
-                        modalOverlay.className = 'fixed inset-0 flex items-center justify-center p-6';
-                        modalOverlay.style.cssText = 'display: flex; z-index: 99999; backdrop-filter: blur(8px); background-color: rgba(0,0,0,0.6);';
+                        modalOverlay.className = 'fixed inset-0 flex items-center justify-center p-6 modal-overlay active';
+                        modalOverlay.style.cssText = 'display: flex; z-index: 99999; backdrop-filter: blur(8px);';
 
                         const modalContent = document.createElement('div');
-                        modalContent.className = 'rounded-[24px] w-full max-w-[340px] px-8 py-8 flex flex-col items-center justify-center border-[0.5px] shadow-2xl';
-                        modalContent.style.cssText = 'background-color: #1a1a1a; border-color: rgba(255,255,255,0.1);';
+                        modalContent.className = 'modal-content rounded-[24px] w-full max-w-[340px] px-8 py-8 flex flex-col items-center justify-center border-[0.5px] shadow-2xl';
+                        modalContent.style.cssText = 'border-color: rgba(203,213,225,0.45);';
 
                         modalContent.innerHTML = `
                             <div class="flex flex-col items-center justify-center w-full">
@@ -5896,80 +6264,50 @@
                     }
                     async function tryMobilePDFDownload(doc, filename) {
                         return new Promise(async (resolve, reject) => {
-                            try {
-                                // Method 1: Web Share API (Best for bypassing Android storage permissions)
-                                if (navigator.share && navigator.canShare) {
-                                    try {
-                                        const pdfBlob = doc.output('blob');
-                                        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
-                                        if (navigator.canShare({ files: [file] })) {
-                                            await navigator.share({
-                                                files: [file],
-                                                title: 'Order Summary PDF',
-                                                text: 'Here is your order summary PDF.'
-                                            });
-                                            resolve();
-                                            return;
-                                        }
-                                    } catch (shareError) {
-                                        console.log('Share API fallback:', shareError);
+                            const pdfBlob = doc.output('blob');
+                            const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+                            // Try Web Share API First (Invokes Android Share System)
+                            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                                try {
+                                    await navigator.share({
+                                        files: [file],
+                                        title: 'Order Summary PDF',
+                                        text: 'Please find the attached Order Summary PDF from Phluowise.'
+                                    });
+                                    console.log('Successfully shared via Android Share System');
+                                    resolve();
+                                    return; // Stop here if share was successful
+                                } catch (shareError) {
+                                    console.log('Share API error (possibly user gesture timeout):', shareError);
+                                    if (shareError.name === 'AbortError') {
+                                        resolve(); // User cancelled the share dialog
+                                        return;
                                     }
                                 }
+                            }
 
-                                // Method 2: Try standard download first
+                            // Fallback 1: Direct Download (Standard Android Download Manager)
+                            try {
                                 doc.save(filename);
-
-                                // Method 2: Create blob and download link (fallback)
-                                setTimeout(() => {
-                                    try {
-                                        const pdfBlob = doc.output('blob');
-                                        const url = URL.createObjectURL(pdfBlob);
-                                        const downloadLink = document.createElement('a');
-                                        downloadLink.href = url;
-                                        downloadLink.download = filename;
-                                        downloadLink.style.display = 'none';
-                                        document.body.appendChild(downloadLink);
-                                        downloadLink.click();
-                                        document.body.removeChild(downloadLink);
-                                        URL.revokeObjectURL(url);
-
-                                        // Method 3: Open in new tab as additional fallback
-                                        setTimeout(() => {
-                                            try {
-                                                const newTab = window.open(url, '_blank');
-                                                if (newTab) {
-                                                    newTab.focus();
-                                                    showMobileNotification('PDF opened in new tab. Save from browser menu.', 'info');
-                                                }
-                                            } catch (tabError) {
-                                            }
-                                        }, 500);
-
-                                        resolve();
-                                    } catch (fallbackError) {
-
-                                        // Method 4: Data URL fallback
-                                        try {
-                                            const dataUrl = doc.output('datauristring');
-                                            const dataLink = document.createElement('a');
-                                            dataLink.href = dataUrl;
-                                            dataLink.download = filename;
-                                            dataLink.style.display = 'none';
-                                            dataLink.target = '_blank'; // Force new window
-                                            document.body.appendChild(dataLink);
-                                            dataLink.click();
-                                            document.body.removeChild(dataLink);
-
-                                            showMobileNotification('PDF download initiated. Check your downloads or browser tabs.', 'info');
-                                            resolve();
-                                        } catch (dataUrlError) {
-                                            reject(dataUrlError);
-                                        }
-                                    }
-                                }, 1000);
-
-                            } catch (error) {
-                                reject(error);
+                                showMobileNotification('PDF saved successfully.', 'success');
+                                resolve();
+                            } catch (saveError) {
+                                // Fallback 2: Object URL Click
+                                try {
+                                    const url = URL.createObjectURL(pdfBlob);
+                                    const downloadLink = document.createElement('a');
+                                    downloadLink.href = url;
+                                    downloadLink.download = filename;
+                                    downloadLink.style.display = 'none';
+                                    document.body.appendChild(downloadLink);
+                                    downloadLink.click();
+                                    document.body.removeChild(downloadLink);
+                                    URL.revokeObjectURL(url);
+                                    resolve();
+                                } catch (fallbackError) {
+                                    reject(fallbackError);
+                                }
                             }
                         });
                     }
@@ -6175,12 +6513,16 @@
 
                         if (selectedTags.has(tagText)) {
                             selectedTags.delete(tagText);
-                            btn.style.backgroundColor = '#40444B';
+                            btn.classList.remove('selected');
+                            btn.style.backgroundColor = 'var(--tag-pill-bg)';
                             btn.style.borderColor = 'transparent';
+                            btn.style.color = 'var(--text-color)';
                         } else {
                             selectedTags.add(tagText);
+                            btn.classList.add('selected');
                             btn.style.backgroundColor = 'var(--btn-color)';
                             btn.style.borderColor = 'var(--btn-border)';
+                            btn.style.color = 'var(--text-color)';
                         }
                     }
 
@@ -6833,7 +7175,7 @@
                             reviewElement.innerHTML = `
                     <div class="flex flex-row gap-4">
                         <div class="rounded-full border flex-shrink-0"
-                            style="height: 63px; width: 63px; background-color: #292B2F99; border-color: #DADADA;">
+                            style="height: 63px; width: 63px; background-color: var(--card-bg-dark); border-color: var(--card-border-color);">
                             <div class="w-full h-full rounded-full flex items-center justify-center text-white text-xl font-bold">
                                 ${displayName.charAt(0).toUpperCase()}
                             </div>
@@ -6865,7 +7207,7 @@
                         </div>
                     </div>
                     <div class="w-full rounded-[12px] p-2"
-                        style="height: 90px; background-color: #292B2FCC;">
+                        style="height: 90px; background-color: var(--card-bg-dark);">
                         <p class="text-white px-5 py-2 text-lg font-normal">
                             ${review.comment}
                         </p>
@@ -6874,7 +7216,7 @@
                         <div class="flex flex-row gap-2">
                             ${review.tags.map(tag => `
                                 <span class="px-3 py-1 rounded-full text-sm font-medium" 
-                                      style="background-color: #40444B; color: white;">
+                                      style="background-color: var(--tag-pill-bg); color: var(--text-color);">
                                     ${tag}
                                 </span>
                             `).join('')}
@@ -6924,8 +7266,26 @@
                     }
 
                     // Map Functions
+                    function getStandardMapTileUrl() {
+                        return mapTheme === 'light'
+                            ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+                            : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+                    }
+
+                    function createMapTileLayer() {
+                        const url = isSatelliteView
+                            ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                            : getStandardMapTileUrl();
+                        return L.tileLayer(url, {
+                            attribution: isSatelliteView ? '© Esri' : '© OpenStreetMap contributors, © CARTO',
+                            maxZoom: 19
+                        });
+                    }
+
                     function initMap() {
                         const coords = window.currentCompany?.coordinates || currentCompany.coordinates;
+
+                        mapTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
 
                         map = L.map('scheduleMap', {
                             zoomControl: false,
@@ -6935,10 +7295,8 @@
                         // Expose map globally for consistent access
                         window.map = map;
 
-                        currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                            attribution: ' OpenStreetMap contributors, CARTO',
-                            maxZoom: 19
-                        }).addTo(map);
+                        currentTileLayer = createMapTileLayer();
+                        currentTileLayer.addTo(map);
 
                         const companyIcon = L.divIcon({
                             className: 'custom-marker',
@@ -7129,19 +7487,20 @@
                         map.removeLayer(currentTileLayer);
 
                         isSatelliteView = !isSatelliteView;
+                        currentTileLayer = createMapTileLayer();
+                        currentTileLayer.addTo(map);
+                    }
+
+                    function toggleMapStyle() {
+                        if (!map || !currentTileLayer) return;
 
                         if (isSatelliteView) {
-                            currentTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                                attribution: '© Esri',
-                                maxZoom: 19
-                            });
-                        } else {
-                            currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                                attribution: '© OpenStreetMap contributors, © CARTO',
-                                maxZoom: 19
-                            });
+                            isSatelliteView = false;
                         }
 
+                        mapTheme = mapTheme === 'light' ? 'dark' : 'light';
+                        map.removeLayer(currentTileLayer);
+                        currentTileLayer = createMapTileLayer();
                         currentTileLayer.addTo(map);
                     }
 

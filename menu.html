@@ -326,8 +326,8 @@
 
     <!-- Theme Modal (injected by JS) -->
     <div id="themeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-        style="display: none;">
-        <div class="w-full h-full flex flex-col items-center justify-center p-5">
+        style="display: none; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+        <div class="w-full min-h-full flex flex-col items-center justify-center px-4 py-5">
             <!-- Back Button -->
             <div class="w-full max-w-[400px] mb-4">
                 <button onclick="closeThemeModal()" class="w-10 h-10 flex items-center justify-center">
@@ -338,13 +338,13 @@
             </div>
 
             <!-- Theme Options Container -->
-            <div class="w-full max-w-[400px] rounded-[15px] overflow-hidden border"
-                style="height: 301px; border-color: var(--model-border, #DADADA);">
+            <div class="w-full rounded-[15px] overflow-hidden border shadow-xl"
+                style="max-width: 400px; width: min(100%, 400px); max-height: calc(100vh - 80px); border-color: var(--modal-border, #DADADA); background-color: var(--modal-bg); color: var(--text-color);">
 
                 <!-- Choose Theme Header -->
-                <div class="h-[60px] flex items-center px-6 border-b border-[#3A3B3F]"
-                    style="background-color: var(--bg-third, #101010);">
-                    <span class="text-white text-lg font-semibold">Choose Theme</span>
+                <div class="h-[60px] flex items-center px-6 border-b"
+                    style="background-color: var(--bg-third, #101010); color: var(--text-color); border-color: var(--modal-border, #DADADA);">
+                    <span class="text-lg font-semibold">Choose Theme</span>
                 </div>
 
                 <!-- Light Option -->
@@ -366,16 +366,17 @@
                 <!-- Dark Option -->
                 <button onclick="selectTheme('dark')"
                     class="w-full h-[60px] flex items-center px-6 gap-5 border-b border-[#3A3B3F]"
-                    style="background-color: var(--bg-third, #101010);">
+                    style="background-color: var(--bg-third, #101010); color: var(--text-color);">
                     <div class="w-6 h-6 rounded-full bg-[#40444B]"></div>
-                    <span id="themeDark" class="text-white text-lg font-semibold">Dark</span>
+                    <span id="themeDark" class="text-lg font-semibold">Dark</span>
                 </button>
 
                 <!-- System Default Option -->
-                <button onclick="selectTheme('dark')" class="w-full h-[60px] flex items-center px-6 gap-5"
-                    style="background-color: var(--bg-third, #101010);">
+                <button id="themeSystemButton" onclick="selectTheme('system')"
+                    class="w-full h-[60px] flex items-center px-6 gap-5"
+                    style="background-color: var(--bg-third, #101010); color: var(--text-color);">
                     <div class="w-6 h-6 rounded-full bg-[#40444B]"></div>
-                    <span class="text-white/50 text-lg font-semibold">System Default</span>
+                    <span id="themeSystem" class="text-lg font-semibold">System Default</span>
                 </button>
 
             </div>
@@ -487,16 +488,21 @@
                 }
             };
 
-            const colors = themes[theme];
+            const resolvedTheme = theme === 'system'
+                ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                : theme;
+            const colors = themes[resolvedTheme];
             document.documentElement.style.setProperty('--bg-color', colors.bgColor);
             document.documentElement.style.setProperty('--bg-third', colors.bgThird);
             document.documentElement.style.setProperty('--bottom-sheet', colors.bottomSheet);
             document.documentElement.style.setProperty('--model-border', colors.modelBorder);
+            document.documentElement.style.setProperty('--modal-border', colors.modelBorder);
+            document.documentElement.style.setProperty('--model-border', colors.modelBorder);
             document.body.style.backgroundColor = colors.bgColor;
 
             // Update body class
-            document.body.classList.remove('dark-theme', 'gray-theme', 'light-theme');
-            document.body.classList.add(theme + '-theme');
+            document.body.classList.remove('dark-theme', 'gray-theme', 'light-theme', 'system-theme');
+            document.body.classList.add(resolvedTheme + '-theme');
 
             // Save theme
             localStorage.setItem('theme', theme);
@@ -513,6 +519,7 @@
             const themeLight = document.getElementById('themeLight');
             const themeGray = document.getElementById('themeGray');
             const themeDark = document.getElementById('themeDark');
+            const themeSystem = document.getElementById('themeSystem');
 
             // Reset all
             themeLight.classList.remove('text-white');
@@ -521,6 +528,10 @@
             themeGray.classList.add('text-white/50');
             themeDark.classList.remove('text-white');
             themeDark.classList.add('text-white/50');
+            if (themeSystem) {
+                themeSystem.classList.remove('text-white');
+                themeSystem.classList.add('text-white/50');
+            }
 
             // Highlight active
             if (theme === 'light') {
@@ -529,6 +540,11 @@
             } else if (theme === 'gray') {
                 themeGray.classList.remove('text-white/50');
                 themeGray.classList.add('text-white');
+            } else if (theme === 'system') {
+                if (themeSystem) {
+                    themeSystem.classList.remove('text-white/50');
+                    themeSystem.classList.add('text-white');
+                }
             } else {
                 themeDark.classList.remove('text-white/50');
                 themeDark.classList.add('text-white');

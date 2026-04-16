@@ -77,24 +77,93 @@
         }
 
         body.light-theme {
-            --bg-color: #202225;
-            --bg-second: #40444B;
-            --bg-third: #292B2F;
-            --header-bg: #292B2F;
-            --tab-bg: #292B2F;
-            --input-field-second: #40444B;
-            --input-field-second-border: #40444B;
+            --bg-color: #F8FAFC;
+            --bg-second: #FFFFFF;
+            --bg-third: #F1F5F9;
+            --header-bg: #FFFFFF;
+            --tab-bg: #FFFFFF;
+            --input-field-second: #F3F4F6;
+            --input-field-second-border: #D1D5DB;
             --btn-color: #007ACC;
-            --btn-border: #007ACC;
-            --btn-second-color: #F57D7D;
-            --btn-second-border: #F57D7D;
-            --modal-bg: #40444B;
-            --modal-border: #40444B;
+            --btn-border: #3B74FF;
+            --btn-second-color: #FBCFE8;
+            --btn-second-border: #DB2777;
+            --modal-bg: #FFFFFF;
+            --modal-border: #CBD5E1;
+            --text-color: #0F172A;
+            --muted-text: rgba(15, 23, 42, 0.55);
+            --info-box-bg: rgba(59, 116, 255, 0.08);
+            --info-box-border: rgba(59, 116, 255, 0.16);
         }
 
         body {
             background-color: var(--bg-color);
             color: white;
+        }
+
+        body.light-theme {
+            color: var(--text-color);
+        }
+
+        body.light-theme .text-white {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme svg[stroke="white"],
+        body.light-theme svg[fill="white"] {
+            stroke: var(--text-color) !important;
+            fill: var(--text-color) !important;
+        }
+
+        body.light-theme .header-bar,
+        body.light-theme .card-bg {
+            background-color: var(--header-bg);
+        }
+
+        body.light-theme .form-input {
+            background-color: var(--input-field-second);
+            border-color: var(--input-field-second-border);
+            color: var(--text-color);
+        }
+
+        body.light-theme .form-input::placeholder {
+            color: var(--muted-text);
+        }
+
+        body.light-theme .form-label {
+            color: rgba(15, 23, 42, 0.9);
+        }
+
+        body.light-theme .info-box {
+            background: linear-gradient(135deg, rgba(59, 116, 255, 0.08) 0%, rgba(255, 255, 255, 1) 100%);
+            border-color: var(--info-box-border);
+            color: var(--text-color);
+        }
+
+        body.light-theme .text-gray-400,
+        body.light-theme .text-gray-500,
+        body.light-theme .text-gray-700,
+        body.light-theme .text-gray-600 {
+            color: rgba(15, 23, 42, 0.65) !important;
+        }
+
+        body.light-theme .text-primary {
+            color: #1D4ED8 !important;
+        }
+
+        body.light-theme .border-gray-700 {
+            border-color: rgba(15, 23, 42, 0.16) !important;
+        }
+
+        body.light-theme .modal-content {
+            background-color: var(--modal-bg);
+            border-color: var(--modal-border);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        body.light-theme .modal-title,
+        body.light-theme .modal-message {
+            color: var(--text-color);
         }
 
         .hide-scrollbar::-webkit-scrollbar {
@@ -478,8 +547,16 @@
     <script>
         // Theme initialization
         function initializeTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'dark-theme';
-            document.body.className = savedTheme;
+            let savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'system') {
+                savedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            if (savedTheme.endsWith('-theme')) {
+                savedTheme = savedTheme.replace(/-theme$/, '');
+            }
+            const themeClass = `${savedTheme}-theme`;
+            document.body.classList.remove('dark-theme', 'gray-theme', 'light-theme', 'system-theme');
+            document.body.classList.add(themeClass);
         }
 
         // Initialize theme on page load

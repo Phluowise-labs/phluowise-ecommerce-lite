@@ -1,0 +1,191 @@
+.tab-bar a {
+    position: relative;
+    overflow: hidden;
+    padding-top: 10px;
+}
+
+.tab-bar a::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    transform: translateX(-50%) scale(0.4);
+    background: radial-gradient(circle, rgba(59, 116, 255, 0.35) 0%, rgba(59, 116, 255, 0.08) 30%, transparent 70%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tab-bar a.nav-pop::after {
+    animation: nav-pop-wave 0.55s ease-out forwards;
+}
+
+.tab-bar a.nav-shake svg,
+.tab-bar a.nav-shake span {
+    animation: nav-shake 0.75s ease-in-out both;
+}
+
+button,
+.nav-btn,
+.glass-action-btn,
+.payment-method-btn,
+.recipient-type-btn,
+.quantity-btn,
+.toggle-view-btn,
+.add-more-btn,
+.modal-btn,
+.floating-return-btn,
+.floating-filter-btn,
+.card-bg,
+.product-card,
+.review-card,
+.payment-method-card,
+.info-card {
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+    will-change: transform, box-shadow;
+}
+
+button:active,
+.nav-btn:active,
+.glass-action-btn:active,
+.payment-method-btn:active,
+.recipient-type-btn:active,
+.quantity-btn:active,
+.toggle-view-btn:active,
+.add-more-btn:active,
+.modal-btn:active,
+.floating-return-btn:active,
+.floating-filter-btn:active {
+    transform: translateY(1px) scale(0.985);
+}
+
+button.interactive-press,
+.tab-bar a.interactive-press,
+.floating-return-btn.interactive-press,
+.floating-filter-btn.interactive-press,
+.product-card.interactive-press,
+.review-card.interactive-press,
+.payment-method-card.interactive-press,
+.info-card.interactive-press {
+    animation: press-pop 0.22s ease-out;
+}
+
+button:hover,
+.nav-btn:hover,
+.glass-action-btn:hover,
+.payment-method-btn:hover,
+.recipient-type-btn:hover,
+.quantity-btn:hover,
+.toggle-view-btn:hover,
+.add-more-btn:hover,
+.modal-btn:hover,
+.floating-return-btn:hover,
+.floating-filter-btn:hover,
+.card-bg:hover,
+.product-card:hover,
+.review-card:hover,
+.payment-method-card:hover,
+.info-card:hover {
+    transform: translateY(-1px);
+}
+
+.card-bg:hover,
+.product-card:hover,
+.review-card:hover,
+.payment-method-card:hover,
+.info-card:hover {
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+}
+
+.form-input,
+.form-textarea {
+    transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #3B74FF;
+    box-shadow: 0 0 0 4px rgba(59, 116, 255, 0.16);
+}
+
+.badge,
+.tab-bar a .badge,
+.floating-return-btn .badge {
+    animation: badge-pulse 1.8s ease-in-out infinite;
+}
+
+.modal-overlay .modal-content {
+    transform: translateY(16px);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+@keyframes nav-pop-wave {
+    0% {
+        opacity: 0.8;
+        width: 16px;
+        height: 16px;
+        transform: translateX(-50%) scale(0.4);
+    }
+    50% {
+        opacity: 0.5;
+        width: 70px;
+        height: 70px;
+        transform: translateX(-50%) scale(1.1);
+    }
+    100% {
+        opacity: 0;
+        width: 120px;
+        height: 120px;
+        transform: translateX(-50%) scale(1.8);
+    }
+}
+
+@keyframes nav-shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30% {
+        transform: translateX(-3px);
+    }
+    20%, 40% {
+        transform: translateX(3px);
+    }
+    60% {
+        transform: translateX(-2px);
+    }
+    80% {
+        transform: translateX(2px);
+    }
+}
+
+@keyframes press-pop {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.975);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes badge-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.08);
+        opacity: 0.82;
+    }
+}

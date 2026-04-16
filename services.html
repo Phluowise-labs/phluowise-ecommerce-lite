@@ -27,6 +27,8 @@
 
     <link rel="stylesheet" href="css/tailwind-global.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="js/pdfReceiptGenerator.js"></script>
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=verified" />
@@ -34,6 +36,8 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=transition_slide" />
     <link rel="stylesheet" href="css/notifications.css" />
     <link rel="stylesheet" href="css/mobile-responsive.css" />
+    <link rel="stylesheet" href="css/nav-animations.css" />
+    <script src="js/navAnimations.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -53,6 +57,13 @@
             --modal-border: #DADADA;
             --text-main: #FFFFFF;
             --text-secondary: #9BA1A6;
+            --menu-button-bg: rgba(64, 68, 75, 0.3);
+            --menu-button-border: rgba(128, 128, 128, 0.55);
+            --menu-button-color: #FFFFFF;
+            --toggle-icon-color: #FFFFFF;
+            --toggle-button-bg: rgba(64, 68, 75, 0.45);
+            --toggle-button-border: rgba(128, 128, 128, 0.6);
+            --toggle-button-color: #FFFFFF;
         }
 
         body.dark-theme {
@@ -71,6 +82,13 @@
             --modal-border: #DADADA;
             --text-main: #FFFFFF;
             --text-secondary: #9BA1A6;
+            --menu-button-bg: rgba(64, 68, 75, 0.45);
+            --menu-button-border: rgba(128, 128, 128, 0.6);
+            --menu-button-color: #FFFFFF;
+            --toggle-icon-color: #FFFFFF;
+            --toggle-button-bg: rgba(64, 68, 75, 0.65);
+            --toggle-button-border: rgba(148, 163, 184, 0.3);
+            --toggle-button-color: #FFFFFF;
         }
 
         body.gray-theme {
@@ -92,21 +110,32 @@
         }
 
         body.light-theme {
-            --bg-color: #202225;
-            --bg-second: #40444B;
-            --bg-third: #292B2F;
-            --header-bg: #292B2F;
-            --tab-bg: #292B2F;
-            --input-field-second: #40444B;
-            --input-field-second-border: #40444B;
-            --btn-color: #007ACC;
-            --btn-border: #007ACC;
-            --btn-second-color: #F57D7D;
-            --btn-second-border: #F57D7D;
-            --modal-bg: #40444B;
-            --modal-border: #40444B;
-            --text-main: #212529;
-            --text-secondary: #6C757D;
+            --bg-color: #F8FAFC;
+            --bg-second: rgba(255,255,255,0.76);
+            --bg-third: rgba(248,250,252,0.72);
+            --header-bg: rgba(255,255,255,0.92);
+            --tab-bg: rgba(255,255,255,0.98);
+            --input-field-second: rgba(255,255,255,0.9);
+            --input-field-second-border: rgba(203,213,225,0.75);
+            --btn-color: #2563EB;
+            --btn-border: #2563EB;
+            --btn-second-color: #FBCFE8;
+            --btn-second-border: #DB2777;
+            --modal-bg: rgba(255,255,255,0.95);
+            --modal-border: rgba(203,213,225,0.8);
+            --text-main: #111827;
+            --text-color: #111827;
+            --text-secondary: #475569;
+            --surface-color: rgba(255,255,255,0.85);
+            --surface-strong: rgba(241,245,249,0.82);
+            --border-color: rgba(226,232,240,0.9);
+            --menu-button-bg: rgba(148, 163, 184, 0.16);
+            --menu-button-border: rgba(203, 213, 225, 0.9);
+            --menu-button-color: var(--text-color);
+            --toggle-icon-color: var(--text-color);
+            --toggle-button-bg: rgba(148, 163, 184, 0.18);
+            --toggle-button-border: rgba(148, 163, 184, 0.35);
+            --toggle-button-color: var(--text-color);
         }
 
         body {
@@ -115,12 +144,145 @@
             font-family: 'Inter', sans-serif;
         }
 
+        body.light-theme [class*="text-white"] {
+            color: var(--text-color) !important;
+        }
+
+        body.light-theme [class*="placeholder-white"]::placeholder {
+            color: var(--text-secondary) !important;
+        }
+
+        body.light-theme [style*="background-color: #101010"] {
+            background-color: var(--surface-color) !important;
+        }
+
+        body.light-theme [style*="background-color: #292B2F"] {
+            background-color: var(--bg-third) !important;
+        }
+
+        body.light-theme [style*="background-color: #40444B;"] {
+            background-color: var(--input-field-second) !important;
+        }
+
+        body.light-theme [style*="background-color: #40444B66"] {
+            background-color: rgba(148, 163, 184, 0.18) !important;
+        }
+
+        body.light-theme [class*="bg-[#40444B4D]"] {
+            background-color: rgba(148, 163, 184, 0.18) !important;
+        }
+
+        body.light-theme [class*="border-[#3A3B3F]"] {
+            border-color: var(--border-color) !important;
+        }
+
+        body.light-theme [style*="background-color: #1D1D1D;"] {
+            background-color: var(--surface-color) !important;
+        }
+
+        body.light-theme [style*="background-color: #FFFFFF1A;"] {
+            background-color: rgba(96, 165, 250, 0.12) !important;
+        }
+
+        body.light-theme .glass-panel,
+        body.light-theme .glass-panel-soft {
+            backdrop-filter: blur(18px);
+        }
+
+        body.light-theme .glass-panel {
+            background-color: rgba(255, 255, 255, 0.72) !important;
+            border-color: rgba(148, 163, 184, 0.35) !important;
+        }
+
+        body.light-theme .glass-panel-soft {
+            background-color: rgba(255, 255, 255, 0.86) !important;
+            border-color: rgba(226, 232, 240, 0.8) !important;
+        }
+
+        .menu-toggle-button {
+            background-color: var(--menu-button-bg);
+            border: 1px solid var(--menu-button-border);
+            color: var(--menu-button-color);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 15px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        .menu-toggle-button:hover {
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .menu-toggle-button svg {
+            stroke: currentColor;
+        }
+
+        .toggle-icon-container {
+            color: var(--toggle-icon-color);
+        }
+
         .header-bar {
             background-color: var(--header-bg);
         }
 
         .tab-bar {
             background-color: var(--tab-bg);
+            border-top: 1px solid var(--input-field-second-border);
+        }
+
+        .tab-bar a {
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+        }
+
+        .tab-bar a.active {
+            color: #3B74FF;
+        }
+
+        body.light-theme .tab-bar a.active {
+            color: #2563EB;
+        }
+
+        .glass-action-btn {
+            backdrop-filter: blur(18px);
+            background-color: rgba(37, 99, 235, 0.18);
+            border: 1px solid rgba(37, 99, 235, 0.35);
+            color: #ffffff;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+        }
+
+        .glass-action-btn:hover {
+            background-color: rgba(37, 99, 235, 0.24);
+        }
+
+        .glass-action-btn:disabled,
+        .glass-action-btn.disabled {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.6);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        body.light-theme .glass-action-btn {
+            background-color: rgba(59, 130, 246, 0.18);
+            border-color: rgba(59, 130, 246, 0.35);
+            color: #1d4ed8;
+        }
+
+        body.light-theme .glass-action-btn:hover {
+            background-color: rgba(59, 130, 246, 0.24);
+        }
+
+        .tab-bar a svg {
+            stroke: currentColor;
+        }
+
+        .tab-bar a span {
+            color: currentColor;
+        }
+
+        .tab-bar a:hover,
+        .tab-bar a:focus-visible {
+            color: var(--text-main);
         }
 
         .card-bg {
@@ -137,6 +299,71 @@
             height: 60px;
             background-color: var(--bg-second);
             border: 1px solid var(--input-field-second-border);
+            color: var(--text-main);
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .swiper-btn svg {
+            stroke: currentColor;
+        }
+
+        body.light-theme .swiper-btn {
+            background-color: rgba(255, 255, 255, 0.92);
+            border-color: rgba(148, 163, 184, 0.65);
+            color: var(--text-color);
+        }
+
+        .search-container .search-icon {
+            color: var(--text-secondary);
+        }
+
+        .search-container .search-icon svg {
+            stroke: currentColor;
+        }
+
+        #toggleViewBtn,
+        .toggle-view-btn {
+            background-color: var(--toggle-button-bg);
+            border: 1px solid var(--toggle-button-border);
+            color: var(--toggle-button-color);
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        #toggleViewBtn:hover,
+        .toggle-view-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        #toggleViewBtn svg,
+        .toggle-view-btn svg {
+            stroke: currentColor;
+        }
+
+        .toggle-view-btn.active {
+            background-color: rgba(59, 130, 246, 0.18);
+            border-color: rgba(59, 130, 246, 0.35);
+            color: #2563EB;
+        }
+
+        body.light-theme .toggle-view-btn.active {
+            background-color: rgba(59, 130, 246, 0.22) !important;
+            border-color: rgba(59, 130, 246, 0.45) !important;
+            color: #2563EB !important;
+        }
+
+        body.light-theme #toggleViewBtn,
+        body.light-theme .toggle-view-btn {
+            background-color: var(--toggle-button-bg) !important;
+            border-color: var(--toggle-button-border) !important;
+            color: var(--toggle-button-color) !important;
+        }
+
+        body.light-theme .search-container input {
+            color: var(--text-color);
+        }
+
+        body.light-theme .search-container input::placeholder {
+            color: var(--text-secondary) !important;
         }
 
         /* Material Symbols Styles */
@@ -316,6 +543,280 @@
 
         .bottom-sheet-content.active {
             transform: translateY(0);
+        }
+
+        body.light-theme .bottom-sheet-container {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-color: rgba(148, 163, 184, 0.5);
+        }
+
+        body.light-theme .bottom-sheet-content {
+            background: rgba(255, 255, 255, 0.96);
+            border-color: rgba(203, 213, 225, 0.92);
+            box-shadow: 0 -20px 60px rgba(15, 23, 42, 0.08);
+            color: var(--text-main);
+        }
+
+        body.light-theme .sheet-drag-handle {
+            background-color: rgba(148, 163, 184, 0.45);
+        }
+
+        body.light-theme .bottom-sheet-content .text-white {
+            color: var(--text-main) !important;
+        }
+
+        body.light-theme .bottom-sheet-content .bottom-sheet-close-btn {
+            background: rgba(148, 163, 184, 0.18);
+            color: var(--text-main);
+        }
+
+        body.light-theme .bottom-sheet-content .bottom-sheet-close-btn:hover {
+            background: rgba(148, 163, 184, 0.28);
+        }
+
+        body.light-theme .bottom-sheet-content .section-header,
+        body.light-theme .bottom-sheet-content .section-subheader,
+        body.light-theme .bottom-sheet-content .terms-radio-item,
+        body.light-theme .bottom-sheet-content .terms-radio-item:hover,
+        body.light-theme .bottom-sheet-content .terms-radio-item.selected,
+        body.light-theme .bottom-sheet-content .terms-radio-label,
+        body.light-theme .bottom-sheet-content .terms-details,
+        body.light-theme .bottom-sheet-content .info-text,
+        body.light-theme .bottom-sheet-content .payment-method-name,
+        body.light-theme .bottom-sheet-content .payment-method-desc,
+        body.light-theme .bottom-sheet-content .review-section-title,
+        body.light-theme .bottom-sheet-content .review-label,
+        body.light-theme .bottom-sheet-content .review-value,
+        body.light-theme .bottom-sheet-content .price-label,
+        body.light-theme .bottom-sheet-content .price-value,
+        body.light-theme .bottom-sheet-content .success-icon,
+        body.light-theme .bottom-sheet-content .info-card {
+            color: var(--text-main);
+        }
+
+        body.light-theme .bottom-sheet-content .terms-radio-item {
+            background: rgba(248, 250, 252, 0.88);
+            border: 1px solid rgba(203, 213, 225, 0.85);
+        }
+
+        body.light-theme .bottom-sheet-content .terms-radio-item:hover {
+            background: rgba(248, 250, 252, 0.96);
+        }
+
+        body.light-theme .bottom-sheet-content .terms-radio-item.selected {
+            background: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        body.light-theme .bottom-sheet-content .terms-radio-label {
+            color: var(--text-main);
+        }
+
+        body.light-theme .bottom-sheet-content .terms-details {
+            color: var(--text-secondary);
+        }
+
+        body.light-theme .bottom-sheet-content .terms-radio-circle {
+            border: 1px solid rgba(148, 163, 184, 0.65);
+            background-color: rgba(248, 250, 252, 0.98);
+        }
+
+        body.light-theme .bottom-sheet-content .terms-radio-item.selected .terms-radio-circle {
+            background-color: rgba(59, 130, 246, 0.18);
+            border-color: rgba(59, 130, 246, 0.55);
+        }
+
+        body.light-theme .bottom-sheet-content .terms-radio-item.selected .terms-radio-circle::after {
+            background-color: #3B74FF;
+        }
+
+        body.light-theme .bottom-sheet-content .payment-method-card {
+            color: var(--text-main);
+        }
+
+        body.light-theme .bottom-sheet-content .payment-method-card .payment-check {
+            background: rgba(59, 130, 246, 0.18);
+            border-color: rgba(59, 130, 246, 0.35);
+        }
+
+        body.light-theme .bottom-sheet-content .payment-method-icon.mobile {
+            background-color: rgba(34, 197, 94, 0.12);
+        }
+
+        body.light-theme .bottom-sheet-content .payment-method-icon.delivery {
+            background-color: rgba(251, 146, 60, 0.12);
+        }
+
+        body.light-theme .bottom-sheet-content .success-icon svg {
+            color: #10B981;
+        }
+
+        body.light-theme .bottom-sheet-content .progress-bar-container {
+            background-color: rgba(148, 163, 184, 0.12);
+        }
+
+        body.light-theme .bottom-sheet-content .progress-bar {
+            background: linear-gradient(90deg, #3B74FF 0%, #2563EB 100%);
+        }
+
+        body.light-theme .form-container,
+        body.light-theme .review-card,
+        body.light-theme .terms-container,
+        body.light-theme .toggle-container,
+        body.light-theme .payment-method-card,
+        body.light-theme .product-card,
+        body.light-theme .selected-product-item,
+        body.light-theme .recipient-type-btn,
+        body.light-theme .business-type-select,
+        body.light-theme .notification-card,
+        body.light-theme .info-card,
+        body.light-theme .price-display,
+        body.light-theme .delivery-info-note,
+        body.light-theme .quantity-control {
+            background: rgba(255, 255, 255, 0.88);
+            border-color: rgba(203, 213, 225, 0.75);
+            color: var(--text-main);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+        }
+
+        body.light-theme .form-input,
+        body.light-theme .form-textarea,
+        body.light-theme .business-type-select {
+            background-color: rgba(241, 245, 249, 0.9);
+            border: 1px solid rgba(203, 213, 225, 0.85);
+            color: var(--text-color);
+        }
+
+        body.light-theme .form-input:focus,
+        body.light-theme .form-textarea:focus,
+        body.light-theme .business-type-select:focus {
+            border-color: rgba(59, 130, 246, 0.7);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+            background-color: rgba(255, 255, 255, 0.96);
+        }
+
+        body.light-theme .payment-method-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(203, 213, 225, 0.7);
+        }
+
+        body.light-theme .payment-method-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        body.light-theme .payment-method-card.selected {
+            background-color: rgba(59, 130, 246, 0.14);
+            border-color: rgba(59, 130, 246, 0.45);
+        }
+
+        body.light-theme .nav-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(203, 213, 225, 0.75);
+            color: var(--text-main);
+        }
+
+        body.light-theme .nav-btn.next,
+        body.light-theme .nav-btn.done {
+            background: rgba(59, 130, 246, 0.18);
+            color: #1d4ed8;
+            border-color: rgba(59, 130, 246, 0.45);
+        }
+
+        body.light-theme .nav-btn.pay {
+            background: rgba(16, 185, 129, 0.18);
+            color: #047857;
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        body.light-theme .nav-btn:hover {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        body.light-theme .review-item {
+            border-bottom: 1px solid rgba(203, 213, 225, 0.6);
+        }
+
+        body.light-theme .error-message {
+            background-color: rgba(254, 202, 202, 0.7);
+            border-color: rgba(248, 113, 113, 0.5);
+            color: #b91c1c;
+        }
+
+        body.light-theme .success-message {
+            background-color: rgba(187, 247, 208, 0.75);
+            border-color: rgba(34, 197, 94, 0.5);
+            color: #166534;
+        }
+
+        body.light-theme .delivery-info-note {
+            background-color: rgba(255, 247, 237, 0.9);
+            border-color: rgba(251, 191, 36, 0.45);
+            color: #92400e;
+        }
+
+        body.light-theme .review-card {
+            background: rgba(255, 255, 255, 0.92);
+            border-color: rgba(203, 213, 225, 0.8);
+        }
+
+        body.light-theme .terms-container,
+        body.light-theme .recipient-type-btn,
+        body.light-theme .toggle-container {
+            background: rgba(248, 250, 252, 0.92);
+        }
+
+        body.light-theme .toggle-slider {
+            background-color: rgba(148, 163, 184, 0.4);
+        }
+
+        body.light-theme input:checked + .toggle-slider {
+            background-color: rgba(59, 130, 246, 0.8);
+        }
+
+        body.light-theme .toggle-slider:before {
+            background-color: #ffffff;
+        }
+
+        body.light-theme .quantity-btn,
+        body.light-theme .success-icon,
+        body.light-theme .payment-check {
+            color: var(--text-main);
+        }
+
+        body.light-theme .success-icon {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+
+        body.light-theme .payment-check {
+            background: rgba(59, 130, 246, 0.16);
+            border-color: rgba(59, 130, 246, 0.32);
+        }
+
+        body.light-theme .rating-star-large,
+        body.light-theme .rating-star {
+            color: rgba(17, 24, 39, 0.4);
+        }
+
+        body.light-theme .rating-star-large.selected,
+        body.light-theme .rating-star-large:hover {
+            color: #f59e0b;
+        }
+
+        body.light-theme .add-more-btn,
+        body.light-theme .time-slot-btn {
+            background-color: rgba(59, 130, 246, 0.14);
+            border-color: rgba(59, 130, 246, 0.4);
+            color: #1d4ed8;
+        }
+
+        body.light-theme .time-slot-btn:hover {
+            background-color: rgba(59, 130, 246, 0.24);
         }
 
         .sheet-drag-handle {
@@ -877,13 +1378,29 @@
         }
 
         .recipient-type-btn:hover {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.3);
+            color: #1D4ED8;
         }
 
         .recipient-type-btn.active {
-            background-color: rgba(59, 116, 255, 0.15);
-            border-color: #3B74FF;
-            color: #3B74FF;
+            background-color: rgba(59, 130, 246, 0.24);
+            border-color: rgba(59, 130, 246, 0.65);
+            color: #1D4ED8;
+            box-shadow: 0 14px 30px rgba(59, 130, 246, 0.16);
+        }
+
+        body.light-theme .recipient-type-btn:hover {
+            background-color: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.25);
+            color: #1D4ED8;
+        }
+
+        body.light-theme .recipient-type-btn.active {
+            background-color: rgba(59, 130, 246, 0.18);
+            border-color: rgba(59, 130, 246, 0.6);
+            color: #1D4ED8;
+            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.14);
         }
 
         .business-type-container {
@@ -1583,6 +2100,43 @@
             right: 0;
         }
 
+        .profile-avatar-wrapper {
+            background-color: #292B2F;
+            border-color: #292B2F;
+        }
+
+        .profile-avatar-edit-btn {
+            background-color: #40444B;
+        }
+
+        body.light-theme .sliding-menu {
+            background-color: rgba(255, 255, 255, 0.96);
+            border-left: 1px solid rgba(226, 232, 240, 0.85);
+        }
+
+        body.light-theme .profile-avatar-wrapper {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-color: rgba(203, 213, 225, 0.75);
+            box-shadow: 0 15px 40px rgba(15, 23, 42, 0.06);
+        }
+
+        body.light-theme .profile-avatar-edit-btn {
+            background-color: rgba(148, 163, 184, 0.22);
+            color: #1f2937;
+        }
+
+        body.light-theme #menuUserName {
+            color: var(--text-main);
+        }
+
+        body.light-theme #menuUserEmail {
+            color: var(--text-secondary);
+        }
+
+        body.light-theme .sliding-menu .text-white {
+            color: var(--text-main) !important;
+        }
+
         /* Pay on Delivery Modal Styles */
         .modal-overlay {
             position: fixed;
@@ -1733,6 +2287,58 @@
             transform: translateY(-2px);
         }
 
+        body.light-theme .modal-overlay {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(203, 213, 225, 0.55);
+        }
+
+        body.light-theme .modal-content {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(203, 213, 225, 0.85);
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+            color: var(--text-main);
+        }
+
+        body.light-theme .modal-icon.warning {
+            background: rgba(251, 146, 60, 0.15);
+            border-color: rgba(251, 146, 60, 0.4);
+            color: #B45309;
+        }
+
+        body.light-theme .modal-title {
+            color: #B45309;
+        }
+
+        body.light-theme .modal-message,
+        body.light-theme .modal-list li,
+        body.light-theme .modal-subtitle {
+            color: var(--text-secondary);
+        }
+
+        body.light-theme .modal-btn.cancel {
+            background: rgba(241, 245, 249, 0.95);
+            color: var(--text-main);
+            border-color: rgba(203, 213, 225, 0.85);
+        }
+
+        body.light-theme .modal-btn.cancel:hover {
+            background: rgba(241, 245, 249, 1);
+        }
+
+        body.light-theme .modal-btn.confirm {
+            background: rgba(251, 146, 60, 0.18);
+            color: #C2410C;
+            border-color: rgba(251, 146, 60, 0.45);
+        }
+
+        body.light-theme .modal-btn.confirm:hover {
+            background: rgba(251, 146, 60, 0.28);
+        }
+
+        body.light-theme .modal-list li:before {
+            color: #F59E0B;
+        }
+
         /* Mobile responsive adjustments */
         @media (max-width: 480px) {
             .modal-overlay {
@@ -1777,8 +2383,9 @@
 
         <!-- Menu Button (Hamburger) -->
         <button onclick="toggleMenu()"
-            class="relative rounded-full flex items-center justify-center h-[45px] w-[45px] border-[0.5px] border-[#808080] bg-[#40444B4D] hover:bg-[#40444B] transition-colors">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            class="menu-toggle-button relative rounded-full flex items-center justify-center h-[45px] w-[45px] transition-colors"
+            aria-label="Open menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="4" y1="6" x2="20" y2="6" />
                 <line x1="4" y1="12" x2="20" y2="12" />
                 <line x1="4" y1="18" x2="20" y2="18" />
@@ -1795,14 +2402,14 @@
             <!-- Avatar Section -->
             <div class="flex flex-col items-center justify-center gap-4 py-6">
                 <!-- Profile Image Container -->
-                <div class="relative flex items-center justify-center rounded-full border-[0.5px] border-[#292B2F]"
-                    style="height: 110px; width: 110px; background-color: #292B2F;">
+                <div class="relative flex items-center justify-center rounded-full border-[0.5px] profile-avatar-wrapper"
+                    style="height: 110px; width: 110px;">
                     <img src="images/main/ProfileImage.png" class="w-[62px] h-[62px] object-contain" alt="Profile">
 
                     <!-- Edit Button -->
                     <button onclick="openProfileImagePicker()"
-                        class="absolute rounded-full flex items-center justify-center"
-                        style="top: 2px; right: 0; height: 38px; width: 38px; background-color: #40444B;">
+                        class="absolute rounded-full flex items-center justify-center profile-avatar-edit-btn"
+                        style="top: 2px; right: 0; height: 38px; width: 38px;">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -2003,8 +2610,8 @@
                 <input type="text" id="searchInput" placeholder="Search"
                     class="bg-transparent border-none outline-none text-white text-xl font-medium placeholder-white"
                     style="height: 42px; width: 90%;" oninput="handleSearch()">
-                <div>
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="search-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -2013,14 +2620,14 @@
 
             <!-- Filter Toggle Button (48x44px, bg #292B2F, border-radius 10px) -->
             <button id="toggleViewBtn" onclick="toggleView()"
-                class="mt-2 flex items-center justify-center rounded-[10px]"
-                style="height: 48px; width: 44px; background-color: #292B2F;">
+                class="mt-2 flex items-center justify-center rounded-[10px] toggle-view-btn"
+                style="height: 48px; width: 44px;">
                 <!-- List View Icon (Hamburger) -->
-                <svg id="toggleIcon" class="w-7 h-6" fill="none" stroke="#FFFFFF" viewBox="0 0 24 24">
+                <svg id="toggleIcon" class="w-7 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
                 <!-- Swipe View Icon (View Carousel) -->
-                <svg id="swipeViewIcon" class="w-7 h-6 hidden" fill="none" stroke="#FFFFFF" viewBox="0 0 24 24">
+                <svg id="swipeViewIcon" class="w-7 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <rect x="7" y="5" width="10" height="14" rx="2" stroke-width="2" />
                     <rect x="2" y="7" width="3" height="10" rx="1" stroke-width="2" />
                     <rect x="19" y="7" width="3" height="10" rx="1" stroke-width="2" />
@@ -2066,27 +2673,27 @@
 
         <!-- Home Tab -->
         <a href="home.html" class="flex flex-col items-center justify-center gap-1 flex-1">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path
                     d="M9.02 2.84004L3.63 7.04004C2.73 7.74004 2 9.23004 2 10.36V17.77C2 20.09 3.89 21.99 6.21 21.99H17.79C20.11 21.99 22 20.09 22 17.78V10.5C22 9.29004 21.19 7.74004 20.2 7.05004L14.02 2.72004C12.62 1.74004 10.37 1.79004 9.02 2.84004Z"
                     stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M12 17.99V14.99" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-            <span class="text-sm text-white font-normal mt-1">Home</span>
+            <span class="text-sm font-normal mt-1">Home</span>
         </a>
 
         <!-- Services Tab (Active) -->
-        <a href="services.html" class="flex flex-col items-center justify-center gap-1 flex-1">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#3B74FF" stroke-width="1.5">
-                <path fill="#3B74FF"
+        <a href="services.html" class="flex flex-col items-center justify-center gap-1 flex-1 active">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="currentColor" stroke="currentColor" stroke-width="1.5">
+                <path
                     d="m31.696 15.098-1.75-4.376a1.742 1.742 0 0 0-1.625-1.1H23.75V8.376a.75.75 0 0 0-.75-.75H4a1.75 1.75 0 0 0-1.75 1.75v14A1.75 1.75 0 0 0 4 25.125h2.325a3.75 3.75 0 0 0 7.35 0h6.65a3.75 3.75 0 0 0 7.35 0H30a1.75 1.75 0 0 0 1.75-1.75v-8a.752.752 0 0 0-.054-.277Zm-7.946-3.973h4.573a.25.25 0 0 1 .232.158l1.337 3.342H23.75v-3.5Zm-20-1.75a.25.25 0 0 1 .25-.25h18.25v8.5H3.75v-8.25ZM10 26.625a2.25 2.25 0 1 1 0-4.5 2.25 2.25 0 0 1 0 4.5Zm10.325-3h-6.65a3.75 3.75 0 0 0-7.35 0H4a.25.25 0 0 1-.25-.25v-4.25h18.5v1.935a3.763 3.763 0 0 0-1.925 2.565Zm3.675 3a2.25 2.25 0 1 1 0-4.5 2.25 2.25 0 0 1 0 4.5Zm6.25-3.25a.25.25 0 0 1-.25.25h-2.325a3.756 3.756 0 0 0-3.675-3c-.084 0-.168 0-.25.009v-4.509h6.5v7.25Z" />
             </svg>
-            <span class="text-sm text-[#3B74FF] font-normal mt-1">Services</span>
+            <span class="text-sm font-normal mt-1">Services</span>
         </a>
 
         <!-- Schedule History Tab -->
         <a href="schedule-history.html" class="flex flex-col items-center justify-center gap-1 flex-1">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M8 2V5" />
                 <path d="M16 2V5" />
                 <path d="M3.5 9.09H20.5" />
@@ -2096,7 +2703,7 @@
                 <path
                     d="M21 8.5V13.63C20.27 13.14 19.38 12.85 18.43 12.85C15.86 12.85 13.78 14.95 13.78 17.54C13.78 18.45 14.04 19.29 14.49 20H8C4.5 20 3 18 3 15V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z" />
             </svg>
-            <span class="text-sm text-white font-normal mt-1">Schedule History</span>
+            <span class="text-sm font-normal mt-1">Schedule History</span>
         </a>
 
     </div>
@@ -2136,7 +2743,8 @@
 
             <!-- Close Button -->
             <button onclick="closeScheduleFlow()"
-                class="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] transition-colors">
+                class="bottom-sheet-close-btn absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] transition-colors"
+                aria-label="Close schedule sheet">
                 <span class="text-white text-2xl">×</span>
             </button>
 
@@ -3419,10 +4027,9 @@
                 <!-- Schedule Order Button (sticky bottom) -->
                 <div class="px-4 sm:px-5 py-3 sm:py-4 mt-auto flex-shrink-0 border-t border-gray-700/30">
                     <button onclick="openScheduleFlow('${service.name}')"
-                        class="w-full py-3 sm:py-4 rounded-lg backdrop-blur-xl transition-all duration-300 shadow-lg text-base sm:text-lg font-semibold ${(service.products && service.products.length > 0) ? '' : 'opacity-50 cursor-not-allowed'}"
-                        style="background-color: var(--btn-color); border-color: var(--btn-border);"
+                        class="w-full py-3 sm:py-4 rounded-[20px] glass-action-btn transition-all duration-300 shadow-lg text-base sm:text-lg font-semibold ${(service.products && service.products.length > 0) ? '' : 'opacity-50 cursor-not-allowed'}"
                         ${(service.products && service.products.length > 0) ? '' : 'disabled'}>
-                        <span class="text-white capitalize">${(service.products && service.products.length > 0) ? 'Schedule Order' : 'No Products'}</span>
+                        <span class="capitalize">${(service.products && service.products.length > 0) ? 'Schedule Order' : 'No Products'}</span>
                     </button>
                 </div>
             `;
@@ -3724,12 +4331,14 @@
         // Toggle between list and swipe view
         function toggleView() {
             viewSwipe = !viewSwipe;
+            const toggleBtn = document.getElementById('toggleViewBtn');
             const toggleIcon = document.getElementById('toggleIcon');
             const swipeViewIcon = document.getElementById('swipeViewIcon');
             const listView = document.getElementById('listView');
             const swipeView = document.getElementById('swipeView');
 
             if (viewSwipe) {
+                toggleBtn.classList.add('active');
                 // Randomize the services order for the swipe view each time it is opened
                 services = shuffleArray(services);
 
@@ -3760,6 +4369,7 @@
                     }
                 }
             } else {
+                toggleBtn.classList.remove('active');
                 // Switch to list view
                 toggleIcon.classList.remove('hidden');
                 swipeViewIcon.classList.add('hidden');
@@ -3856,8 +4466,8 @@
                 
                 <div class="px-10 mt-6">
                     <button onclick="scheduleOrder('${service.name}')" 
-                            class="h-[46px] w-full rounded-[20px] flex items-center justify-center border shadow-md active:scale-95 transition-transform"
-                            style="background-color: var(--btn-color); border-color: var(--btn-border);">
+                            class="h-[46px] w-full rounded-[20px] flex items-center justify-center border shadow-md active:scale-95 transition-transform glass-action-btn"
+                            style="border-color: rgba(37, 99, 235, 0.35);">
                         <span class="text-white text-xl font-semibold capitalize">Schedule Order</span>
                     </button>
                 </div>
@@ -6147,6 +6757,12 @@
             // Show success message (GREEN)
             showSuccess(`Thank you for your order! Order ID: ${orderData.orderId}. Your order has been confirmed and will be processed.`);
 
+            // Generate PDF receipt and upload to Appwrite
+            if (window.generateAndUploadReceipt) {
+                let customerEmailForReceipt = orderData.recipient?.email || localStorage.getItem('userEmail') || '';
+                window.generateAndUploadReceipt(orderData, customerEmailForReceipt);
+            }
+
             setTimeout(() => {
                 closeScheduleFlow();
 
@@ -7050,51 +7666,51 @@
         // Mobile-specific PDF download with multiple fallbacks
         async function tryMobilePDFDownload(doc, filename) {
             return new Promise(async (resolve, reject) => {
-                try {
-                    // Method 1: Web Share API (Best for bypassing Android storage permissions)
-                    if (navigator.share && navigator.canShare) {
-                        try {
-                            const pdfBlob = doc.output('blob');
-                            const file = new File([pdfBlob], filename, { type: 'application/pdf' });
-                            if (navigator.canShare({ files: [file] })) {
-                                await navigator.share({
-                                    files: [file],
-                                    title: 'Order Summary PDF',
-                                    text: 'Here is your order summary PDF.'
-                                });
-                                // If share succeeds, we are done
-                                resolve();
-                                return;
-                            }
-                        } catch (shareError) {
-                            console.log('Share API fallback:', shareError);
+                const pdfBlob = doc.output('blob');
+                const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+                // Try Web Share API First (Invokes Android Share System)
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Order Summary PDF',
+                            text: 'Please find the attached Order Summary PDF from Phluowise.'
+                        });
+                        console.log('Successfully shared via Android Share System');
+                        resolve();
+                        return; // Stop here if share was successful
+                    } catch (shareError) {
+                        console.log('Share API error (possibly user gesture timeout):', shareError);
+                        // If user cancelled, don't fallback to download, just resolve
+                        if (shareError.name === 'AbortError') {
+                            resolve();
+                            return;
                         }
                     }
+                }
 
-                    // Method 2: Try standard download
+                // Fallback 1: Direct Download (Standard Android Download Manager)
+                try {
                     doc.save(filename);
-
-                    // Method 2: Create blob and download link (fallback)
-                    setTimeout(() => {
-                        try {
-                            const pdfBlob = doc.output('blob');
-                            const url = URL.createObjectURL(pdfBlob);
-                            const downloadLink = document.createElement('a');
-                            downloadLink.href = url;
-                            downloadLink.download = filename;
-                            downloadLink.style.display = 'none';
-                            document.body.appendChild(downloadLink);
-                            downloadLink.click();
-                            document.body.removeChild(downloadLink);
-                            URL.revokeObjectURL(url);
-                            resolve();
-                        } catch (fallbackError) {
-                            reject(fallbackError);
-                        }
-                    }, 1000);
-
-                } catch (error) {
-                    reject(error);
+                    showMobileNotification('PDF saved successfully.', 'success');
+                    resolve();
+                } catch (saveError) {
+                    // Fallback 2: Object URL Click
+                    try {
+                        const url = URL.createObjectURL(pdfBlob);
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = url;
+                        downloadLink.download = filename;
+                        downloadLink.style.display = 'none';
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                        URL.revokeObjectURL(url);
+                        resolve();
+                    } catch (fallbackError) {
+                        reject(fallbackError);
+                    }
                 }
             });
         }
