@@ -2546,7 +2546,7 @@
                 </div>
 
                 <!-- Social Media Modal -->
-<div id="socialModal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-9"
+<div id="socialModal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-9"
                     style="backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
                     <div class="rounded-[30px] w-full max-w-[350px] h-[200px] px-10 py-7 flex flex-col items-center justify-center border-[0.2px]"
                         style="background-color: var(--bottom-sheet-color); border-color: var(--card-border-color);">
@@ -6481,26 +6481,74 @@
                         document.getElementById('errorMessage').classList.remove('active');
                     }
 
-                    // Original functions from schedule.html
+                    // Original functions from schedule.html - ENHANCED FOR RELIABILITY
                     function showSocialModal(platform) {
-                        const modal = document.getElementById('socialModal');
-                        const platformNameSpan = document.getElementById('socialPlatformName');
+                        try {
+                            const modal = document.getElementById('socialModal');
+                            const platformNameSpan = document.getElementById('socialPlatformName');
 
-                        platformNameSpan.textContent = platform;
+                            if (!modal) {
+                                return;
+                            }
 
-                        modal.classList.remove('hidden');
-                        setTimeout(() => {
-                            modal.style.opacity = '1';
-                        }, 10);
+                            if (platformNameSpan) {
+                                platformNameSpan.textContent = platform || 'This Social Media';
+                            }
+
+                            // Use the .active class pattern that the CSS expects
+                            modal.classList.remove('hidden');
+                            modal.classList.add('active');
+                        } catch (error) {
+                        }
                     }
 
                     function closeSocialModal() {
-                        const modal = document.getElementById('socialModal');
+                        try {
+                            const modal = document.getElementById('socialModal');
+                            if (!modal) return;
 
-                        modal.style.opacity = '0';
-                        setTimeout(() => {
-                            modal.classList.add('hidden');
-                        }, 300);
+                            modal.classList.remove('active');
+                            setTimeout(() => {
+                                modal.classList.add('hidden');
+                            }, 300);
+                        } catch (error) {
+                        }
+                    }
+                    
+                    // Setup social media icons with reliable event listeners
+                    function setupSocialMediaIcons() {
+                        try {
+                            const platforms = ['Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'Discord', 'WhatsApp'];
+                            const socialMediaContainer = document.querySelector('.flex.flex-row.justify-center.items-center.overflow-x-auto.hide-scrollbar');
+                            
+                            if (!socialMediaContainer) return;
+                            
+                            const iconDivs = socialMediaContainer.querySelectorAll('div[onclick*="showSocialModal"]');
+                            
+                            iconDivs.forEach(icon => {
+                                platforms.forEach(platform => {
+                                    if (icon.getAttribute('onclick') && icon.getAttribute('onclick').includes(platform)) {
+                                        icon.setAttribute('data-platform', platform);
+                                        
+                                        // Add click event listener as backup
+                                        icon.addEventListener('click', function(e) {
+                                            e.stopPropagation();
+                                            const socialUrl = this.getAttribute('data-social-url');
+                                            const platformName = this.getAttribute('data-platform') || platform;
+                                            
+                                            // If no URL, show modal
+                                            if (!socialUrl || socialUrl.trim() === '') {
+                                                showSocialModal(platformName);
+                                            } else {
+                                                // If URL exists, open it
+                                                window.open(socialUrl, '_blank');
+                                            }
+                                        }, false);
+                                    }
+                                });
+                            });
+                        } catch (error) {
+                        }
                     }
 
                     function toggleContactPopup() {
@@ -6872,6 +6920,21 @@
                     loadReviews().then(() => {
                         updateRatingDisplay();
                         renderReviews();
+                    });
+                    
+                    // Setup social media icon event listeners when DOM is ready
+                    document.addEventListener('DOMContentLoaded', setupSocialMediaIcons);
+                    
+                    // Add close button handler for social modal overlay
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const socialModal = document.getElementById('socialModal');
+                        if (socialModal) {
+                            socialModal.addEventListener('click', function(e) {
+                                if (e.target === this) {
+                                    closeSocialModal();
+                                }
+                            });
+                        }
                     });
 
                     // Mobile-friendly modal functions
@@ -7998,7 +8061,7 @@
                                 // Store social media data in window for global access
                                 window.currentCompanySocialMedia = socialPlatforms;
 
-                                // Update each social media icon click handler using data attributes for reliability
+                                // Update each social media icon with data attributes for reliability
                                 Object.keys(socialPlatforms).forEach(platform => {
                                     const socialUrl = socialPlatforms[platform];
 
@@ -8011,33 +8074,36 @@
                                         // Find the icon that matches this platform by checking the onclick attribute
                                         allIcons.forEach(icon => {
                                             if (icon.getAttribute('onclick').includes(platform)) {
-                                                // Store the URL as a data attribute for reference
-                                                icon.setAttribute('data-social-url', socialUrl);
+                                                // Store the URL as a data attribute
+                                                icon.setAttribute('data-social-url', socialUrl || '');
                                                 icon.setAttribute('data-social-platform', platform);
 
                                                 if (socialUrl && socialUrl.trim()) {
-                                                    // If URL exists, open it directly
+                                                    // If URL exists, keep onclick that opens link
                                                     icon.setAttribute('onclick', `window.open('${socialUrl}', '_blank')`);
                                                     icon.style.cursor = 'pointer';
                                                 } else {
-                                                    // If no URL, show the unavailable modal
+                                                    // If no URL, make sure onclick shows modal
                                                     icon.setAttribute('onclick', `showSocialModal('${platform}')`);
+                                                    icon.style.cursor = 'pointer';
                                                 }
                                             }
                                         });
                                     }
                                 });
                             } else {
-                                // Show empty modal for all platforms
+                                // Show empty modal for all platforms when no social data
                                 ['Facebook', 'Instagram', 'Twitter', 'TikTok', 'YouTube', 'LinkedIn', 'Discord', 'Telegram', 'WhatsApp'].forEach(platform => {
                                     const socialMediaContainer = document.querySelector('.flex.flex-row.justify-center.items-center.overflow-x-auto.hide-scrollbar');
                                     if (socialMediaContainer) {
                                         const allIcons = socialMediaContainer.querySelectorAll('div[onclick*="showSocialModal"]');
                                         allIcons.forEach(icon => {
                                             if (icon.getAttribute('onclick').includes(platform)) {
+                                                // Ensure onclick is set to show modal
                                                 icon.setAttribute('onclick', `showSocialModal('${platform}')`);
                                                 icon.setAttribute('data-social-url', '');
                                                 icon.setAttribute('data-social-platform', platform);
+                                                icon.style.cursor = 'pointer';
                                             }
                                         });
                                     }
