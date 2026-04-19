@@ -31,10 +31,50 @@
     <link rel="stylesheet" href="css/notifications.css" />
     <link rel="stylesheet" href="css/mobile-responsive.css" />
     <link rel="stylesheet" href="css/nav-animations.css" />
+    <!-- jQuery and Ripples for Liquid Glass Water Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.ripples/0.5.3/jquery.ripples.min.js"></script>
     <script src="js/navAnimations.js"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        /* Professional Liquid Glass Banner Shimmer */
+        @keyframes bannerWaterShimmer {
+            0%   { transform: translateX(-200%) skewX(-15deg); opacity: 0; }
+            20%  { opacity: 0.45; }
+            80%  { opacity: 0.25; }
+            100% { transform: translateX(500%) skewX(-15deg); opacity: 0; }
+        }
+
+        .banner-shimmer-wrapper {
+            overflow: hidden;
+        }
+
+        .banner-shimmer-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 80px; height: 100%;
+            pointer-events: none;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.3) 40%, 
+                rgba(255, 255, 255, 0.55) 50%, 
+                rgba(255, 255, 255, 0.3) 60%, 
+                transparent 100%);
+            animation: bannerWaterShimmer 6s ease-in-out infinite;
+            z-index: 25;
+        }
+
+        .ripple-surface {
+            position: absolute;
+            inset: 0;
+            background: transparent;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=') !important;
+            background-size: cover !important;
+            z-index: 24;
+            pointer-events: all;
+        }
 
         :root {
             --bg-color: #060606;
@@ -59,6 +99,35 @@
             --card-bg-dark: #8080804D;
         }
 
+        body.liquid-glass-theme {
+            --bg-color: #F8FAFC;
+            --bg-second: rgba(255, 255, 255, 0.45);
+            --bg-third: rgba(255, 255, 255, 0.25);
+            --header-bg: rgba(255, 255, 255, 0.22);
+            --tab-bg: rgba(255, 255, 255, 0.25);
+            --input-field-second: rgba(255, 255, 255, 0.35);
+            --input-field-second-border: rgba(255, 255, 255, 0.6);
+            --btn-color: rgba(0, 113, 227, 0.22);
+            --btn-border: rgba(0, 113, 227, 0.5);
+            --btn-second-color: rgba(255, 255, 255, 0.3);
+            --btn-second-border: rgba(255, 255, 255, 0.5);
+            --modal-bg: rgba(255, 255, 255, 0.25);
+            --modal-border: rgba(255, 255, 255, 0.9);
+            --text-color: #1D1D1F;
+            --text-muted: #3A3A3C;
+            --surface-color: rgba(255, 255, 255, 0.5);
+            --surface-strong: rgba(255, 255, 255, 0.7);
+            --border-color: rgba(255, 255, 255, 0.8);
+            --menu-button-bg: rgba(255, 255, 255, 0.4);
+            --menu-button-border: rgba(255, 255, 255, 0.8);
+            --menu-button-color: #1D1D1F;
+            --toggle-icon-color: #1D1D1F;
+            --bottom-sheet-color: rgba(255, 255, 255, 0.45);
+            --card-bg-dark: rgba(255, 255, 255, 0.35);
+            --icon-pill-bg: rgba(255, 255, 255, 0.5);
+            --tag-pill-bg: rgba(255, 255, 255, 0.4);
+        }
+
         body.light-theme {
             --bg-color: #F8FAFC;
             --bg-second: #F1F5F9;
@@ -77,12 +146,105 @@
             --tag-pill-bg: rgba(15, 23, 42, 0.08);
         }
 
+        body.gray-theme {
+            --bg-color: #202225;
+            --bg-second: #292B2F;
+            --bg-third: #40444B;
+            --header-bg: #292B2F;
+            --tab-bg: #292B2F;
+            --btn-color: rgba(0, 122, 204, 0.22);
+            --btn-border: rgba(0, 122, 204, 0.5);
+            --text-color: #E0E0E0;
+            --text-muted: #B0B6C1;
+            --bottom-sheet-color: #242629;
+            --input-bg: #292B2F;
+            --input-border: #40444B;
+            --card-bg-dark: rgba(64, 68, 75, 0.45);
+            --card-border-color: #40444B;
+            --icon-pill-bg: #40444B;
+            --tag-pill-bg: #40444B;
+            --modal-bg: #242629;
+            --modal-border: #40444B;
+        }
+
+        body.gray-theme .header-bar,
+        body.gray-theme .tab-bar,
+        body.gray-theme .sliding-menu {
+            background-color: #292B2F !important;
+            border-color: #40444B !important;
+        }
+
+        body.gray-theme [style*="background-color: #101010"],
+        body.gray-theme [style*="background-color: #1D1D1D;"],
+        body.gray-theme [style*="background-color: #292B2F"],
+        body.gray-theme [style*="background-color: #40444B;"],
+        body.gray-theme [style*="background-color: #40444B4D;"],
+        body.gray-theme [style*="background-color: var(--bg-third)"],
+        body.gray-theme .sliding-menu a,
+        body.gray-theme .sliding-menu button {
+            background-color: #292B2F !important;
+            border-color: #40444B !important;
+        }
+
+        body.gray-theme .bottom-sheet-content,
+        body.gray-theme .modal-content {
+            background-color: #242629 !important;
+            border-color: #40444B !important;
+            color: #E0E0E0 !important;
+        }
+
+        body.gray-theme .step-indicator-item.default {
+            background-color: #40444B !important;
+            color: #808080 !important;
+        }
+
+        body.gray-theme .step-indicator-item.active {
+            background-color: #007ACC !important;
+            color: #FFFFFF !important;
+        }
+
+        body.gray-theme .form-input,
+        body.gray-theme .form-textarea,
+        body.gray-theme .recipient-type-btn {
+            background: #292B2F !important;
+            border: 1px solid #40444B !important;
+            color: #E0E0E0 !important;
+        }
+
+        body.gray-theme .nav-btn.next {
+            background: rgba(0, 122, 204, 0.25) !important;
+            border-color: rgba(0, 122, 204, 0.6) !important;
+            color: #4AAFFF !important;
+        }
+
+        body.gray-theme .nav-btn.prev {
+            background: #40444B !important;
+            border-color: #50555E !important;
+            color: #E0E0E0 !important;
+        }
+
+        body.gray-theme .info-card,
+        body.gray-theme .review-card,
+        body.gray-theme .product-select-card {
+            background-color: #292B2F !important;
+            border: 1px solid #40444B !important;
+        }
+
+        body.gray-theme h1, body.gray-theme h2, body.gray-theme h3, body.gray-theme span {
+            color: #E0E0E0 !important;
+        }
+
+        body.gray-theme .text-gray-400,
+        body.gray-theme .text-gray-500 {
+            color: #808080 !important;
+        }
+
         body.light-theme {
             color: var(--text-color) !important;
             background-color: var(--bg-color) !important;
         }
 
-        body.light-theme [class*="text-white"] {
+        body.light-theme [class*="text-white"]:not([class*="verified-checkmark"]) {
             color: var(--text-color) !important;
         }
 
@@ -389,16 +551,456 @@
         body.light-theme .nav-btn.next {
             background: rgba(59, 116, 255, 0.22) !important;
             border-color: rgba(59, 116, 255, 0.35) !important;
-            color: #FFFFFF !important;
+            color: #3B74FF !important;
             backdrop-filter: blur(18px) !important;
             -webkit-backdrop-filter: blur(18px) !important;
             box-shadow: 0 18px 45px rgba(59, 116, 255, 0.14) !important;
         }
 
-        body.light-theme .nav-btn.next:hover {
-            background: rgba(59, 116, 255, 0.3) !important;
-            transform: translateY(-1px) !important;
-            box-shadow: 0 20px 50px rgba(59, 116, 255, 0.18) !important;
+        body.liquid-glass-theme {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 35%, #F1F2F4 100%);
+            background-attachment: fixed;
+        }
+
+        body.liquid-glass-theme [class*="text-white"]:not([class*="verified-checkmark"]) {
+            color: var(--text-color) !important;
+        }
+
+        /* Glass Panel Styling */
+        body.liquid-glass-theme .header-bar,
+        body.liquid-glass-theme .tab-bar,
+        body.liquid-glass-theme .form-container,
+        body.liquid-glass-theme .modal-content,
+        body.liquid-glass-theme .bottom-sheet-content,
+        body.liquid-glass-theme .payment-method-card,
+        body.liquid-glass-theme .product-select-card,
+        body.liquid-glass-theme .review-card,
+        body.liquid-glass-theme .info-card,
+        body.liquid-glass-theme .terms-container,
+        body.liquid-glass-theme .terms-radio-item {
+            background: rgba(255, 255, 255, 0.22) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+            border-left: 1px solid rgba(255, 255, 255, 0.6) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 
+                0 15px 45px -12px rgba(0, 0, 0, 0.1), 
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(35px) brightness(1.02) contrast(1.05) saturate(110%) !important;
+            -webkit-backdrop-filter: blur(35px) brightness(1.02) contrast(1.05) saturate(110%) !important;
+            border-radius: 20px !important;
+        }
+
+        body.liquid-glass-theme .header-bar,
+        body.liquid-glass-theme .tab-bar {
+            border-radius: 0 !important;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Shimmer Effects */
+        @keyframes headerWaterShimmer {
+            0%   { transform: translateX(-200%) skewX(-15deg); opacity: 0; }
+            20%  { opacity: 0.45; }
+            80%  { opacity: 0.25; }
+            100% { transform: translateX(500%) skewX(-15deg); opacity: 0; }
+        }
+
+        body.liquid-glass-theme .header-bar::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 80px; height: 100%;
+            pointer-events: none;
+            background: linear-gradient(90deg, 
+                transparent 0%, rgba(255, 255, 255, 0.3) 40%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 0.3) 60%, transparent 100%);
+            animation: headerWaterShimmer 5s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        body.liquid-glass-theme .header-bar > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Nav & Bottom Bar */
+        @keyframes navWaterShimmer {
+            0% { transform: translateX(-150%) skewX(-20deg); opacity: 0; }
+            30% { opacity: 0.5; }
+            70% { opacity: 0.3; }
+            100% { transform: translateX(400%) skewX(-20deg); opacity: 0; }
+        }
+
+        body.liquid-glass-theme .tab-bar {
+            background: rgba(255, 255, 255, 0.12) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.5) !important;
+            position: fixed !important;
+            bottom: 0 !important; left: 0 !important; right: 0 !important;
+            z-index: 50 !important;
+        }
+
+        body.liquid-glass-theme .tab-bar a span {
+            color: #3A3A3C !important;
+        }
+
+        body.liquid-glass-theme .tab-bar a svg {
+            stroke: #2C2C2E !important;
+            fill: none !important;
+        }
+
+        body.liquid-glass-theme .tab-bar a[href="home.html"] svg,
+        body.liquid-glass-theme .tab-bar a[href="services.html"] svg {
+            stroke: #2C2C2E !important;
+            fill: none !important;
+        }
+
+        /* Forms & Inputs */
+        body.liquid-glass-theme .form-input,
+        body.liquid-glass-theme .form-textarea,
+        body.liquid-glass-theme .recipient-type-btn {
+            background: rgba(255, 255, 255, 0.35) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            color: #1D1D1F !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+            border-radius: 12px !important;
+        }
+
+        body.liquid-glass-theme .recipient-type-btn.active {
+            background: rgba(0, 113, 227, 0.15) !important;
+            border-color: #0071E3 !important;
+            color: #0071E3 !important;
+        }
+
+        body.liquid-glass-theme .section-header,
+        body.liquid-glass-theme .form-label,
+        body.liquid-glass-theme h1,
+        body.liquid-glass-theme h2,
+        body.liquid-glass-theme h3 {
+            color: #111111 !important;
+        }
+
+        body.liquid-glass-theme .section-subheader,
+        body.liquid-glass-theme .text-gray-400,
+        body.liquid-glass-theme .text-gray-500 {
+            color: #3A3A3C !important;
+        }
+
+        /* Navigation Buttons */
+        body.liquid-glass-theme .nav-btn.next {
+            background: rgba(0, 113, 227, 0.25) !important;
+            border: 1px solid rgba(0, 113, 227, 0.5) !important;
+            color: #111111 !important;
+            font-weight: 700 !important;
+        }
+
+        body.liquid-glass-theme .nav-btn.prev {
+            background: rgba(255, 255, 255, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            color: #111111 !important;
+            font-weight: 600 !important;
+        }
+
+        body.liquid-glass-theme .social-icon-pill {
+            background: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.7) !important;
+        }
+
+        body.liquid-glass-theme .social-icon-pill svg {
+            fill: #1D1D1F !important;
+        }
+
+        body.liquid-glass-theme .back-btn {
+            background: rgba(255, 255, 255, 0.25) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        }
+
+        body.liquid-glass-theme .back-icon {
+            filter: brightness(0) !important;
+        }
+
+        /* Specific Component Fixes */
+        body.liquid-glass-theme .step-indicator-item.default {
+            background: rgba(255, 255, 255, 0.4) !important;
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: #3A3A3C !important;
+        }
+
+        body.liquid-glass-theme .step-indicator-item.active {
+            background: rgba(0, 113, 227, 0.25) !important;
+            border-color: #0071E3 !important;
+            color: #111111 !important;
+        }
+
+        body.liquid-glass-theme .step-indicator-name {
+            color: #3A3A3C !important;
+        }
+
+        body.liquid-glass-theme .rating-bar-track,
+        body.liquid-glass-theme [class*="bg-[#40444B]"] {
+            background: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        }
+
+        body.liquid-glass-theme .rating-bar-fill,
+        body.liquid-glass-theme .bg-white {
+            background: rgba(0, 113, 227, 0.6) !important;
+        }
+
+        body.liquid-glass-theme #view-tabs-container button {
+            background: rgba(255, 255, 255, 0.25) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            color: #3A3A3C !important;
+        }
+
+        body.liquid-glass-theme #view-tabs-container button.active-tab {
+            background: rgba(0, 113, 227, 0.2) !important;
+            border-color: #0071E3 !important;
+            color: #0071E3 !important;
+        }
+
+        body.liquid-glass-theme .review-card-avatar,
+        body.liquid-glass-theme [style*="background-color: var(--card-bg-dark)"] {
+            background: rgba(255, 255, 255, 0.5) !important;
+            border-color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        body.liquid-glass-theme .card-bg-dark {
+             background: rgba(255, 255, 255, 0.22) !important;
+        }
+
+        body.liquid-glass-theme .nav-btn.next:hover {
+            background: rgba(0, 113, 227, 0.4) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 113, 227, 0.2) !important;
+        }
+
+        /* Broad "Dark Eraser" Overrides for Liquid Glass Mode */
+        body.liquid-glass-theme [class*="bg-gray"],
+        body.liquid-glass-theme [class*="bg-black"],
+        body.liquid-glass-theme [class*="bg-[#0"],
+        body.liquid-glass-theme [class*="bg-[#1"],
+        body.liquid-glass-theme [class*="bg-[#2"],
+        body.liquid-glass-theme [class*="bg-[#3"],
+        body.liquid-glass-theme [class*="bg-[#4"],
+        body.liquid-glass-theme [class*="bg-[rgba(2"],
+        body.liquid-glass-theme [class*="bg-[rgba(3"],
+        body.liquid-glass-theme [class*="bg-[rgba(16,16,16"] {
+            background-color: rgba(255, 255, 255, 0.22) !important;
+            border-color: rgba(255, 255, 255, 0.45) !important;
+            backdrop-filter: blur(15px) !important;
+            -webkit-backdrop-filter: blur(15px) !important;
+        }
+
+        body.liquid-glass-theme .modal-overlay,
+        body.liquid-glass-theme .bottom-sheet-container {
+            background: rgba(0, 0, 0, 0.08) !important;
+            backdrop-filter: blur(12px) brightness(1.1) !important;
+        }
+
+        body.liquid-glass-theme .modal-content,
+        body.liquid-glass-theme [class*="rounded-2xl"] {
+            background: rgba(255, 255, 255, 0.28) !important;
+            border: 1px solid rgba(255, 255, 255, 0.8) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        body.liquid-glass-theme .terms-radio-circle,
+        body.liquid-glass-theme .time-slot-btn,
+        body.liquid-glass-theme .payment-check {
+            border-color: rgba(148, 163, 184, 0.4) !important;
+            background: rgba(255, 255, 255, 0.4) !important;
+        }
+
+        body.liquid-glass-theme .time-slot-btn:hover {
+            background: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        body.liquid-glass-theme .leaflet-popup-content-wrapper,
+        body.liquid-glass-theme .leaflet-popup-tip {
+            background: rgba(255, 255, 255, 0.85) !important;
+            color: #111111 !important;
+            border: 1px solid rgba(255, 255, 255, 0.9) !important;
+        }
+
+        body.liquid-glass-theme .leaflet-control-zoom a {
+            background-color: rgba(255, 255, 255, 0.8) !important;
+            color: #111111 !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+
+        body.liquid-glass-theme .leaflet-tile {
+            filter: grayscale(1) invert(0) brightness(1.1) contrast(0.9) !important;
+        }
+
+        body.liquid-glass-theme .text-white {
+            color: #1D1D1F !important;
+        }
+
+        body.liquid-glass-theme svg {
+             color: inherit;
+        }
+
+        body.liquid-glass-theme .animate-spin {
+            border-bottom-color: #0071E3 !important;
+        }
+
+        body.liquid-glass-theme .terms-radio-item.selected,
+        body.liquid-glass-theme .recipient-type-btn.active,
+        body.liquid-glass-theme .product-select-card.selected {
+            background: rgba(0, 113, 227, 0.18) !important;
+            border-color: #0071E3 !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 113, 227, 0.15) !important;
+        }
+
+        body.liquid-glass-theme .terms-radio-item.selected .terms-radio-circle {
+            background: rgba(255, 255, 255, 0.5) !important;
+            border: 2px solid #0071E3 !important;
+        }
+
+        body.liquid-glass-theme .terms-radio-item.selected .terms-radio-circle::after {
+            background: #0071E3 !important;
+        }
+
+        body.liquid-glass-theme .terms-radio-circle {
+            background: rgba(255, 255, 255, 0.2) !important;
+            border-color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        body.liquid-glass-theme .text-gray-400,
+        body.liquid-glass-theme .text-gray-500,
+        body.liquid-glass-theme .section-subheader,
+        body.liquid-glass-theme .form-label,
+        body.liquid-glass-theme .terms-details,
+        body.liquid-glass-theme .price-label,
+        body.liquid-glass-theme .review-label,
+        body.liquid-glass-theme .instructions-title,
+        body.liquid-glass-theme .instructions-example,
+        body.liquid-glass-theme .step-indicator-name {
+            color: #3A3A3C !important;
+            opacity: 1 !important;
+            font-weight: 500 !important;
+        }
+
+        body.liquid-glass-theme .text-gray-300 {
+            color: #1D1D1F !important;
+        }
+
+        /* Final Liquid Glass Refinements */
+        body.liquid-glass-theme #bannerPlaceholder,
+        body.liquid-glass-theme [id*="Placeholder"],
+        body.liquid-glass-theme [style*="background-color: var(--bottom-sheet-color)"],
+        body.liquid-glass-theme [style*="background-color: var(--card-bg-dark)"] {
+            background: rgba(255, 255, 255, 0.25) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            color: #1D1D1F !important;
+        }
+
+        body.liquid-glass-theme .back-btn,
+        body.liquid-glass-theme button[onclick*="openTermsOfService"],
+        body.liquid-glass-theme .map-control-button,
+        body.liquid-glass-theme .map-call-button,
+        body.liquid-glass-theme #websiteButton,
+        body.liquid-glass-theme .social-icon-pill {
+            background: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(15px) !important;
+            -webkit-backdrop-filter: blur(15px) !important;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
+        }
+
+        body.liquid-glass-theme .back-icon,
+        body.liquid-glass-theme .material-symbols-outlined {
+            filter: brightness(0) !important;
+            color: #1D1D1F !important;
+        }
+
+        body.liquid-glass-theme svg {
+            fill: none;
+            stroke: #1D1D1F !important;
+        }
+
+        body.liquid-glass-theme .social-icon-pill svg,
+        body.liquid-glass-theme #websiteButton svg,
+        body.liquid-glass-theme .map-call-button svg,
+        body.liquid-glass-theme .star-rating-btn svg,
+        body.liquid-glass-theme #staticRatingStars svg {
+            fill: #1D1D1F !important;
+            stroke: none !important;
+        }
+
+        body.liquid-glass-theme #floatingReviewInput {
+            background: rgba(255, 255, 255, 0.35) !important;
+            backdrop-filter: blur(35px) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+        }
+
+        body.liquid-glass-theme #staticRatingStars {
+            background: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        }
+
+        body.liquid-glass-theme input,
+        body.liquid-glass-theme textarea {
+            color: #111111 !important;
+        }
+
+        body.liquid-glass-theme input::placeholder,
+        body.liquid-glass-theme textarea::placeholder {
+            color: #3A3A3C !important;
+        }
+
+        body.liquid-glass-theme .modal-content,
+        body.liquid-glass-theme #productModalContent,
+        body.liquid-glass-theme #termsModal > div {
+            background: rgba(255, 255, 255, 0.3) !important;
+            backdrop-filter: blur(30px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.9) !important;
+            border-radius: 30px !important;
+        }
+
+        body.liquid-glass-theme .modal-title,
+        body.liquid-glass-theme #modalProductName,
+        body.liquid-glass-theme #modalProductPrice,
+        body.liquid-glass-theme #termsModalCompanyName {
+            color: #111111 !important;
+        }
+
+        body.liquid-glass-theme .modal-message,
+        body.liquid-glass-theme #modalProductDescription {
+            color: #3A3A3C !important;
+        }
+
+        body.liquid-glass-theme .bottom-sheet-content {
+             background: rgba(255, 255, 255, 0.28) !important;
+             backdrop-filter: blur(40px) brightness(1.05) saturate(120%) !important;
+             -webkit-backdrop-filter: blur(40px) brightness(1.05) saturate(120%) !important;
+             border: 1px solid rgba(255, 255, 255, 0.9) !important;
+             border-top-width: 2px !important;
+             box-shadow: 0 -20px 80px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        body.liquid-glass-theme .bottom-sheet-close-btn {
+            background: rgba(0, 0, 0, 0.05) !important;
+            color: #1D1D1F !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        }
+
+        body.liquid-glass-theme .sheet-drag-handle {
+            background: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        body.liquid-glass-theme #workingDaysSelect {
+            background: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            color: #111111 !important;
+        }
+
+        body.liquid-glass-theme [class*="bg-gray-900"],
+        body.liquid-glass-theme [class*="bg-[#1D1D1D]"],
+        body.liquid-glass-theme [class*="bg-[#101010]"] {
+            background-color: rgba(255, 255, 255, 0.2) !important;
         }
 
         body {
@@ -581,9 +1183,29 @@
             transition: all 0.3s ease;
         }
 
+        .bottom-sheet-container {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            pointer-events: none;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
         .bottom-sheet-container.active {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
+        }
+
+        body.liquid-glass-theme .bottom-sheet-container {
+            background: rgba(255, 255, 255, 0.05) !important;
+            backdrop-filter: blur(8px) brightness(1.05) !important;
         }
 
         .bottom-sheet-content {
@@ -1949,8 +2571,9 @@
 
     <!-- Header with Back Button and Profile Image (Exact from schedule.tsx) -->
     <div class="relative w-full z-30">
-        <!-- Banner Background -->
-        <div class="absolute inset-0 w-full h-[180px] overflow-hidden z-20">
+        <!-- Banner Background with Water Animation -->
+        <div class="absolute inset-0 w-full h-[180px] overflow-hidden z-20 banner-shimmer-wrapper">
+            <div class="ripple-surface"></div>
             <img id="shopBannerImage" class="w-full h-full object-cover" style="display: none;" />
             <div id="bannerPlaceholder"
                 class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
@@ -8256,8 +8879,12 @@
                 <!-- Service Worker Registration & Update Notification Logic -->
                 <script src="js/pwa-update.js?v=9"></script>
 
-                <!-- Pay on Delivery Confirmation Modal -->
-                <div id="payOnDeliveryModal" class="modal-overlay hidden">
+                </div>
+            </div>
+        </div>
+
+        <!-- Pay on Delivery Confirmation Modal -->
+        <div id="payOnDeliveryModal" class="modal-overlay hidden">
                     <div class="modal-content">
                         <div class="modal-icon warning">
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -8360,6 +8987,30 @@
                     </div>
                 </div>
 
+    <script>
+        // Initialize Banner Water Ripples
+        $(document).ready(function () {
+            try {
+                $('.ripple-surface').ripples({
+                    resolution: 400,
+                    dropRadius: 20,
+                    perturbance: 0.05,
+                    interactive: true
+                });
+
+                // Periodic subtle ripples for "vibrant" feel
+                setInterval(function () {
+                    const $surface = $('.ripple-surface');
+                    const x = Math.random() * $surface.width();
+                    const y = Math.random() * $surface.height();
+                    $surface.ripples('drop', x, y, 15, 0.02);
+                }, 5000);
+
+            } catch (e) {
+                console.warn("Water ripples initialization skipped or failed:", e);
+            }
+        });
+    </script>
 </body>
 
 </html>

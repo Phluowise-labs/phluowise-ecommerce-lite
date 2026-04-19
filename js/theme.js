@@ -21,7 +21,9 @@ const THEMES = {
         modelBackgroundColor: '#101010',
         modelBorderColor: '#DADADA',
         headerBg: '#101010',
-        tabBg: '#101010'
+        tabBg: '#101010',
+        textColor: '#FFFFFF',
+        textMuted: '#A0AEC0'
     },
     gray: {
         backgroundColor: '#202225',
@@ -39,7 +41,9 @@ const THEMES = {
         modelBackgroundColor: '#40444B',
         modelBorderColor: '#40444B',
         headerBg: '#292B2F',
-        tabBg: '#292B2F'
+        tabBg: '#292B2F',
+        textColor: '#FFFFFF',
+        textMuted: '#B0B6C1'
     },
     light: {
         backgroundColor: '#F8FAFC',
@@ -57,7 +61,29 @@ const THEMES = {
         modelBackgroundColor: '#FFFFFF',
         modelBorderColor: '#D1D5DB',
         headerBg: '#FFFFFF',
-        tabBg: '#FFFFFF'
+        tabBg: '#FFFFFF',
+        textColor: '#111827',
+        textMuted: '#475569'
+    },
+    'liquid-glass': {
+        backgroundColor: '#F5F5F7',
+        backgroundSecondColor: 'rgba(255, 255, 255, 0.45)',
+        backgroundThirdColor: 'rgba(255, 255, 255, 0.35)',
+        bottomSheetColor: 'rgba(255, 255, 255, 0.5)',
+        buttonColor: '#0071E3',
+        buttonBorderColor: '#0071E3',
+        buttonSecondColor: 'rgba(0, 0, 0, 0.04)',
+        buttonSecondBorderColor: 'rgba(0, 0, 0, 0.1)',
+        inputFieldColor: 'rgba(255, 255, 255, 0.5)',
+        inputFieldBorderColor: 'rgba(255, 255, 255, 0.8)',
+        inputFieldSecondColor: 'rgba(255, 255, 255, 0.5)',
+        inputFieldSecondBorderColor: 'rgba(255, 255, 255, 0.8)',
+        modelBackgroundColor: 'rgba(255, 255, 255, 0.5)',
+        modelBorderColor: 'rgba(255, 255, 255, 0.8)',
+        headerBg: 'rgba(255, 255, 255, 0.3)',
+        tabBg: 'rgba(255, 255, 255, 0.5)',
+        textColor: '#1D1D1F',
+        textMuted: '#86868B'
     }
 };
 
@@ -79,7 +105,7 @@ function updateTheme(theme) {
     const colors = THEMES[resolvedTheme] || THEMES.dark;
 
     // Remove existing theme classes
-    document.body.classList.remove('dark-theme', 'gray-theme', 'light-theme', 'system-theme');
+    document.body.classList.remove('dark-theme', 'gray-theme', 'light-theme', 'liquid-glass-theme', 'system-theme');
 
     // Add new theme class for the resolved theme
     document.body.classList.add(resolvedTheme + '-theme');
@@ -93,6 +119,8 @@ function updateTheme(theme) {
     document.documentElement.style.setProperty('--bottom-sheet', colors.bottomSheetColor);
     document.documentElement.style.setProperty('--modal-bg', colors.modelBackgroundColor);
     document.documentElement.style.setProperty('--modal-border', colors.modelBorderColor);
+    document.documentElement.style.setProperty('--text-color', colors.textColor);
+    document.documentElement.style.setProperty('--text-muted', colors.textMuted);
 
     // Save user choice; system uses preference fallback
     saveTheme(theme);
@@ -148,7 +176,7 @@ function getThemeModalHTML() {
         <div class="w-full min-h-full flex flex-col items-center justify-center px-4 py-5">
             <!-- Back Button -->
             <div class="w-full max-w-[400px] mb-4">
-                <button onclick="closeThemeModal()" class="w-10 h-10 flex items-center justify-center" style="color: var(--text-color);">
+                <button onclick="closeThemeModal()" class="theme-modal-back-btn w-10 h-10 flex items-center justify-center rounded-full" style="color: var(--text-color);">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
@@ -156,7 +184,7 @@ function getThemeModalHTML() {
             </div>
             
             <!-- Theme Options Container -->
-            <div class="w-full max-w-[400px] rounded-[15px] overflow-hidden border shadow-xl"
+            <div class="theme-modal-content w-full max-w-[400px] rounded-[15px] overflow-hidden border shadow-xl"
                  style="min-height: 301px; border-color: var(--modal-border, #DADADA); background-color: var(--modal-bg); color: var(--text-color);">
                 
                 <!-- Choose Theme Header -->
@@ -187,6 +215,14 @@ function getThemeModalHTML() {
                         style="background-color: var(--bg-third, #101010); color: var(--text-color);">
                     <div class="w-6 h-6 rounded-full bg-[#40444B]"></div>
                     <span class="text-lg font-semibold">Dark</span>
+                </button>
+
+                <!-- Liquid Glass Option -->
+                <button data-theme="liquid-glass" onclick="selectTheme('liquid-glass')" 
+                        class="w-full h-[60px] flex items-center px-6 gap-5 border-b border-[#3A3B3F]"
+                        style="background-color: var(--bg-third, #101010); color: var(--text-color);">
+                    <div class="w-6 h-6 rounded-full bg-[#40444B]" style="background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.2)); border: 1px solid rgba(0,0,0,0.1);"></div>
+                    <span class="text-lg font-semibold">Liquid Glass</span>
                 </button>
 
                 <!-- System Default Option -->
@@ -237,7 +273,9 @@ function selectTheme(theme) {
     // Update theme display in menu if exists
     const themeDisplay = document.getElementById('currentThemeDisplay');
     if (themeDisplay) {
-        themeDisplay.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+        let displayName = theme.charAt(0).toUpperCase() + theme.slice(1);
+        if (theme === 'liquid-glass') displayName = 'Liquid Glass';
+        themeDisplay.textContent = displayName;
     }
 
     closeThemeModal();

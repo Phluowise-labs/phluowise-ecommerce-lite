@@ -32,6 +32,9 @@
     <link rel="stylesheet" href="css/notifications.css" />
     <link rel="stylesheet" href="css/mobile-responsive.css" />
     <link rel="stylesheet" href="css/nav-animations.css" />
+    <!-- jQuery and Ripples for Liquid Glass Water Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.ripples/0.5.3/jquery.ripples.min.js"></script>
     <script src="js/navAnimations.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -61,98 +64,635 @@
             --modal-border: #DADADA;
         }
 
-        body.light-theme {
+        body.liquid-glass-theme {
             --bg-color: #F8FAFC;
-            --bg-second: #F1F5F9;
-            --header-bg: #FFFFFF;
-            --btn-color: rgba(59, 116, 255, 0.18);
-            --btn-border: #3B74FF;
-            --btn-second-color: rgba(251, 207, 232, 0.45);
-            --btn-second-border: #DB2777;
-            --modal-bg: #FFFFFF;
-            --modal-border: #CBD5E1;
-            --text-color: #0F172A;
-            --bottom-sheet-color: rgba(255, 255, 255, 0.94);
-            --input-bg: #F8FAFC;
-            --input-border: #E2E8F0;
-            --bg-third: #FFFFFF;
+            --bg-second: rgba(255, 255, 255, 0.45);
+            --bg-third: rgba(255, 255, 255, 0.25);
+            --header-bg: rgba(255, 255, 255, 0.22);
+            --tab-bg: rgba(255, 255, 255, 0.25);
+            --input-field-second: rgba(255, 255, 255, 0.35);
+            --input-field-second-border: rgba(255, 255, 255, 0.6);
+            --btn-color: rgba(0, 113, 227, 0.22);
+            --btn-border: rgba(0, 113, 227, 0.5);
+            --btn-second-color: rgba(255, 255, 255, 0.3);
+            --btn-second-border: rgba(255, 255, 255, 0.5);
+            --modal-bg: rgba(255, 255, 255, 0.25);
+            --modal-border: rgba(255, 255, 255, 0.9);
+            --text-color: #1D1D1F;
+            --text-muted: #3A3A3C;
+            --surface-color: rgba(255, 255, 255, 0.5);
+            --surface-strong: rgba(255, 255, 255, 0.7);
+            --border-color: rgba(255, 255, 255, 0.8);
+            --menu-button-bg: rgba(255, 255, 255, 0.4);
+            --menu-button-border: rgba(255, 255, 255, 0.8);
+            --menu-button-color: #1D1D1F;
+            --toggle-icon-color: #1D1D1F;
+        }
+
+        /* Professional Liquid background (Neutral monochrome) */
+        body.liquid-glass-theme {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 35%, #F1F2F4 100%);
+            background-attachment: fixed;
+        }
+
+        body.gray-theme {
+            --bg-color: #202225;
+            --bg-second: #292B2F;
+            --bg-third: #40444B;
+            --header-bg: #292B2F;
+            --btn-color: rgba(0, 122, 204, 0.22);
+            --btn-border: rgba(0, 122, 204, 0.5);
+            --text-color: #E0E0E0;
+            --text-muted: #B0B6C1;
+            --bottom-sheet-color: #242629;
+            --input-bg: #292B2F;
+            --modal-bg: #242629;
+            --modal-border: #40444B;
+        }
+
+        body.gray-theme .header-bar,
+        body.gray-theme .sliding-menu {
+            background-color: #292B2F !important;
+            border-color: #40444B !important;
+        }
+
+        body.gray-theme [style*="background-color: #101010"],
+        body.gray-theme [style*="background-color: #1D1D1D;"],
+        body.gray-theme [style*="background-color: #292B2F"],
+        body.gray-theme [style*="background-color: #40444B;"],
+        body.gray-theme [style*="background-color: #40444B4D;"],
+        body.gray-theme [style*="background-color: var(--bg-third)"],
+        body.gray-theme .sliding-menu a,
+        body.gray-theme .sliding-menu button {
+            background-color: #292B2F !important;
+            border-color: #40444B !important;
+        }
+
+        body.gray-theme .status-tabs {
+            background-color: #292B2F !important;
+            border-bottom-color: #40444B !important;
+        }
+
+        body.gray-theme .status-tab {
+            color: #808080 !important;
+        }
+
+        body.gray-theme .status-tab.active {
+            color: #E0E0E0 !important;
+            border-bottom-color: #007ACC !important;
+        }
+
+        body.gray-theme .schedule-card {
+            background-color: #292B2F !important;
+            border: 1px solid #40444B !important;
+        }
+
+        body.gray-theme .schedule-card h3,
+        body.gray-theme .schedule-card h4,
+        body.gray-theme .schedule-card p,
+        body.gray-theme .schedule-card span {
+            color: #E0E0E0 !important;
+        }
+
+        body.gray-theme .modal-content,
+        body.gray-theme .bottom-sheet-content {
+            background-color: #242629 !important;
+            border: 1px solid #40444B !important;
+        }
+
+        body.gray-theme .info-card {
+            background-color: #292B2F !important;
+            border: 1px solid #40444B !important;
+        }
+
+        body.liquid-glass-theme [class*="text-white"]:not([class*="verified-checkmark"]) {
+            color: var(--text-color) !important;
+        }
+
+        body.liquid-glass-theme .text-gray-300,
+        body.liquid-glass-theme .text-gray-400,
+        body.liquid-glass-theme .text-gray-500 {
+            color: #3A3A3C !important;
+        }
+
+        /* High-Visibility User Info */
+        body.liquid-glass-theme #menuUserEmail {
+            color: #2C2C2E !important;
+            opacity: 1 !important;
+        }
+
+        body.liquid-glass-theme #menuUserName {
+            color: #111111 !important;
+            font-weight: 700;
+        }
+
+        /* Professional "Water Liquid" effect */
+        body.liquid-glass-theme .header-bar,
+        body.liquid-glass-theme .tab-bar,
+        body.liquid-glass-theme .sliding-menu,
+        body.liquid-glass-theme .glass-panel,
+        body.liquid-glass-theme .bottom-sheet-content,
+        body.liquid-glass-theme .status-tabs,
+        body.liquid-glass-theme .schedule-card {
+            background: rgba(255, 255, 255, 0.22) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+            border-left: 1px solid rgba(255, 255, 255, 0.6) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 
+                0 15px 45px -12px rgba(0, 0, 0, 0.12), 
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 3px 0 rgba(0, 0, 0, 0.04) !important;
+            backdrop-filter: blur(25px) brightness(1.02) contrast(1.05) saturate(110%) !important;
+            -webkit-backdrop-filter: blur(25px) brightness(1.02) contrast(1.05) saturate(110%) !important;
+        }
+
+        /* Header Bar: Deep Liquid Glass with Water Effect */
+        @keyframes headerWaterShimmer {
+            0%   { transform: translateX(-200%) skewX(-15deg); opacity: 0; }
+            20%  { opacity: 0.45; }
+            80%  { opacity: 0.25; }
+            100% { transform: translateX(500%) skewX(-15deg); opacity: 0; }
+        }
+
+        body.liquid-glass-theme .header-bar {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 
+                0 8px 32px -10px rgba(0, 0, 0, 0.06), 
+                inset 0 -1px 0 rgba(255, 255, 255, 0.6) !important;
+            backdrop-filter: blur(30px) brightness(1.05) contrast(1.1) saturate(120%) !important;
+            -webkit-backdrop-filter: blur(30px) brightness(1.05) contrast(1.1) saturate(120%) !important;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body.liquid-glass-theme .header-icon-btn {
+            background: rgba(255, 255, 255, 0.25) !important;
+            backdrop-filter: blur(15px) brightness(1.1) !important;
+            -webkit-backdrop-filter: blur(15px) brightness(1.1) !important;
+            border: 0.8px solid rgba(255, 255, 255, 0.8) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), inset 0 1px 1px 0 rgba(255, 255, 255, 0.6) !important;
+        }
+
+        body.liquid-glass-theme .header-icon-btn svg {
+            stroke: #1D1D1F !important;
+            filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.8));
+        }
+
+        body.liquid-glass-theme .ripple-surface {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=') !important;
+            background-size: cover !important;
+            z-index: 0;
+        }
+
+        body.liquid-glass-theme .header-bar::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 80px; height: 100%;
+            pointer-events: none;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.3) 40%, 
+                rgba(255, 255, 255, 0.55) 50%, 
+                rgba(255, 255, 255, 0.3) 60%, 
+                transparent 100%);
+            animation: headerWaterShimmer 5s ease-in-out infinite;
+            animation-delay: 0.5s;
+            z-index: 0;
+        }
+
+        body.liquid-glass-theme .header-bar > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Specific element overrides for History Page */
+        body.liquid-glass-theme .status-tab {
+            color: #3A3A3C !important;
+            font-weight: 600;
+        }
+
+        body.liquid-glass-theme .status-tab.active {
+            background: rgba(0, 113, 227, 0.2) !important;
+            border: 1px solid rgba(0, 113, 227, 0.4) !important;
+            color: #111111 !important;
+        }
+
+        body.liquid-glass-theme .schedule-card {
+            border-radius: 18px !important;
+            margin-bottom: 16px !important;
+        }
+
+        body.liquid-glass-theme .floating-filter-btn,
+        body.liquid-glass-theme .floating-return-btn {
+            backdrop-filter: blur(20px) brightness(1.05) contrast(1.1) !important;
+            -webkit-backdrop-filter: blur(20px) brightness(1.05) contrast(1.1) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.7) !important;
+            border-left: 1px solid rgba(255, 255, 255, 0.5) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.6) !important;
+        }
+
+        body.liquid-glass-theme .floating-return-btn {
+            background: rgba(0, 113, 227, 0.22) !important;
+        }
+
+        body.liquid-glass-theme .company-name-text {
+            color: #111111 !important;
+            font-weight: 700 !important;
+        }
+
+        /* History Card Meta Visibility */
+        body.liquid-glass-theme #ordersList .text-white\/80 {
+            color: #2C2C2E !important;
+            opacity: 1 !important;
+        }
+
+        body.liquid-glass-theme #ordersList .text-white\/60 {
+            color: #3A3A3C !important;
+            opacity: 1 !important;
+        }
+
+        body.liquid-glass-theme #ordersList .text-xl.font-\[700\].text-white {
+            color: #111111 !important;
+        }
+
+        /* Empty State Styling */
+        body.liquid-glass-theme .flex-col.items-center.justify-center.h-full.text-white {
+            color: #111111 !important;
+        }
+
+        body.liquid-glass-theme .flex-col.items-center.justify-center.h-full.text-white .text-gray-400 {
+            color: #3A3A3C !important;
+        }
+
+        /* High-Clarity Liquid Modals */
+        body.liquid-glass-theme .modal-content,
+        body.liquid-glass-theme #comingSoonModal > div,
+        body.liquid-glass-theme #deleteAccountModal > div,
+        body.liquid-glass-theme #deleteSuccessModal > div,
+        body.liquid-glass-theme #orderModalContent,
+        body.liquid-glass-theme #modalInner {
+            background: rgba(255, 255, 255, 0.28) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+            border-left: 1px solid rgba(255, 255, 255, 0.5) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.15), 
+                inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(40px) brightness(1.02) contrast(1.05) saturate(120%) !important;
+            -webkit-backdrop-filter: blur(40px) brightness(1.02) contrast(1.05) saturate(120%) !important;
+            border-radius: 28px !important;
+        }
+
+        body.liquid-glass-theme #modalInner {
+            border-radius: 22px !important;
+            padding: 24px !important;
+        }
+
+        body.liquid-glass-theme #modalMessage span,
+        body.liquid-glass-theme #modalMessage p,
+        body.liquid-glass-theme #modalMessage h2,
+        body.liquid-glass-theme #modalMessage {
+            color: #111111 !important;
+            font-weight: 600 !important;
+        }
+
+        body.liquid-glass-theme #modalInner button {
+            background: rgba(0, 113, 227, 0.22) !important;
+            border: 1px solid rgba(0, 113, 227, 0.5) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            color: #111111 !important;
+            box-shadow: 0 4px 15px rgba(0, 113, 227, 0.1) !important;
+        }
+
+        body.liquid-glass-theme #modalInner button span {
+            color: #111111 !important;
+            font-weight: 700 !important;
+        }
+
+        /* Order Details Sheet Components */
+        body.liquid-glass-theme #orderDetailsContentArea .bg-gray-800\/50,
+        body.liquid-glass-theme #orderDetailsContentArea .bg-gray-900\/50 {
+            background: rgba(255, 255, 255, 0.25) !important;
+            backdrop-filter: blur(20px) brightness(1.05) contrast(1.02) !important;
+            -webkit-backdrop-filter: blur(20px) brightness(1.05) contrast(1.02) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.5) !important;
+            border-radius: 20px !important;
+        }
+
+        body.liquid-glass-theme #orderDetailsContentArea h3,
+        body.liquid-glass-theme #orderDetailsContentArea h4,
+        body.liquid-glass-theme #orderDetailsContentArea .text-white,
+        body.liquid-glass-theme #orderDetailsContentArea .text-lg.font-bold {
+            color: #111111 !important;
+            font-weight: 700 !important;
+            opacity: 1 !important;
+        }
+
+        body.liquid-glass-theme #orderDetailsContentArea .text-gray-400,
+        body.liquid-glass-theme #orderDetailsContentArea .text-white\/60,
+        body.liquid-glass-theme #orderDetailsContentArea .text-white\/40,
+        body.liquid-glass-theme #orderDetailsContentArea span:not(.font-bold),
+        body.liquid-glass-theme #orderDetailsContentArea p {
+            color: #2C2C2E !important;
+            opacity: 1 !important;
+        }
+
+        body.liquid-glass-theme #orderDetailsContentArea .border-gray-700,
+        body.liquid-glass-theme #orderDetailsContentArea .border-t,
+        body.liquid-glass-theme #orderDetailsContentArea .border-b {
+            border-color: rgba(255, 255, 255, 0.4) !important;
+        }
+
+        /* Modal Overlay Refresh (Clearing the dark layer) */
+        body.liquid-glass-theme .modal-overlay,
+        body.liquid-glass-theme #comingSoonModal,
+        body.liquid-glass-theme #deleteAccountModal,
+        body.liquid-glass-theme #deleteSuccessModal,
+        body.liquid-glass-theme #filterSheet,
+        body.liquid-glass-theme #orderModal,
+        body.liquid-glass-theme #orderDetailSheet,
+        body.liquid-glass-theme #returnPickupsSheet {
+            background: rgba(255, 255, 255, 0.05) !important;
+            backdrop-filter: blur(5px) !important;
+            -webkit-backdrop-filter: blur(5px) !important;
+        }
+
+        /* Menu Container Frame Polish (Removing main layer radius) */
+        body.liquid-glass-theme .sliding-menu .rounded-\[15px\] {
+            border-radius: 0 !important;
+            border: none !important;
+            background: transparent !important;
+        }
+
+        body.liquid-glass-theme .sliding-menu .rounded-\[15px\] > a,
+        body.liquid-glass-theme .sliding-menu .rounded-\[15px\] > button {
+            border-radius: 12px !important;
+            margin-bottom: 8px !important;
+        }
+
+        /* Menu & Bottom Sheet Buttons */
+        body.liquid-glass-theme .sliding-menu a,
+        body.liquid-glass-theme .sliding-menu button,
+        body.liquid-glass-theme .bottom-sheet-content button {
+            background: rgba(255, 255, 255, 0.25) !important;
+            backdrop-filter: blur(20px) brightness(1.05) contrast(1.1) !important;
+            -webkit-backdrop-filter: blur(20px) brightness(1.05) contrast(1.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.7) !important;
+            border-radius: 16px !important;
+            color: #1D1D1F !important;
+        }
+
+        body.liquid-glass-theme .sliding-menu svg,
+        body.liquid-glass-theme .bottom-sheet-content svg:not([fill*="#"]),
+        body.liquid-glass-theme .bottom-sheet-content .text-white/60 {
+            color: #1D1D1F !important;
+            stroke: #1D1D1F !important;
+        }
+
+        body.liquid-glass-theme .sliding-menu span,
+        body.liquid-glass-theme .bottom-sheet-content span {
+            color: #1D1D1F !important;
+        }
+
+        /* Specific icon overrides for visibility in bottom sheet */
+        body.liquid-glass-theme .bottom-sheet-content .bg-red-500/20,
+        body.liquid-glass-theme .bottom-sheet-content .bg-yellow-500/20,
+        body.liquid-glass-theme .bottom-sheet-content .bg-blue-500/20 {
+            background: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.7) !important;
+        }
+
+        body.liquid-glass-theme .floating-filter-btn {
+            background: rgba(22, 163, 74, 0.22) !important;
+        }
+
+        body.liquid-glass-theme .floating-filter-btn svg,
+        body.liquid-glass-theme .floating-filter-btn svg path {
+            fill: none !important;
+            stroke: #16A34A !important;
+        }
+
+        body.light-theme .floating-filter-btn svg,
+        body.light-theme .floating-filter-btn svg path {
+            fill: none !important;
+            stroke: #16A34A !important;
+        }
+
+        body.liquid-glass-theme .filter-toggle-container {
+            background: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.7) !important;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
+        }
+
+        body.liquid-glass-theme .toggle-slider {
+            background-color: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        body.liquid-glass-theme .toggle-switch input:checked + .toggle-slider {
+            background-color: #0071E3 !important;
+        }
+
+        /* Liquid Glass Nav Bar Enhancements */
+        body.liquid-glass-theme .tab-bar {
+            background: rgba(255, 255, 255, 0.12) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.5) !important;
+            box-shadow: 
+                0 -8px 32px -8px rgba(0, 0, 0, 0.06), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(30px) brightness(1.05) contrast(1.1) saturate(120%) !important;
+            -webkit-backdrop-filter: blur(30px) brightness(1.05) contrast(1.1) saturate(120%) !important;
+            overflow: hidden !important;
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 50 !important;
+        }
+
+        body.liquid-glass-theme .tab-bar a svg {
+            stroke: #2C2C2E !important;
+            fill: none !important;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        body.liquid-glass-theme .tab-bar a path {
+            fill: none !important;
+        }
+
+        body.liquid-glass-theme .tab-bar a span {
+            color: #3A3A3C !important;
+            transition: all 0.3s ease;
+        }
+
+        /* Active Navigation Item */
+        body.liquid-glass-theme .tab-bar a[href="schedule-history.html"] svg {
+            stroke: #0071E3 !important;
+            fill: none !important;
+            transform: translateY(-4px) scale(1.1);
+            filter: drop-shadow(0 6px 12px rgba(0, 113, 227, 0.4));
+        }
+
+        body.liquid-glass-theme .tab-bar a[href="schedule-history.html"] path {
+            fill: none !important;
+        }
+
+        body.liquid-glass-theme .tab-bar a[href="schedule-history.html"] span {
+            color: #0071E3 !important;
+            font-weight: 700;
+            transform: translateY(-2px);
+        }
+
+        @keyframes navWaterShimmer {
+            0% { transform: translateX(-150%) skewX(-20deg); opacity: 0; }
+            30% { opacity: 0.5; }
+            70% { opacity: 0.3; }
+            100% { transform: translateX(400%) skewX(-20deg); opacity: 0; }
+        }
+
+        body.liquid-glass-theme .tab-water-sheen {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 120px; height: 100%;
+            pointer-events: none;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.3) 40%, 
+                rgba(255, 255, 255, 0.6) 50%, 
+                rgba(255, 255, 255, 0.3) 60%, 
+                transparent 100%);
+            animation: navWaterShimmer 8s ease-in-out infinite;
+            z-index: 10 !important;
+        }
+
+        body.liquid-glass-theme .tab-bar a {
+            position: relative;
+            z-index: 20 !important;
+        }
+
+        body.liquid-glass-theme .tab-bar a {
+            position: relative;
+            z-index: 1;
+        }
+
+        body.liquid-glass-theme .tab-bar a span {
+            color: #5A5A5F !important;
+        }
+
+        body.liquid-glass-theme .tab-bar a.active span,
+        body.liquid-glass-theme .tab-bar a.active svg {
+            color: #1570EF !important;
         }
 
         body.light-theme {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            --bg-color: #FFFFFF !important;
+            --bg-second: #F8FAFC !important;
+            --bg-third: #F1F5F9 !important;
+            --header-bg: #FFFFFF !important;
+            --text-color: #0F172A !important;
+            --text-muted: #64748B !important;
+            --modal-bg: #FFFFFF !important;
+            --modal-border: #E2E8F0 !important;
+            --bottom-sheet-color: #FFFFFF !important;
+            --input-bg: #F1F5F9 !important;
+            --input-border: #E2E8F0 !important;
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
         }
 
         body.light-theme .status-tabs {
             background-color: #F8FAFC !important;
+            border-bottom: 1px solid #E2E8F0 !important;
+        }
+
+        body.light-theme .status-tabs span {
+            color: #64748B !important;
+        }
+
+        body.light-theme .status-tabs button.active span {
+            color: #0F172A !important;
         }
 
         body.light-theme .header-icon-btn {
-            background-color: rgba(148, 163, 184, 0.18) !important;
-            border-color: rgba(148, 163, 184, 0.45) !important;
+            background-color: rgba(148, 163, 184, 0.12) !important;
+            border-color: rgba(148, 163, 184, 0.3) !important;
         }
 
-        body.light-theme .profile-avatar-wrapper {
-            background-color: #E2E8F0 !important;
-            border-color: rgba(148, 163, 184, 0.45) !important;
+        body.light-theme .header-icon-btn svg {
+            stroke: #0F172A !important;
         }
 
-        body.light-theme .profile-avatar-edit-btn {
-            background-color: rgba(148, 163, 184, 0.2) !important;
-        }
-
-        body.light-theme .menu-overlay {
-            background-color: rgba(255, 255, 255, 0.75);
+        body.light-theme .header-bar h1 {
+            color: #0F172A !important;
         }
 
         body.light-theme .tab-bar {
-            background-color: #F8FAFC !important;
-            border-top: 1px solid rgba(148, 163, 184, 0.2);
+            background-color: #FFFFFF !important;
+            border-top: 1px solid #E2E8F0 !important;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05) !important;
         }
 
-        body.light-theme .tab-bar [class*="text-white"] {
-            color: var(--text-color) !important;
+        body.light-theme .tab-bar span {
+            color: #64748B !important;
         }
 
-        body.light-theme .tab-bar svg[stroke="#FFFFFF"],
-        body.light-theme .tab-bar svg[fill="#FFFFFF"],
-        body.light-theme .tab-bar svg[stroke="white"],
-        body.light-theme .tab-bar svg[fill="white"] {
-            stroke: var(--text-color) !important;
-            fill: var(--text-color) !important;
+        body.light-theme .tab-bar a[href="schedule-history.html"] span {
+            color: #3B74FF !important;
         }
 
-        .tab-bar > a:first-child svg,
-        .tab-bar > a:first-child svg path,
-        #floatingFilterBtn svg,
-        #floatingFilterBtn svg path {
+        body.light-theme .tab-bar svg,
+        body.light-theme .tab-bar svg path {
+            stroke: #64748B !important;
             fill: none !important;
         }
 
-        .tab-bar a {
-            padding-top: 10px;
+        body.light-theme .tab-bar a[href="schedule-history.html"] svg,
+        body.light-theme .tab-bar a[href="schedule-history.html"] svg path {
+            stroke: #3B74FF !important;
+            fill: none !important;
         }
 
         body.light-theme .sliding-menu {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
         }
 
-        body.light-theme [class*="text-white"] {
-            color: var(--text-color) !important;
+        body.light-theme .sliding-menu span,
+        body.light-theme .sliding-menu h2,
+        body.light-theme .sliding-menu p {
+            color: #0F172A !important;
+        }
+
+        body.light-theme .sliding-menu svg {
+            stroke: #0F172A !important;
+        }
+
+        body.light-theme [class*="text-white"]:not([class*="verified-checkmark"]),
+        body.light-theme .text-white:not([class*="verified-checkmark"]) {
+            color: #0F172A !important;
         }
 
         body.light-theme .sliding-menu a,
         body.light-theme .sliding-menu button {
-            background-color: transparent !important;
-            border-color: rgba(203, 213, 225, 0.45) !important;
+            background-color: #F8FAFC !important;
+            border-color: #E2E8F0 !important;
         }
 
         body.light-theme .modal-overlay {
             background-color: rgba(255, 255, 255, 0.65) !important;
         }
 
-        body.light-theme .modal-overlay [class*="text-white"] {
+        body.light-theme .modal-overlay [class*="text-white"]:not([class*="verified-checkmark"]) {
             color: var(--text-color) !important;
         }
 
@@ -173,7 +713,7 @@
             box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08) !important;
         }
 
-        body.light-theme .bottom-sheet-content [class*="text-white"] {
+        body.light-theme .bottom-sheet-content [class*="text-white"]:not([class*="verified-checkmark"]) {
             color: var(--text-color) !important;
         }
 
@@ -811,11 +1351,13 @@
 <body class="dark-theme h-screen flex flex-col overflow-hidden no-scroll mobile-container">
 
     <!-- Header (exact from RN layout: height: 110, bg: #101010) -->
-    <div class="flex flex-row items-center justify-between px-4"
-        style="height: 110px; background-color: var(--header-bg);">
-        <h1 class="text-white text-xl font-medium">Schedule History</h1>
+    <div class="header-bar relative overflow-hidden flex flex-row items-center justify-between px-4"
+        style="height: 110px;">
+        <!-- Interactive Ripple Container (The Frame) -->
+        <div class="ripple-surface absolute inset-0"></div>
+        <h1 class="text-white text-xl font-medium relative z-10">Schedule History</h1>
         <button onclick="toggleMenu()"
-            class="header-icon-btn relative overflow-hidden rounded-full flex justify-center items-center border"
+            class="header-icon-btn relative z-10 overflow-hidden rounded-full flex justify-center items-center border"
             style="height: 45px; width: 45px; border-width: 0.5px; border-color: #808080; background-color: #40444B4D;">
             <div class="w-full h-full flex justify-center items-center">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -911,8 +1453,8 @@
             </div>
 
             <!-- User Name -->
-            <h2 class="text-white text-xl font-semibold"></h2>
-            <p class="text-[#808080] text-base">loading...</p>
+            <h2 id="menuUserName" class="text-white text-xl font-semibold"></h2>
+            <p id="menuUserEmail" class="text-base">loading...</p>
         </div>
 
         <!-- Menu Content -->
@@ -921,108 +1463,101 @@
 
                 <!-- History -->
                 <a href="schedule-history.html"
-                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
-                    style="background-color: #101010;">
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]">
                     <div class="flex flex-row items-center gap-[30px]">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
-                        <span class="text-white text-lg font-semibold">History</span>
+                        <span class="text-lg font-semibold">History</span>
                     </div>
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </a>
 
                 <!-- Community -->
                 <a href="community.html" onclick="navigateToPage('community.html')"
-                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
-                    style="background-color: #101010;">
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]">
                     <div class="flex flex-row items-center gap-[30px]">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                        <span class="text-white text-lg font-semibold">Community</span>
+                        <span class="text-lg font-semibold">Community</span>
                     </div>
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </a>
 
                 <!-- About -->
                 <a href="about.html" onclick="navigateToPage('about.html')"
-                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
-                    style="background-color: #101010;">
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]">
                     <div class="flex flex-row items-center gap-[30px]">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span class="text-white text-lg font-semibold">About</span>
+                        <span class="text-lg font-semibold">About</span>
                     </div>
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </a>
 
                 <!-- Report -->
                 <a href="report.html" onclick="navigateToPage('report.html')"
-                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
-                    style="background-color: #101010;">
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]">
                     <div class="flex flex-row items-center gap-[30px]">
                         <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
-                        <span class="text-white text-lg font-semibold">Report</span>
+                        <span class="text-lg font-semibold">Report</span>
                     </div>
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </a>
 
                 <!-- Settings -->
                 <button onclick="openSettingsModal()"
-                    class="w-full h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
-                    style="background-color: var(--bg-third, #101010);">
+                    class="w-full h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]">
                     <div class="flex flex-row items-center gap-[30px]">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        <span class="text-white text-lg font-semibold">Settings</span>
+                        <span class="text-lg font-semibold">Settings</span>
                     </div>
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
 
                 <!-- Theme -->
                 <button onclick="openThemeModal()"
-                    class="w-full h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
-                    style="background-color: #101010;">
+                    class="w-full h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]">
                     <div class="flex flex-row items-center gap-[30px]">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                         </svg>
-                        <span class="text-white text-lg font-semibold">Theme</span>
+                        <span class="text-lg font-semibold">Theme</span>
                     </div>
-                    <div class="py-2 px-4 rounded-[5px]" style="background-color: #FFFFFF1A;">
-                        <span id="currentThemeDisplay" class="capitalize text-white text-sm font-medium">Dark</span>
+                    <div class="py-2 px-4 rounded-[5px] bg-white/10">
+                        <span id="currentThemeDisplay" class="capitalize text-sm font-medium">Dark</span>
                     </div>
                 </button>
 
                 <!-- Profile -->
                 <a href="profile.html" onclick="navigateToPage('profile.html')"
-                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
-                    style="background-color: #101010;">
+                    class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]">
                     <div class="flex flex-row items-center gap-[30px]">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
@@ -1315,8 +1850,9 @@
     </div>
 
     <!-- Bottom Navigation -->
-    <div class="tab-bar fixed bottom-0 left-0 right-0 h-[64px] flex flex-row justify-around items-center px-4 border-t-0 z-40"
-        style="background-color: #101010;">
+    <div class="tab-bar fixed bottom-0 left-0 right-0 h-[64px] flex flex-row justify-around items-center px-4 border-t-0 z-40">
+        <!-- Water Sheen Effect -->
+        <div class="tab-water-sheen"></div>
         <a href="home.html" class="flex flex-col items-center justify-center gap-1 flex-1">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5">
                 <path
@@ -1328,8 +1864,7 @@
         </a>
         <a href="services.html" class="flex flex-col items-center justify-center gap-1 flex-1">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#FFFFFF" stroke-width="1.5">
-                <path fill="#FFFFFF"
-                    d="m31.696 15.098-1.75-4.376a1.742 1.742 0 0 0-1.625-1.1H23.75V8.376a.75.75 0 0 0-.75-.75H4a1.75 1.75 0 0 0-1.75 1.75v14A1.75 1.75 0 0 0 4 25.125h2.325a3.75 3.75 0 0 0 7.35 0h6.65a3.75 3.75 0 0 0 7.35 0H30a1.75 1.75 0 0 0 1.75-1.75v-8a.752.752 0 0 0-.054-.277Zm-7.946-3.973h4.573a.25.25 0 0 1 .232.158l1.337 3.342H23.75v-3.5Zm-20-1.75a.25.25 0 0 1 .25-.25h18.25v8.5H3.75v-8.25ZM10 26.625a2.25 2.25 0 1 1 0-4.5 2.25 2.25 0 0 1 0 4.5Zm10.325-3h-6.65a3.75 3.75 0 0 0-7.35 0H4a.25.25 0 0 1-.25-.25v-4.25h18.5v1.935a3.763 3.763 0 0 0-1.925 2.565Zm3.675 3a2.25 2.25 0 1 1 0-4.5 2.25 2.25 0 0 1 0 4.5Zm6.25-3.25a.25.25 0 0 1-.25.25h-2.325a3.756 3.756 0 0 0-3.675-3c-.084 0-.168 0-.25.009v-4.509h6.5v7.25Z" />
+                <path d="m31.696 15.098-1.75-4.376a1.742 1.742 0 0 0-1.625-1.1H23.75V8.376a.75.75 0 0 0-.75-.75H4a1.75 1.75 0 0 0-1.75 1.75v14A1.75 1.75 0 0 0 4 25.125h2.325a3.75 3.75 0 0 0 7.35 0h6.65a3.75 3.75 0 0 0 7.35 0H30a1.75 1.75 0 0 0 1.75-1.75v-8a.752.752 0 0 0-.054-.277Zm-7.946-3.973h4.573a.25.25 0 0 1 .232.158l1.337 3.342H23.75v-3.5Zm-20-1.75a.25.25 0 0 1 .25-.25h18.25v8.5H3.75v-8.25ZM10 26.625a2.25 2.25 0 1 1 0-4.5 2.25 2.25 0 0 1 0 4.5Zm10.325-3h-6.65a3.75 3.75 0 0 0-7.35 0H4a.25.25 0 0 1-.25-.25v-4.25h18.5v1.935a3.763 3.763 0 0 0-1.925 2.565Zm3.675 3a2.25 2.25 0 1 1 0-4.5 2.25 2.25 0 0 1 0 4.5Zm6.25-3.25a.25.25 0 0 1-.25.25h-2.325a3.756 3.756 0 0 0-3.675-3c-.084 0-.168 0-.25.009v-4.509h6.5v7.25Z" />
             </svg>
             <span class="text-sm text-white font-normal mt-1">Services</span>
         </a>
@@ -3199,6 +3734,51 @@
         };
     </script>
 
+    <script>
+        // ============================================
+        // Liquid Glass Theme Init & Water Effects
+        // ============================================
+        $(document).ready(function() {
+            // Initialize WebGL Ripples on the decorative surface
+            try {
+                $('.ripple-surface').ripples({
+                    resolution: 512,
+                    dropRadius: 20,
+                    perturbance: 0.04,
+                    interactive: true
+                });
+                
+                // Trigger subtle initial ripples
+                setInterval(function() {
+                    const x = Math.random() * $('.ripple-surface').width();
+                    const y = Math.random() * $('.ripple-surface').height();
+                    $('.ripple-surface').ripples('drop', x, y, 15, 0.03);
+                }, 4000);
+            } catch (e) {
+                console.warn('WebGL Ripples could not initialize:', e);
+            }
+
+            // Theme Observer to handle Liquid Glass application
+            function applyLiquidGlassStyles() {
+                const isLiquidGlass = document.body.classList.contains('liquid-glass-theme');
+                if (isLiquidGlass) {
+                    console.log('?? Liquid Glass Aesthetic Active');
+                    // Additional dynamic logic if needed
+                }
+            }
+
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName === 'class') {
+                        applyLiquidGlassStyles();
+                    }
+                });
+            });
+
+            observer.observe(document.body, { attributes: true });
+            applyLiquidGlassStyles();
+        });
+    </script>
 </body>
 
 </html>

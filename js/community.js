@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     window.handleCommentVote = async (featureId, commentId, direction) => {
-        if (state.currentUser?.$id === 'guest_local') {
+        if (!state.currentUser || state.currentUser?.$id === 'guest_local') {
             showToast("Please log in to vote on comments.", "error");
             return;
         }
@@ -172,60 +172,81 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!comment) return;
 
         const currentVote = state.commentVotes[commentId];
-        if (currentVote === direction) return; // Already voted
-
+        
         // Optimistic UI updates
         let upDelta = 0;
         let downDelta = 0;
+        let removing = false;
 
-        if (currentVote) {
-            if (currentVote === 'up') upDelta--; else downDelta--;
+        if (currentVote === direction) {
+            // Removing the vote
+            if (currentVote === 'up') upDelta = -1; else downDelta = -1;
+            delete state.commentVotes[commentId];
+            removing = true;
+        } else {
+            // Changing or adding the vote
+            if (currentVote) {
+                if (currentVote === 'up') { upDelta = -1; downDelta = 1; } else { upDelta = 1; downDelta = -1; }
+            } else {
+                if (direction === 'up') upDelta = 1; else downDelta = 1;
+            }
+            state.commentVotes[commentId] = direction;
         }
-
-        if (direction === 'up') upDelta++; else downDelta++;
 
         comment.upvotes = (comment.upvotes || 0) + upDelta;
         comment.downvotes = (comment.downvotes || 0) + downDelta;
-        state.commentVotes[commentId] = direction;
+        comment.voteCount = (comment.voteCount || 0) + (upDelta + downDelta);
         
-        renderRequests(); // Refresh UI including open modals
+        renderRequests();
 
         try {
-            // Save vote record
-            const votePayload = filterPayload({
-                userId: state.currentUser.$id,
-                commentId: commentId,
-                direction: direction,
-                userName: state.currentUser.name || 'Anonymous'
-            });
-
-            // Find existing vote to update or create new
+            // Find existing vote record
             const existing = await databases.listDocuments(DATABASE_ID, COMMUNITY_COMMENT_VOTES_TABLE, [
                 Query.equal('userId', state.currentUser.$id),
                 Query.equal('commentId', commentId)
             ]);
 
-            if (existing.documents.length > 0) {
-                await databases.updateDocument(DATABASE_ID, COMMUNITY_COMMENT_VOTES_TABLE, existing.documents[0].$id, votePayload);
+            if (removing) {
+                if (existing.documents.length > 0) {
+                    await databases.deleteDocument(DATABASE_ID, COMMUNITY_COMMENT_VOTES_TABLE, existing.documents[0].$id);
+                }
             } else {
-                await databases.createDocument(DATABASE_ID, COMMUNITY_COMMENT_VOTES_TABLE, ID.unique(), votePayload);
+                const votePayload = filterPayload({
+                    userId: state.currentUser.$id,
+                    commentId: commentId,
+                    direction: direction,
+                    userName: state.currentUser.name || 'Anonymous'
+                });
+
+                if (existing.documents.length > 0) {
+                    await databases.updateDocument(DATABASE_ID, COMMUNITY_COMMENT_VOTES_TABLE, existing.documents[0].$id, votePayload);
+                } else {
+                    await databases.createDocument(DATABASE_ID, COMMUNITY_COMMENT_VOTES_TABLE, ID.unique(), votePayload);
+                }
             }
 
             // Update comment statistics
             const updateData = filterPayload({
                 upvotes: comment.upvotes,
-                downvotes: comment.downvotes
+                downvotes: comment.downvotes,
+                voteCount: comment.voteCount
             });
 
             await databases.updateDocument(DATABASE_ID, COMMUNITY_COMMENTS_TABLE, commentId, updateData);
-            showToast("Comment vote recorded!");
+            if (!removing) showToast("Comment vote recorded!");
+            else showToast("Vote removed.");
         } catch (error) {
             console.error("Comment vote failed:", error);
             // Rollback optimistic update
             comment.upvotes -= upDelta;
             comment.downvotes -= downDelta;
-            state.commentVotes[commentId] = currentVote;
+            comment.voteCount -= (upDelta + downDelta);
+            if (currentVote) state.commentVotes[commentId] = currentVote;
+            else delete state.commentVotes[commentId];
             renderRequests();
+            
+            // Handle 404 specifically for deletions
+            if (error.code === 404) return;
             showToast("Failed to record vote.", "error");
         }
     };
@@ -522,7 +543,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                             </div>
                         ` : ''}
                     </div>
-                    <p class="text-sm text-ash-light leading-relaxed mb-4">${window.sanitize(c.text)}</p>
+                    <div id="comment-body-${c.$id}">
+                        <p class="text-sm text-ash-light leading-relaxed mb-4">${window.sanitize(c.text)}</p>
+                    </div>
                     
                     <div class="flex justify-between items-center mb-4">
                         <div class="flex items-center gap-4">
@@ -607,33 +630,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         const comment = state.requests.flatMap(r => r.comments || []).find(c => c.$id === commentId);
         if (!comment) return;
 
-        const body = document.getElementById(`comment-body-${commentId}`);
-        body.innerHTML = `
-            <div class="flex gap-2 mt-2">
-                <input type="text" class="comment-input" id="edit-input-${commentId}" value="${window.sanitize(comment.text)}" style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px 12px; border: 1px solid var(--glass-border);">
-                <button class="action-btn edit" onclick="saveCommentEdit('${featureId}', '${commentId}')" title="Save">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                </button>
-            </div>
-        `;
-        document.getElementById(`edit-input-${commentId}`).focus();
+        document.getElementById('editCommentId').value = commentId;
+        document.getElementById('editCommentText').value = comment.text;
+        document.getElementById('editCommentModal').classList.add('active');
     };
 
-    window.saveCommentEdit = async (featureId, commentId) => {
-        const newText = document.getElementById(`edit-input-${commentId}`).value.trim();
+    window.closeEditCommentModal = () => {
+        document.getElementById('editCommentModal').classList.remove('active');
+    };
+
+    document.getElementById('editCommentForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const commentId = document.getElementById('editCommentId').value;
+        const newText = document.getElementById('editCommentText').value.trim();
+        
         if (!newText) return;
+
+        const btn = document.getElementById('submitEditCommentBtn');
+        btn.classList.add('btn-loading');
 
         try {
             await databases.updateDocument(DATABASE_ID, COMMUNITY_COMMENTS_TABLE, commentId, {
                 text: newText
             });
             showToast("Comment updated!");
-            // Real-time will handle the update
+            window.closeEditCommentModal();
         } catch (error) {
             console.error("Comment edit failed:", error);
             showToast("Failed to edit comment.", "error");
+        } finally {
+            btn.classList.remove('btn-loading');
         }
-    };
+    });
+
+
 
     window.deleteComment = async (featureId, commentId) => {
         const confirmed = await confirmAction('Delete Comment?', 'Are you sure you want to remove this comment?');
@@ -648,51 +678,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    window.handleCommentVote = async (featureId, commentId, direction) => {
-        if (!state.currentUser || state.currentUser.$id === 'guest_local') return;
 
-        try {
-            const existingVotes = await databases.listDocuments(DATABASE_ID, COMMUNITY_COMMENT_VOTES_TABLE, [
-                Query.equal('userId', state.currentUser.$id),
-                Query.equal('commentId', commentId)
-            ]);
-
-            const currentVote = state.commentVotes[commentId];
-            let voteDelta = 0;
-
-            if (currentVote === direction) {
-                if (existingVotes.documents.length > 0) {
-                    await databases.deleteDocument(DATABASE_ID, COMMUNITY_COMMENT_VOTES_TABLE, existingVotes.documents[0].$id);
-                }
-                voteDelta = (direction === 'up' ? -1 : 1);
-                delete state.commentVotes[commentId];
-            } else {
-                if (existingVotes.documents.length > 0) {
-                    await databases.updateDocument(DATABASE_ID, COMMUNITY_COMMENT_VOTES_TABLE, existingVotes.documents[0].$id, {
-                        direction: direction
-                    });
-                    voteDelta = (direction === 'up' ? 2 : -2);
-                } else {
-                    await databases.createDocument(DATABASE_ID, COMMUNITY_COMMENT_VOTES_TABLE, ID.unique(), {
-                        userId: state.currentUser.$id,
-                        commentId: commentId,
-                        direction: direction
-                    });
-                    voteDelta = (direction === 'up' ? 1 : -1);
-                }
-                state.commentVotes[commentId] = direction;
-            }
-
-            // Get the current comment count to update it
-            const commentDoc = await databases.getDocument(DATABASE_ID, COMMUNITY_COMMENTS_TABLE, commentId);
-            await databases.updateDocument(DATABASE_ID, COMMUNITY_COMMENTS_TABLE, commentId, {
-                voteCount: (commentDoc.voteCount || 0) + voteDelta
-            });
-
-        } catch (error) {
-            console.error("Comment voting failed:", error);
-        }
-    };
 
     // ─── Real-time Synchronization ───────────────────────────────────────
     function initRealtime() {

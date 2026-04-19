@@ -60,20 +60,195 @@
             --modal-border: #DADADA;
         }
 
+        body.liquid-glass-theme {
+            --bg-color: #F8FAFC;
+            --bg-second: rgba(255, 255, 255, 0.45);
+            --bg-third: rgba(255, 255, 255, 0.22);
+            --header-bg: rgba(255, 255, 255, 0.22);
+            --text-color: #111111;
+            --muted-text: #3A3A3C;
+            --input-field-second: rgba(255, 255, 255, 0.35);
+            --input-field-second-border: rgba(255, 255, 255, 0.85);
+            --btn-color: rgba(0, 113, 227, 0.18);
+            --btn-border: #0071E3;
+            --modal-bg: rgba(255, 255, 255, 0.3);
+            --modal-border: rgba(255, 255, 255, 0.9);
+            --info-box-bg: rgba(0, 113, 227, 0.08);
+            --info-box-border: rgba(0, 113, 227, 0.35);
+        }
+
+        body.liquid-glass-theme {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 50%, #E5E7EB 100%) !important;
+            background-attachment: fixed !important;
+            color: #111111 !important;
+        }
+
+        /* Glass Panel Overrides */
+        body.liquid-glass-theme .header-bar {
+            background: rgba(255, 255, 255, 0.22) !important;
+            backdrop-filter: blur(25px) !important;
+            -webkit-backdrop-filter: blur(25px) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.6) !important;
+            overflow: hidden;
+            position: relative;
+        }
+
+        @keyframes reportWaterShimmer {
+            0% { transform: translateX(-150%) skewX(-20deg); opacity: 0; }
+            50% { opacity: 0.55; }
+            100% { transform: translateX(250%) skewX(-20deg); opacity: 0; }
+        }
+
+        body.liquid-glass-theme .header-bar::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100px; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+            animation: reportWaterShimmer 6s infinite ease-in-out;
+        }
+
+        body.liquid-glass-theme .header-bar h1,
+        body.liquid-glass-theme .header-bar svg {
+            color: #111111 !important;
+            position: relative;
+            z-index: 2;
+        }
+
+        body.liquid-glass-theme .flex-1 {
+            background-color: transparent !important;
+        }
+
+        body.liquid-glass-theme .info-box {
+            background: rgba(0, 113, 227, 0.1) !important;
+            backdrop-filter: blur(15px) !important;
+            border: 1px solid rgba(0, 113, 227, 0.4) !important;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05) !important;
+        }
+
+        body.liquid-glass-theme h2,
+        body.liquid-glass-theme p,
+        body.liquid-glass-theme .form-label,
+        body.liquid-glass-theme .text-white,
+        body.liquid-glass-theme .text-gray-400,
+        body.liquid-glass-theme .text-gray-500 {
+            color: #111111 !important;
+            opacity: 1 !important;
+        }
+
+        body.liquid-glass-theme .form-input {
+            background: rgba(255, 255, 255, 0.45) !important;
+            border: 1px solid rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(15px) !important;
+            color: #111111 !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+        }
+
+        body.liquid-glass-theme .form-input::placeholder {
+            color: #3A3A3C !important;
+            opacity: 0.5;
+        }
+
+        body.liquid-glass-theme .submit-btn {
+            background: rgba(0, 113, 227, 0.18) !important;
+            border: 1px solid rgba(0, 113, 227, 0.6) !important;
+            backdrop-filter: blur(10px) !important;
+            color: #0071E3 !important;
+            font-weight: 700 !important;
+            box-shadow: 0 8px 25px rgba(0, 113, 227, 0.15) !important;
+        }
+
+        body.liquid-glass-theme .modal-content {
+            background: rgba(255, 255, 255, 0.3) !important;
+            backdrop-filter: blur(35px) !important;
+            -webkit-backdrop-filter: blur(35px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.9) !important;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12) !important;
+        }
+
+        body.liquid-glass-theme .modal-title,
+        body.liquid-glass-theme .modal-message {
+            color: #111111 !important;
+        }
+
+        body.liquid-glass-theme .modal-btn {
+            background: rgba(0, 113, 227, 0.2) !important;
+            border: 1px solid rgba(0, 113, 227, 0.5) !important;
+            color: #0071E3 !important;
+        }
+
         body.gray-theme {
             --bg-color: #202225;
-            --bg-second: #40444B;
-            --bg-third: #292B2F;
+            --bg-second: #292B2F;
+            --bg-third: #40444B;
             --header-bg: #292B2F;
             --tab-bg: #292B2F;
-            --input-field-second: #40444B;
+            --input-field-second: #292B2F;
             --input-field-second-border: #40444B;
             --btn-color: #007ACC;
             --btn-border: #007ACC;
             --btn-second-color: #F57D7D;
             --btn-second-border: #F57D7D;
-            --modal-bg: #40444B;
+            --modal-bg: #242629;
             --modal-border: #40444B;
+            --text-color: #E0E0E0;
+            --muted-text: #B0B6C1;
+        }
+
+        body.gray-theme .header-bar {
+            background-color: #292B2F !important;
+            border-bottom: 1px solid #40444B !important;
+        }
+
+        body.gray-theme h1,
+        body.gray-theme h2,
+        body.gray-theme p,
+        body.gray-theme span,
+        body.gray-theme label {
+            color: #E0E0E0 !important;
+        }
+
+        body.gray-theme .text-gray-400,
+        body.gray-theme .text-gray-500 {
+            color: #B0B6C1 !important;
+        }
+
+        body.gray-theme .form-input {
+            background-color: #292B2F !important;
+            border-color: #40444B !important;
+            color: #E0E0E0 !important;
+        }
+
+        body.gray-theme .form-input::placeholder {
+            color: #808080 !important;
+        }
+
+        body.gray-theme .info-box {
+            background: #292B2F !important;
+            border-color: #40444B !important;
+        }
+
+        body.gray-theme [style*="background-color: #101010"],
+        body.gray-theme [style*="background-color: #1D1D1D;"],
+        body.gray-theme [style*="background-color: #292B2F"],
+        body.gray-theme [style*="background-color: #40444B;"],
+        body.gray-theme [style*="background-color: #40444B4D;"],
+        body.gray-theme [style*="background-color: var(--bg-third)"],
+        body.gray-theme .sliding-menu a,
+        body.gray-theme .sliding-menu button {
+            background-color: #292B2F !important;
+            border-color: #40444B !important;
+        }
+
+        body.gray-theme .submit-btn {
+            background: rgba(0, 122, 204, 0.2) !important;
+            border: 1px solid rgba(0, 122, 204, 0.4) !important;
+            color: #4AAFFF !important;
+        }
+
+        body.gray-theme .modal-content {
+            background-color: #242629 !important;
+            border: 1px solid #40444B !important;
         }
 
         body.light-theme {
