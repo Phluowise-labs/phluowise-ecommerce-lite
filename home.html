@@ -169,13 +169,21 @@
 
         body.gray-theme .card-bg h3,
         body.gray-theme .card-bg p,
-        body.gray-theme .card-bg span:not([class*="verified-checkmark"]),
+        body.gray-theme .card-bg span:not([class*="verified-checkmark"]):not(.text-green-400):not(.text-yellow-400),
         body.gray-theme .card-bg .text-slate-900 {
             color: #E0E0E0 !important;
         }
 
         body.gray-theme .card-bg .text-slate-600 {
             color: #B0B6C1 !important;
+        }
+
+        body.gray-theme .card-bg .text-green-400 {
+            color: #4ADE80 !important;
+        }
+
+        body.gray-theme .card-bg .text-yellow-400 {
+            color: #FACC15 !important;
         }
 
         body.gray-theme [style*="background-color: #101010"],
