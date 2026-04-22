@@ -340,9 +340,17 @@ async function forgotPassword(email) {
             throw new Error('No customer account found with this email address in our system');
         }
 
+        // Use the current domain to construct the reset URL, falling back to production if local file
+        const isFile = window.location.protocol === 'file:';
+        const currentUrl = window.location.href.split('?')[0];
+        const basePath = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
+        const resetUrl = isFile 
+            ? 'https://phluowise-website.pages.dev/reset-password.html' 
+            : basePath + 'reset-password.html';
+
         await account.createRecovery(
             email,
-            'https://phluowise-website.pages.dev/reset-password'
+            resetUrl
         );
 
         feedback.hideLoading();
@@ -390,6 +398,40 @@ async function resetPassword(userId, secret, password, confirmPassword) {
             throw new Error('Passwords do not match');
         }
 
+        try {
+            // Fetch user email using their userId
+            const customerData = await databases.listDocuments(
+                appwriteConfig.DATABASE_ID,
+                appwriteConfig.CUSTOMER_TABLE,
+                [Query.equal('uid', userId)]
+            );
+
+            if (customerData.documents.length > 0) {
+                const email = customerData.documents[0].email;
+                try {
+                    // Test if we can login with the NEW password. 
+                    // If we can, it means the NEW password is their CURRENT password.
+                    const testSession = await account.createEmailPasswordSession(email, password);
+                    
+                    // Cleanup testing session
+                    await account.deleteSession(testSession.$id);
+                    
+                    feedback.showFieldError('newPassword', 'This is your current password. Please choose a new one.');
+                    throw new Error('This is your current password. Please choose a new one.');
+                } catch (checkError) {
+                    // Re-throw our custom error so it stops the flow
+                    if (checkError.message && checkError.message.includes('current password')) {
+                        throw checkError;
+                    }
+                    // For any other error (like 401 Invalid Credentials), it means the password is NOT their current password.
+                }
+            }
+        } catch (dbError) {
+            if (dbError.message && dbError.message.includes('current password')) {
+                throw dbError;
+            }
+        }
+
         await account.updateRecovery(userId, secret, password, password);
 
         feedback.hideLoading();
@@ -406,7 +448,12 @@ async function resetPassword(userId, secret, password, confirmPassword) {
         if (error.code === 401) {
             errorMessage = 'Invalid or expired reset link. Please request a new password reset.';
         } else if (error.code === 400) {
-            errorMessage = 'Password is too weak or invalid format.';
+            if (error.message && error.message.toLowerCase().includes('recently used')) {
+                errorMessage = 'You have used this password recently. Please choose a new one.';
+                feedback.showFieldError('newPassword', 'Password recently used');
+            } else {
+                errorMessage = 'Password is too weak or invalid format.';
+            }
         } else {
             errorMessage = error.message;
         }
