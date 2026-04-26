@@ -172,7 +172,7 @@ function getThemeModalHTML() {
     const currentTheme = getCurrentTheme();
 
     return `
-    <div id="themeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+    <div id="themeModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" style="display: none; z-index: 999999 !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
         <div class="w-full min-h-full flex flex-col items-center justify-center px-4 py-5">
             <!-- Back Button -->
             <div class="w-full max-w-[400px] mb-4">

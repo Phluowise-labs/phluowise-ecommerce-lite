@@ -323,7 +323,7 @@
 
     <!-- Delete Account Modal -->
     <div id="deleteAccountModal"
-        class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50" style="display: none;">
+        class="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-black/50" style="display: none; z-index: 999999 !important;">
         <div class="w-full h-full flex flex-col items-center justify-center p-5">
             <!-- Modal Container -->
             <div class="w-full max-w-[400px] rounded-[20px] overflow-hidden border backdrop-blur-xl bg-black/40 shadow-2xl"
@@ -372,8 +372,8 @@
     </div>
 
     <!-- Theme Modal (injected by JS) -->
-    <div id="themeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-        style="display: none; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+    <div id="themeModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+        style="display: none; z-index: 999999 !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
         <div class="w-full min-h-full flex flex-col items-center justify-center px-4 py-5">
             <!-- Back Button -->
             <div class="w-full max-w-[400px] mb-4">

@@ -8424,8 +8424,7 @@
         // Create modal overlay following the existing pattern
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'deleteAccountModal';
-        modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
-        modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
+        modalOverlay.style.cssText = 'position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 2.25rem; z-index: 999999 !important; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
 
         // Create modal content following existing modal pattern
         const modalContent = document.createElement('div');
@@ -8520,8 +8519,7 @@
         // Create success modal overlay
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'deleteSuccessModal';
-        modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
-        modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
+        modalOverlay.style.cssText = 'position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 2.25rem; z-index: 999999 !important; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
 
         // Create modal content
         const modalContent = document.createElement('div');

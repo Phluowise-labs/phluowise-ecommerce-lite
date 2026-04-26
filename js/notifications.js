@@ -4,186 +4,186 @@ if (typeof window.ScheduleNotificationManager !== 'undefined') {
     // console.log('🔔 Notification system already loaded, skipping initialization...');
 } else {
 
-// Global timestamp to prevent sound on page load
-window.lastPageLoadTime = Date.now();
+    // Global timestamp to prevent sound on page load
+    window.lastPageLoadTime = Date.now();
 
-class ScheduleNotificationManager {
-    constructor() {
-        this.orders = [];
-        this.notificationContainers = []; // Support multiple containers
-        this.lastNotificationState = ''; // Track last notification state to prevent repeated sounds
-        this.soundPlayedForCurrentState = false; // Track if sound has been played for current state
-        this.init();
-    }
-
-    init() {
-        // console.log('🚀 Initializing notification manager...');
-        // Load orders from localStorage
-        this.loadOrders();
-        
-        // Initialize notification container when DOM is ready
-        if (document.readyState === 'loading') {
-            // console.log('📄 DOM still loading, waiting for DOMContentLoaded...');
-            document.addEventListener('DOMContentLoaded', () => {
-                // console.log('📄 DOMContentLoaded fired, setting up notifications...');
-                this.setupNotifications();
-            });
-        } else {
-            // console.log('📄 DOM already loaded, setting up notifications immediately...');
-            this.setupNotifications();
+    class ScheduleNotificationManager {
+        constructor() {
+            this.orders = [];
+            this.notificationContainers = []; // Support multiple containers
+            this.lastNotificationState = ''; // Track last notification state to prevent repeated sounds
+            this.soundPlayedForCurrentState = false; // Track if sound has been played for current state
+            this.init();
         }
-        
-        // Listen for storage changes (cross-tab synchronization)
-        window.addEventListener('storage', (e) => {
-            // console.log('🔄 Storage event detected:', e.key);
-            if (e.key === 'phluowiseOrders') {
-                // console.log('📦 Orders updated in storage, reloading...');
-                this.loadOrders();
-                this.updateNotifications();
-            }
-        });
-        
-        // Check for order updates periodically
-        setInterval(() => {
-            // console.log('⏰ Periodic check for order updates...');
+
+        init() {
+            // console.log('🚀 Initializing notification manager...');
+            // Load orders from localStorage
             this.loadOrders();
-            this.checkCompanies();
-            this.updateNotifications();
-        }, 2000);
-        
-        // Initial check for companies
-        this.checkCompanies();
-        
-        // // console.log('✅ Notification manager initialization complete');
-    }
 
-    playBellSound() {
-        // Prevent sound if page was loaded recently (within last 3 seconds)
-        const timeSincePageLoad = Date.now() - window.lastPageLoadTime;
-        if (timeSincePageLoad < 3000) {
-            // console.log('🔕 Skipping sound during page load window');
-            return;
+            // Initialize notification container when DOM is ready
+            if (document.readyState === 'loading') {
+                // console.log('📄 DOM still loading, waiting for DOMContentLoaded...');
+                document.addEventListener('DOMContentLoaded', () => {
+                    // console.log('📄 DOMContentLoaded fired, setting up notifications...');
+                    this.setupNotifications();
+                });
+            } else {
+                // console.log('📄 DOM already loaded, setting up notifications immediately...');
+                this.setupNotifications();
+            }
+
+            // Listen for storage changes (cross-tab synchronization)
+            window.addEventListener('storage', (e) => {
+                // console.log('🔄 Storage event detected:', e.key);
+                if (e.key === 'phluowiseOrders') {
+                    // console.log('📦 Orders updated in storage, reloading...');
+                    this.loadOrders();
+                    this.updateNotifications();
+                }
+            });
+
+            // Check for order updates periodically
+            setInterval(() => {
+                // console.log('⏰ Periodic check for order updates...');
+                this.loadOrders();
+                this.checkCompanies();
+                this.updateNotifications();
+            }, 2000);
+
+            // Initial check for companies
+            this.checkCompanies();
+
+            // // console.log('✅ Notification manager initialization complete');
         }
-        
-        // Create audio context for bell sound
-        try {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Create a simple bell-like sound using Web Audio API
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            // Bell sound parameters
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Start frequency
-            oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1); // Rise
-            oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.3); // Fall
-            
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.5);
-        } catch (error) {
-            // Fallback to HTML5 audio if Web Audio API fails
+
+        playBellSound() {
+            // Prevent sound if page was loaded recently (within last 3 seconds)
+            const timeSincePageLoad = Date.now() - window.lastPageLoadTime;
+            if (timeSincePageLoad < 3000) {
+                // console.log('🔕 Skipping sound during page load window');
+                return;
+            }
+
+            // Create audio context for bell sound
             try {
-                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
-                audio.volume = 0.3;
-                audio.play().catch(e => console.log('Audio play failed:', e));
-            } catch (fallbackError) {
-                // Silent fail if audio doesn't work
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+                // Create a simple bell-like sound using Web Audio API
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                // Bell sound parameters
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Start frequency
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1); // Rise
+                oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.3); // Fall
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (error) {
+                // Fallback to HTML5 audio if Web Audio API fails
+                try {
+                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+                    audio.volume = 0.3;
+                    audio.play().catch(e => console.log('Audio play failed:', e));
+                } catch (fallbackError) {
+                    // Silent fail if audio doesn't work
+                }
             }
         }
-    }
 
-    loadOrders() {
-        // console.log('📥 Loading orders from localStorage...');
-        try {
-            const savedOrders = localStorage.getItem('phluowiseOrders');
-            // console.log('📦 Raw localStorage data:', savedOrders);
-            
-            if (savedOrders) {
-                this.orders = JSON.parse(savedOrders);
-                // console.log('✅ Successfully parsed orders:', this.orders.length, 'orders loaded');
-                // console.log('📋 Order details:', this.orders.map(o => ({
-                //     id: o.orderId,
-                //     company: o.company,
-                //     status: o.status,
-                //     statusText: o.statusText
-                // })));
-            } else {
-                // console.log('⚠️ No orders found in localStorage');
+        loadOrders() {
+            // console.log('📥 Loading orders from localStorage...');
+            try {
+                const savedOrders = localStorage.getItem('phluowiseOrders');
+                // console.log('📦 Raw localStorage data:', savedOrders);
+
+                if (savedOrders) {
+                    this.orders = JSON.parse(savedOrders);
+                    // console.log('✅ Successfully parsed orders:', this.orders.length, 'orders loaded');
+                    // console.log('📋 Order details:', this.orders.map(o => ({
+                    //     id: o.orderId,
+                    //     company: o.company,
+                    //     status: o.status,
+                    //     statusText: o.statusText
+                    // })));
+                } else {
+                    // console.log('⚠️ No orders found in localStorage');
+                    this.orders = [];
+                }
+            } catch (error) {
+                // console.error('❌ Error loading orders:', error);
                 this.orders = [];
             }
-        } catch (error) {
-            // console.error('❌ Error loading orders:', error);
-            this.orders = [];
         }
-    }
 
-    checkCompanies() {
-        try {
-            let companiesData = null;
-            if (window.cacheManager) {
-                companiesData = window.cacheManager.getCache('companies');
-            } else {
-                const cached = localStorage.getItem('phluowise_companies__1.0');
-                if (cached) {
-                    const parsed = JSON.parse(cached);
-                    companiesData = parsed.data;
-                }
-            }
-            
-            if (companiesData && Array.isArray(companiesData)) {
-                const currentCount = companiesData.length;
-                const savedCount = parseInt(localStorage.getItem('phluowiseKnownCompaniesCount') || '0', 10);
-                
-                if (savedCount > 0 && currentCount > savedCount) {
-                    // New company added!
-                    const numNew = currentCount - savedCount;
-                    // Assuming newest companies are at index 0 based on appwrite desc sort
-                    const newCompanies = companiesData.slice(0, numNew);
-                    
-                    this.playBellSound();
-                    this.sendSystemPushNotification(['new_company']);
-                    
-                    if (newCompanies.length > 0) {
-                        this.showNewCompaniesModal(newCompanies);
+        checkCompanies() {
+            try {
+                let companiesData = null;
+                if (window.cacheManager) {
+                    companiesData = window.cacheManager.getCache('companies');
+                } else {
+                    const cached = localStorage.getItem('phluowise_companies__1.0');
+                    if (cached) {
+                        const parsed = JSON.parse(cached);
+                        companiesData = parsed.data;
                     }
                 }
-                
-                // Update the saved count
-                if (currentCount !== savedCount) {
-                    localStorage.setItem('phluowiseKnownCompaniesCount', currentCount.toString());
+
+                if (companiesData && Array.isArray(companiesData)) {
+                    const currentCount = companiesData.length;
+                    const savedCount = parseInt(localStorage.getItem('phluowiseKnownCompaniesCount') || '0', 10);
+
+                    if (savedCount > 0 && currentCount > savedCount) {
+                        // New company added!
+                        const numNew = currentCount - savedCount;
+                        // Assuming newest companies are at index 0 based on appwrite desc sort
+                        const newCompanies = companiesData.slice(0, numNew);
+
+                        this.playBellSound();
+                        this.sendSystemPushNotification(['new_company']);
+
+                        if (newCompanies.length > 0) {
+                            this.showNewCompaniesModal(newCompanies);
+                        }
+                    }
+
+                    // Update the saved count
+                    if (currentCount !== savedCount) {
+                        localStorage.setItem('phluowiseKnownCompaniesCount', currentCount.toString());
+                    }
                 }
+            } catch (error) {
+                // Silently fail if cache is unavailable or malformed
             }
-        } catch (error) {
-            // Silently fail if cache is unavailable or malformed
         }
-    }
 
-    showNewCompaniesModal(companies) {
-        // Prevent multiple modals
-        const existingModal = document.getElementById('newCompaniesModal');
-        if (existingModal) existingModal.remove();
+        showNewCompaniesModal(companies) {
+            // Prevent multiple modals
+            const existingModal = document.getElementById('newCompaniesModal');
+            if (existingModal) existingModal.remove();
 
-        // 1. Create wrapper
-        const modal = document.createElement('div');
-        modal.id = 'newCompaniesModal';
-        modal.className = 'fixed inset-0 flex flex-col items-center justify-center';
-        modal.style.cssText = 'z-index: 9999; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); opacity: 0; transition: opacity 0.4s ease-out;';
+            // 1. Create wrapper
+            const modal = document.createElement('div');
+            modal.id = 'newCompaniesModal';
+            modal.className = 'fixed inset-0 flex flex-col items-center justify-center';
+            modal.style.cssText = 'z-index: 9999; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); opacity: 0; transition: opacity 0.4s ease-out;';
 
-        // 2. HTML Structure
-        let cardsHTML = '';
-        companies.forEach((company, index) => {
-            const name = company.name_of_company || company.name || 'New Water Company';
-            const location = company.state || company.location || 'Your Area';
-            const imgUrl = company.profile_image || company.header_image || company.image_url || company.logo || 'images/logo.png';
-            const rating = (company.company_rating || company.average_rating) ? parseFloat(company.company_rating || company.average_rating).toFixed(1) : 'New';
-            
-            cardsHTML += `
+            // 2. HTML Structure
+            let cardsHTML = '';
+            companies.forEach((company, index) => {
+                const name = company.name_of_company || company.name || 'New Water Company';
+                const location = company.state || company.location || 'Your Area';
+                const imgUrl = company.profile_image || company.header_image || company.image_url || company.logo || 'images/logo.png';
+                const rating = (company.company_rating || company.average_rating) ? parseFloat(company.company_rating || company.average_rating).toFixed(1) : 'New';
+
+                cardsHTML += `
                 <div class="stacked-company-card absolute top-0 w-full rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 cursor-pointer"
                      data-index="${index}"
                      style="background-color: var(--model-bg, #101010); border: 1px solid var(--model-border, #DADADA); z-index: ${(companies.length - index)};">
@@ -212,9 +212,9 @@ class ScheduleNotificationManager {
                     </div>
                 </div>
             `;
-        });
+            });
 
-        modal.innerHTML = `
+            modal.innerHTML = `
             <!-- Pulse Effect -->
             <div class="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
                 <div class="rounded-full animate-pulse" style="width: 80vw; height: 80vw; background-color: rgba(37,99,235,0.1); filter: blur(80px);"></div>
@@ -244,498 +244,498 @@ class ScheduleNotificationManager {
             </button>
         `;
 
-        document.body.appendChild(modal);
+            document.body.appendChild(modal);
 
-        // Stacked Deck Logic
-        const cards = modal.querySelectorAll('.stacked-company-card');
-        const indicators = modal.querySelectorAll('#deckIndicators > div');
-        let currentIndex = 0;
+            // Stacked Deck Logic
+            const cards = modal.querySelectorAll('.stacked-company-card');
+            const indicators = modal.querySelectorAll('#deckIndicators > div');
+            let currentIndex = 0;
 
-        function updateDeck() {
-            cards.forEach((card, i) => {
-                const diff = i - currentIndex;
+            function updateDeck() {
+                cards.forEach((card, i) => {
+                    const diff = i - currentIndex;
 
-                if (diff === 0) {
-                    // Active front card
-                    card.style.transform = 'translateY(0) scale(1)';
-                    card.style.opacity = '1';
-                    card.style.zIndex = '10';
-                    card.style.pointerEvents = 'auto';
-                } else if (diff === 1) {
-                    // Second card behind
-                    card.style.transform = 'translateY(-20px) scale(0.92)';
-                    card.style.opacity = '0.9';
-                    card.style.zIndex = '9';
-                    card.style.pointerEvents = 'none';
-                } else if (diff === 2) {
-                    // Third card behind
-                    card.style.transform = 'translateY(-40px) scale(0.84)';
-                    card.style.opacity = '0.6';
-                    card.style.zIndex = '8';
-                    card.style.pointerEvents = 'none';
-                } else if (diff > 2) {
-                    // Hidden deeply behind
-                    card.style.transform = 'translateY(-50px) scale(0.8)';
-                    card.style.opacity = '0';
-                    card.style.zIndex = '1';
-                    card.style.pointerEvents = 'none';
-                } else {
-                    // Swiped away / Next card (Diff < 0)
-                    card.style.transform = 'translateY(100px) scale(0.8)';
-                    card.style.opacity = '0';
-                    card.style.zIndex = '1';
-                    card.style.pointerEvents = 'none';
-                }
-            });
-
-            // Update Indicators
-            indicators.forEach((dot, i) => {
-                if (i === currentIndex) {
-                    dot.style.backgroundColor = '#3B74FF';
-                    dot.style.width = '20px';
-                } else {
-                    dot.style.backgroundColor = '#40444B';
-                    dot.style.width = '8px';
-                }
-            });
-        }
-
-        // Add Click listener to cycle deck
-        cards.forEach(card => {
-            card.addEventListener('click', (e) => {
-                // If they click the Link, let it navigate. Otherwise advance card
-                if (e.target.tagName !== 'A') {
-                    if (currentIndex < cards.length - 1) {
-                        currentIndex++;
-                        updateDeck();
-                    } else if (currentIndex === cards.length - 1) {
-                        // Resets to beginning when clicking last card
-                        currentIndex = 0;
-                        updateDeck();
+                    if (diff === 0) {
+                        // Active front card
+                        card.style.transform = 'translateY(0) scale(1)';
+                        card.style.opacity = '1';
+                        card.style.zIndex = '10';
+                        card.style.pointerEvents = 'auto';
+                    } else if (diff === 1) {
+                        // Second card behind
+                        card.style.transform = 'translateY(-20px) scale(0.92)';
+                        card.style.opacity = '0.9';
+                        card.style.zIndex = '9';
+                        card.style.pointerEvents = 'none';
+                    } else if (diff === 2) {
+                        // Third card behind
+                        card.style.transform = 'translateY(-40px) scale(0.84)';
+                        card.style.opacity = '0.6';
+                        card.style.zIndex = '8';
+                        card.style.pointerEvents = 'none';
+                    } else if (diff > 2) {
+                        // Hidden deeply behind
+                        card.style.transform = 'translateY(-50px) scale(0.8)';
+                        card.style.opacity = '0';
+                        card.style.zIndex = '1';
+                        card.style.pointerEvents = 'none';
+                    } else {
+                        // Swiped away / Next card (Diff < 0)
+                        card.style.transform = 'translateY(100px) scale(0.8)';
+                        card.style.opacity = '0';
+                        card.style.zIndex = '1';
+                        card.style.pointerEvents = 'none';
                     }
-                }
+                });
+
+                // Update Indicators
+                indicators.forEach((dot, i) => {
+                    if (i === currentIndex) {
+                        dot.style.backgroundColor = '#3B74FF';
+                        dot.style.width = '20px';
+                    } else {
+                        dot.style.backgroundColor = '#40444B';
+                        dot.style.width = '8px';
+                    }
+                });
+            }
+
+            // Add Click listener to cycle deck
+            cards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    // If they click the Link, let it navigate. Otherwise advance card
+                    if (e.target.tagName !== 'A') {
+                        if (currentIndex < cards.length - 1) {
+                            currentIndex++;
+                            updateDeck();
+                        } else if (currentIndex === cards.length - 1) {
+                            // Resets to beginning when clicking last card
+                            currentIndex = 0;
+                            updateDeck();
+                        }
+                    }
+                });
             });
-        });
 
-        // Initialize positions instantly before animating in
-        cards.forEach(card => card.style.transition = 'none');
-        updateDeck();
-        // Restore transitions
-        setTimeout(() => {
-            cards.forEach(card => card.style.transition = 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)');
-        }, 50);
+            // Initialize positions instantly before animating in
+            cards.forEach(card => card.style.transition = 'none');
+            updateDeck();
+            // Restore transitions
+            setTimeout(() => {
+                cards.forEach(card => card.style.transition = 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)');
+            }, 50);
 
-        // Animate In using requestAnimationFrame to ensure the DOM is painted first
-        requestAnimationFrame(() => {
+            // Animate In using requestAnimationFrame to ensure the DOM is painted first
             requestAnimationFrame(() => {
-                modal.style.opacity = '1';
-                setTimeout(() => {
-                    document.getElementById('newCompanyModalHeader').style.transform = 'translateY(0)';
-                    document.getElementById('newCompanyModalHeader').style.opacity = '1';
-                }, 100);
-            });
-        });
-    }
-
-    setupNotifications() {
-        // console.log('🔧 Setting up notifications...');
-        
-        // Clear existing containers
-        this.notificationContainers = [];
-        
-        // Debug: Show ALL links on the page
-        const allLinks = document.querySelectorAll('a');
-        // console.log('🔍 Total links found on page:', allLinks.length);
-        
-        // Show all links that contain "schedule" in any form
-        const scheduleLinks = Array.from(allLinks).filter(link => 
-            link.href.includes('schedule') || 
-            link.textContent.toLowerCase().includes('schedule')
-        );
-        // console.log('🔍 Schedule-related links found:', scheduleLinks.length);
-        scheduleLinks.forEach((link, index) => {
-            // console.log(`  Link ${index}: href="${link.href}" text="${link.textContent.trim()}"`);
-        });
-        
-        // Find ALL schedule history links (both menu and bottom navigation)
-        const selectors = [
-            'a[href="schedule-history.html"]', // Direct match
-            '.tab-bar a[href*="schedule-history"]', // Bottom navigation specific
-            'a[href*="schedule-history"]', // Contains schedule-history
-            'a[href="./schedule-history.html"]', // Relative path
-            'a[href="../schedule-history.html"]', // Parent relative path
-            'a[href*="schedule"]' // Last resort: any schedule link
-        ];
-        
-        const allScheduleLinks = new Set(); // Use Set to avoid duplicates
-        
-        for (const selector of selectors) {
-            const links = document.querySelectorAll(selector);
-            // console.log(`🔍 Trying selector "${selector}": found ${links.length} links`);
-            
-            links.forEach(link => {
-                allScheduleLinks.add(link);
-            });
-        }
-        
-        // console.log(`🔍 Total unique schedule links found: ${allScheduleLinks.size}`);
-        
-        // Setup notification containers for all found links
-        let containerIndex = 0;
-        allScheduleLinks.forEach(link => {
-            const location = link.closest('.tab-bar') ? 'Bottom Navigation' : 
-                           link.closest('.sliding-menu') ? 'Menu' : 'Other';
-            
-            // console.log(`🔍 Setting up container ${containerIndex} for: ${location}`);
-            // console.log(`🔍 Link href: ${link.href}`);
-            // console.log(`🔍 Link text: ${link.textContent.trim()}`);
-            
-            // Wrap the SVG in a notification container
-            const svg = link.querySelector('svg');
-            // console.log(`🔍 SVG found: ${!!svg}`);
-            
-            if (svg && !svg.parentElement.classList.contains('nav-notification-container')) {
-                const container = document.createElement('div');
-                container.className = 'nav-notification-container';
-                container.setAttribute('data-location', location);
-                svg.parentNode.insertBefore(container, svg);
-                container.appendChild(svg);
-                this.notificationContainers.push(container);
-                // console.log(`✅ Created notification container for ${location}`);
-            } else if (svg && svg.parentElement.classList.contains('nav-notification-container')) {
-                const existingContainer = svg.parentElement;
-                existingContainer.setAttribute('data-location', location);
-                this.notificationContainers.push(existingContainer);
-                // console.log(`✅ Using existing notification container for ${location}`);
-            } else {
-                // console.log(`❌ No SVG found for ${location} link`);
-            }
-            
-            containerIndex++;
-        });
-        
-        // console.log(`🔔 Total notification containers setup: ${this.notificationContainers.length}`);
-        
-        // Initial notification update
-        // console.log('🚀 Running initial notification update...');
-        this.updateNotifications();
-    }
-
-    getOrderStatusCounts() {
-        const counts = {
-            pending: 0,
-            accepted: 0,
-            completed: 0
-        };
-
-        this.orders.forEach(order => {
-            const status = (order.status || '').toLowerCase();
-            if (counts.hasOwnProperty(status)) {
-                counts[status]++;
-            }
-        });
-
-        // console.log('📊 Order Status Counts:', {
-        //     totalOrders: this.orders.length,
-        //     pending: counts.pending,
-        //     accepted: counts.accepted,
-        //     completed: counts.completed,
-        //     orders: this.orders.map(o => ({ id: o.orderId, status: o.status }))
-        // });
-
-        return counts;
-    }
-
-    updateNotifications() {
-        // console.log('🔄 Starting notification update...');
-        // console.log('🔍 Current notification containers:', this.notificationContainers.length);
-        
-        if (this.notificationContainers.length === 0) {
-            // console.log('⚠️ No notification containers found, setting up...');
-            this.setupNotifications();
-            return;
-        }
-
-        // Remove existing notifications from all containers
-        this.notificationContainers.forEach((container, index) => {
-            const existingNotifications = container.querySelectorAll('.nav-notification-dot, .nav-notification-multiple');
-            // console.log(`🧹 Container ${index} (${container.getAttribute('data-location')}): Found ${existingNotifications.length} existing notifications to remove`);
-            existingNotifications.forEach(notification => notification.remove());
-        });
-        // console.log('🧹 Cleared existing notifications from all containers');
-
-        const counts = this.getOrderStatusCounts();
-        
-        // Determine which notifications to show
-        const notificationsToShow = [];
-        
-        // console.log('🎯 Determining notifications to show...');
-        // console.log('📋 Counts:', counts);
-        
-        if (counts.pending > 0) {
-            notificationsToShow.push('pending');
-            // console.log('✅ Added pending notification (Yellow dot)');
-        }
-        if (counts.accepted > 0) {
-            notificationsToShow.push('accepted');
-            // console.log('✅ Added accepted notification (Green dot)');
-        }
-        if (counts.completed > 0 && counts.pending === 0 && counts.accepted === 0) {
-            notificationsToShow.push('completed');
-            // console.log('✅ Added completed notification (Grey dot)');
-        }
-
-        // console.log('🎨 Final notifications to show:', notificationsToShow);
-
-        // Create notification elements for all containers
-        if (notificationsToShow.length === 0) {
-            // console.log('❌ No notifications to display');
-            // Reset tracking variables when there are no notifications
-            this.lastNotificationState = '';
-            this.soundPlayedForCurrentState = false;
-            return;
-        }
-
-        // Create a unique state string from notifications to show
-        const currentState = notificationsToShow.sort().join(',');
-
-        // Determine if we should play the bell sound based on your exact flow:
-        let shouldPlaySound = false;
-        
-        if (currentState !== this.lastNotificationState) {
-            // State has changed (Empty → Pending, Pending → Accepted, etc.)
-            shouldPlaySound = true;
-            // Reset sound tracking for the new state
-            this.soundPlayedForCurrentState = false;
-        } else if (currentState === this.lastNotificationState && !this.soundPlayedForCurrentState) {
-            // Same state but sound hasn't been played yet (initial state)
-            shouldPlaySound = true;
-        }
-        // If same state and sound has already been played (Periodic checks), no sound
-
-        // Update tracking variables
-        if (currentState !== this.lastNotificationState) {
-            this.lastNotificationState = currentState;
-            // soundPlayedForCurrentState already set to false above
-        }
-        
-        // Play sound if needed (the timestamp check is handled in playBellSound method)
-        if (shouldPlaySound) {
-            this.playBellSound();
-            this.sendSystemPushNotification(notificationsToShow);
-            this.soundPlayedForCurrentState = true;
-        }
-
-        // Add notifications to all containers
-        this.notificationContainers.forEach((container, index) => {
-            const location = container.getAttribute('data-location');
-            // console.log(`🎨 Adding notifications to container ${index} (${location})`);
-            
-            if (notificationsToShow.length === 1) {
-                const dot = document.createElement('div');
-                dot.className = `nav-notification-dot ${notificationsToShow[0]} new`;
-                container.appendChild(dot);
-                // console.log(`🟡 Created single ${notificationsToShow[0]} notification for ${location}`);
-            } else {
-                const multipleContainer = document.createElement('div');
-                multipleContainer.className = 'nav-notification-multiple';
-                
-                notificationsToShow.forEach(status => {
-                    const dot = document.createElement('div');
-                    dot.className = `nav-notification-dot ${status} new`;
-                    multipleContainer.appendChild(dot);
-                    // console.log(`🟢 Created ${status} notification in multiple container for ${location}`);
+                requestAnimationFrame(() => {
+                    modal.style.opacity = '1';
+                    setTimeout(() => {
+                        document.getElementById('newCompanyModalHeader').style.transform = 'translateY(0)';
+                        document.getElementById('newCompanyModalHeader').style.opacity = '1';
+                    }, 100);
                 });
-                container.appendChild(multipleContainer);
-                // console.log(`🟢 Created multiple notifications for ${location}`);
-            }
-        });
-        
-        // console.log('🔍 Final DOM verification:');
-        this.notificationContainers.forEach((container, index) => {
-            const location = container.getAttribute('data-location');
-            // console.log(`🔍 Container ${index} (${location}):`);
-            // console.log(`  - Exists: ${!!container}`);
-            // console.log(`  - Children: ${container.children.length}`);
-            // console.log(`  - Has notifications: ${container.querySelectorAll('.nav-notification-dot, .nav-notification-multiple').length > 0}`);
-        });
-
-        // console.log('🔔 Notifications updated:', {
-        //     counts,
-        //     notificationsToShow,
-        //     containersUpdated: this.notificationContainers.length,
-        //     expectedBehavior: this.getExpectedBehavior(counts)
-        // });
-    }
-
-    getExpectedBehavior(counts) {
-        if (counts.pending > 0 && counts.accepted > 0) {
-            return 'Both yellow and green dots should appear';
-        } else if (counts.pending > 0) {
-            return 'Yellow dot should appear';
-        } else if (counts.accepted > 0) {
-            return 'Green dot should appear';
-        } else if (counts.completed > 0 && counts.pending === 0 && counts.accepted === 0) {
-            return 'Grey dot should appear';
-        } else {
-            return 'No notification dot should appear';
-        }
-    }
-
-    // Call System Push Notifications
-    sendSystemPushNotification(notificationsToShow) {
-        // Only send if the user has enabled it in settings
-        const isPushEnabled = localStorage.getItem('phluowisePushEnabled');
-        if (isPushEnabled !== 'true') {
-            return;
+            });
         }
 
-        // Make sure the browser supports the Notification API
-        if (!('Notification' in window)) {
-            return;
-        }
+        setupNotifications() {
+            // console.log('🔧 Setting up notifications...');
 
-        // Only send a push notification if permissions are granted
-        if (Notification.permission === 'granted') {
-            let title = 'Order Update';
-            let body = 'One of your orders has a new status update.';
+            // Clear existing containers
+            this.notificationContainers = [];
 
-            // Customize the message slightly based on status
-            if (notificationsToShow.includes('new_company')) {
-                title = 'New Company Added!';
-                body = 'A new company is now available. Check them out!';
-            } else if (notificationsToShow.includes('accepted')) {
-                title = 'Order Accepted!';
-                body = 'Your order has been accepted. Click here to view the schedule history.';
-            } else if (notificationsToShow.includes('pending')) {
-                title = 'Order Pending';
-                body = 'Your order is currently pending and waiting for approval.';
-            } else if (notificationsToShow.includes('completed')) {
-                title = 'Order Completed!';
-                body = 'Your recent order was completed successfully.';
+            // Debug: Show ALL links on the page
+            const allLinks = document.querySelectorAll('a');
+            // console.log('🔍 Total links found on page:', allLinks.length);
+
+            // Show all links that contain "schedule" in any form
+            const scheduleLinks = Array.from(allLinks).filter(link =>
+                link.href.includes('schedule') ||
+                link.textContent.toLowerCase().includes('schedule')
+            );
+            // console.log('🔍 Schedule-related links found:', scheduleLinks.length);
+            scheduleLinks.forEach((link, index) => {
+                // console.log(`  Link ${index}: href="${link.href}" text="${link.textContent.trim()}"`);
+            });
+
+            // Find ALL schedule history links (both menu and bottom navigation)
+            const selectors = [
+                'a[href="schedule-history.html"]', // Direct match
+                '.tab-bar a[href*="schedule-history"]', // Bottom navigation specific
+                'a[href*="schedule-history"]', // Contains schedule-history
+                'a[href="./schedule-history.html"]', // Relative path
+                'a[href="../schedule-history.html"]', // Parent relative path
+                'a[href*="schedule"]' // Last resort: any schedule link
+            ];
+
+            const allScheduleLinks = new Set(); // Use Set to avoid duplicates
+
+            for (const selector of selectors) {
+                const links = document.querySelectorAll(selector);
+                // console.log(`🔍 Trying selector "${selector}": found ${links.length} links`);
+
+                links.forEach(link => {
+                    allScheduleLinks.add(link);
+                });
             }
 
-            const options = {
-                body: body,
-                icon: 'images/icons/icon-192x192.png',
-                vibrate: [200, 100, 200],
-                tag: 'phluowise-order-update',
-                renotify: true,
-                requireInteraction: false
+            // console.log(`🔍 Total unique schedule links found: ${allScheduleLinks.size}`);
+
+            // Setup notification containers for all found links
+            let containerIndex = 0;
+            allScheduleLinks.forEach(link => {
+                const location = link.closest('.tab-bar') ? 'Bottom Navigation' :
+                    link.closest('.sliding-menu') ? 'Menu' : 'Other';
+
+                // console.log(`🔍 Setting up container ${containerIndex} for: ${location}`);
+                // console.log(`🔍 Link href: ${link.href}`);
+                // console.log(`🔍 Link text: ${link.textContent.trim()}`);
+
+                // Wrap the SVG in a notification container
+                const svg = link.querySelector('svg');
+                // console.log(`🔍 SVG found: ${!!svg}`);
+
+                if (svg && !svg.parentElement.classList.contains('nav-notification-container')) {
+                    const container = document.createElement('div');
+                    container.className = 'nav-notification-container';
+                    container.setAttribute('data-location', location);
+                    svg.parentNode.insertBefore(container, svg);
+                    container.appendChild(svg);
+                    this.notificationContainers.push(container);
+                    // console.log(`✅ Created notification container for ${location}`);
+                } else if (svg && svg.parentElement.classList.contains('nav-notification-container')) {
+                    const existingContainer = svg.parentElement;
+                    existingContainer.setAttribute('data-location', location);
+                    this.notificationContainers.push(existingContainer);
+                    // console.log(`✅ Using existing notification container for ${location}`);
+                } else {
+                    // console.log(`❌ No SVG found for ${location} link`);
+                }
+
+                containerIndex++;
+            });
+
+            // console.log(`🔔 Total notification containers setup: ${this.notificationContainers.length}`);
+
+            // Initial notification update
+            // console.log('🚀 Running initial notification update...');
+            this.updateNotifications();
+        }
+
+        getOrderStatusCounts() {
+            const counts = {
+                pending: 0,
+                accepted: 0,
+                completed: 0
             };
-            
-            // 1. Android Studio WebView Native Integration
-            if (typeof window.Android !== 'undefined' && typeof window.Android.showNotification === 'function') {
-                try {
-                    window.Android.showNotification(title, body);
-                    return; // Prevent standard browser API from firing since we just sent it natively
-                } catch(e) {}
-            }
 
-            // 2. Standard Web & PWA Notification Integration
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.ready.then(function(registration) {
-                    registration.showNotification(title, options);
-                }).catch(function(err) {
-                    // Fallback to normal Notification
-                    new Notification(title, options);
-                });
-            } else {
-                new Notification(title, options);
-            }
-        }
-    }
-
-    // Method to manually trigger notification update (for testing)
-    forceUpdate() {
-        this.loadOrders();
-        this.updateNotifications();
-    }
-
-    // Method to add test orders (for development)
-    addTestOrder(status = 'pending') {
-        const testOrder = {
-            orderId: 'TEST' + Date.now(),
-            company: 'Test Company',
-            location: 'Test Location',
-            payment: 'Test Payment',
-            time: new Date().toLocaleTimeString(),
-            date: new Date().toLocaleDateString(),
-            price: 'GH₵25.00',
-            quantity: 1,
-            subtotal: 20.00,
-            serviceFee: 5.00,
-            total: 25.00,
-            status: status,
-            statusText: status.charAt(0).toUpperCase() + status.slice(1),
-            statusColor: status === 'pending' ? '#F2A78C' : status === 'accepted' ? '#2C9043' : '#2CAA48',
-            product: 'Test Product',
-            recipient: { name: 'Test User', phone: '0000000000', email: 'test@example.com' },
-            timestamp: new Date().toISOString(),
-            deliveryAddress: 'Test Delivery Address',
-            deliveryLocation: 'Test Delivery Location',
-            deliveryTime: 'Test Delivery Time',
-            deliveryDate: 'Test Delivery Date'
-        };
-
-        this.orders.push(testOrder);
-        localStorage.setItem('phluowiseOrders', JSON.stringify(this.orders));
-        this.updateNotifications();
-    }
-}
-
-// Initialize the notification system
-let notificationManager;
-
-// Global function to access the notification manager
-window.getNotificationManager = function() {
-    if (!notificationManager) {
-        notificationManager = new ScheduleNotificationManager();
-    }
-    return notificationManager;
-};
-
-// UI Toggle logic
-window.togglePushNotifications = function(checkbox) {
-    if (checkbox.checked) {
-        // ALWAYS enable local push preference so in-app notifications (dots/sounds) activate
-        localStorage.setItem('phluowisePushEnabled', 'true');
-        
-        if ('Notification' in window) {
-            Notification.requestPermission().then(function(permission) {
-                if (permission !== 'granted') {
-                    // Browser permission denied, but we keep in-app notifications enabled
-                    console.log('Push notifications permission was denied by the OS. In-app notifications will still work.');
+            this.orders.forEach(order => {
+                const status = (order.status || '').toLowerCase();
+                if (counts.hasOwnProperty(status)) {
+                    counts[status]++;
                 }
             });
+
+            // console.log('📊 Order Status Counts:', {
+            //     totalOrders: this.orders.length,
+            //     pending: counts.pending,
+            //     accepted: counts.accepted,
+            //     completed: counts.completed,
+            //     orders: this.orders.map(o => ({ id: o.orderId, status: o.status }))
+            // });
+
+            return counts;
         }
-        
-        // Android WebView generic javascript interface fallback if one exists
-        if (typeof window.Android !== 'undefined' && typeof window.Android.requestNotificationPermission === 'function') {
-            try {
-                window.Android.requestNotificationPermission();
-            } catch(e) {}
+
+        updateNotifications() {
+            // console.log('🔄 Starting notification update...');
+            // console.log('🔍 Current notification containers:', this.notificationContainers.length);
+
+            if (this.notificationContainers.length === 0) {
+                // console.log('⚠️ No notification containers found, setting up...');
+                this.setupNotifications();
+                return;
+            }
+
+            // Remove existing notifications from all containers
+            this.notificationContainers.forEach((container, index) => {
+                const existingNotifications = container.querySelectorAll('.nav-notification-dot, .nav-notification-multiple');
+                // console.log(`🧹 Container ${index} (${container.getAttribute('data-location')}): Found ${existingNotifications.length} existing notifications to remove`);
+                existingNotifications.forEach(notification => notification.remove());
+            });
+            // console.log('🧹 Cleared existing notifications from all containers');
+
+            const counts = this.getOrderStatusCounts();
+
+            // Determine which notifications to show
+            const notificationsToShow = [];
+
+            // console.log('🎯 Determining notifications to show...');
+            // console.log('📋 Counts:', counts);
+
+            if (counts.pending > 0) {
+                notificationsToShow.push('pending');
+                // console.log('✅ Added pending notification (Yellow dot)');
+            }
+            if (counts.accepted > 0) {
+                notificationsToShow.push('accepted');
+                // console.log('✅ Added accepted notification (Green dot)');
+            }
+            if (counts.completed > 0 && counts.pending === 0 && counts.accepted === 0) {
+                notificationsToShow.push('completed');
+                // console.log('✅ Added completed notification (Grey dot)');
+            }
+
+            // console.log('🎨 Final notifications to show:', notificationsToShow);
+
+            // Create notification elements for all containers
+            if (notificationsToShow.length === 0) {
+                // console.log('❌ No notifications to display');
+                // Reset tracking variables when there are no notifications
+                this.lastNotificationState = '';
+                this.soundPlayedForCurrentState = false;
+                return;
+            }
+
+            // Create a unique state string from notifications to show
+            const currentState = notificationsToShow.sort().join(',');
+
+            // Determine if we should play the bell sound based on your exact flow:
+            let shouldPlaySound = false;
+
+            if (currentState !== this.lastNotificationState) {
+                // State has changed (Empty → Pending, Pending → Accepted, etc.)
+                shouldPlaySound = true;
+                // Reset sound tracking for the new state
+                this.soundPlayedForCurrentState = false;
+            } else if (currentState === this.lastNotificationState && !this.soundPlayedForCurrentState) {
+                // Same state but sound hasn't been played yet (initial state)
+                shouldPlaySound = true;
+            }
+            // If same state and sound has already been played (Periodic checks), no sound
+
+            // Update tracking variables
+            if (currentState !== this.lastNotificationState) {
+                this.lastNotificationState = currentState;
+                // soundPlayedForCurrentState already set to false above
+            }
+
+            // Play sound if needed (the timestamp check is handled in playBellSound method)
+            if (shouldPlaySound) {
+                this.playBellSound();
+                this.sendSystemPushNotification(notificationsToShow);
+                this.soundPlayedForCurrentState = true;
+            }
+
+            // Add notifications to all containers
+            this.notificationContainers.forEach((container, index) => {
+                const location = container.getAttribute('data-location');
+                // console.log(`🎨 Adding notifications to container ${index} (${location})`);
+
+                if (notificationsToShow.length === 1) {
+                    const dot = document.createElement('div');
+                    dot.className = `nav-notification-dot ${notificationsToShow[0]} new`;
+                    container.appendChild(dot);
+                    // console.log(`🟡 Created single ${notificationsToShow[0]} notification for ${location}`);
+                } else {
+                    const multipleContainer = document.createElement('div');
+                    multipleContainer.className = 'nav-notification-multiple';
+
+                    notificationsToShow.forEach(status => {
+                        const dot = document.createElement('div');
+                        dot.className = `nav-notification-dot ${status} new`;
+                        multipleContainer.appendChild(dot);
+                        // console.log(`🟢 Created ${status} notification in multiple container for ${location}`);
+                    });
+                    container.appendChild(multipleContainer);
+                    // console.log(`🟢 Created multiple notifications for ${location}`);
+                }
+            });
+
+            // console.log('🔍 Final DOM verification:');
+            this.notificationContainers.forEach((container, index) => {
+                const location = container.getAttribute('data-location');
+                // console.log(`🔍 Container ${index} (${location}):`);
+                // console.log(`  - Exists: ${!!container}`);
+                // console.log(`  - Children: ${container.children.length}`);
+                // console.log(`  - Has notifications: ${container.querySelectorAll('.nav-notification-dot, .nav-notification-multiple').length > 0}`);
+            });
+
+            // console.log('🔔 Notifications updated:', {
+            //     counts,
+            //     notificationsToShow,
+            //     containersUpdated: this.notificationContainers.length,
+            //     expectedBehavior: this.getExpectedBehavior(counts)
+            // });
         }
-    } else {
-        localStorage.setItem('phluowisePushEnabled', 'false');
+
+        getExpectedBehavior(counts) {
+            if (counts.pending > 0 && counts.accepted > 0) {
+                return 'Both yellow and green dots should appear';
+            } else if (counts.pending > 0) {
+                return 'Yellow dot should appear';
+            } else if (counts.accepted > 0) {
+                return 'Green dot should appear';
+            } else if (counts.completed > 0 && counts.pending === 0 && counts.accepted === 0) {
+                return 'Grey dot should appear';
+            } else {
+                return 'No notification dot should appear';
+            }
+        }
+
+        // Call System Push Notifications
+        sendSystemPushNotification(notificationsToShow) {
+            // Only send if the user has enabled it in settings
+            const isPushEnabled = localStorage.getItem('phluowisePushEnabled');
+            if (isPushEnabled !== 'true') {
+                return;
+            }
+
+            // Make sure the browser supports the Notification API
+            if (!('Notification' in window)) {
+                return;
+            }
+
+            // Only send a push notification if permissions are granted
+            if (Notification.permission === 'granted') {
+                let title = 'Order Update';
+                let body = 'One of your orders has a new status update.';
+
+                // Customize the message slightly based on status
+                if (notificationsToShow.includes('new_company')) {
+                    title = 'New Company Added!';
+                    body = 'A new company is now available. Check them out!';
+                } else if (notificationsToShow.includes('accepted')) {
+                    title = 'Order Accepted!';
+                    body = 'Your order has been accepted. Click here to view the schedule history.';
+                } else if (notificationsToShow.includes('pending')) {
+                    title = 'Order Pending';
+                    body = 'Your order is currently pending and waiting for approval.';
+                } else if (notificationsToShow.includes('completed')) {
+                    title = 'Order Completed!';
+                    body = 'Your recent order was completed successfully.';
+                }
+
+                const options = {
+                    body: body,
+                    icon: 'images/icons/icon-192x192.png',
+                    vibrate: [200, 100, 200],
+                    tag: 'phluowise-order-update',
+                    renotify: true,
+                    requireInteraction: false
+                };
+
+                // 1. Android Studio WebView Native Integration
+                if (typeof window.Android !== 'undefined' && typeof window.Android.showNotification === 'function') {
+                    try {
+                        window.Android.showNotification(title, body);
+                        return; // Prevent standard browser API from firing since we just sent it natively
+                    } catch (e) { }
+                }
+
+                // 2. Standard Web & PWA Notification Integration
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.ready.then(function (registration) {
+                        registration.showNotification(title, options);
+                    }).catch(function (err) {
+                        // Fallback to normal Notification
+                        new Notification(title, options);
+                    });
+                } else {
+                    new Notification(title, options);
+                }
+            }
+        }
+
+        // Method to manually trigger notification update (for testing)
+        forceUpdate() {
+            this.loadOrders();
+            this.updateNotifications();
+        }
+
+        // Method to add test orders (for development)
+        addTestOrder(status = 'pending') {
+            const testOrder = {
+                orderId: 'TEST' + Date.now(),
+                company: 'Test Company',
+                location: 'Test Location',
+                payment: 'Test Payment',
+                time: new Date().toLocaleTimeString(),
+                date: new Date().toLocaleDateString(),
+                price: 'GH₵25.00',
+                quantity: 1,
+                subtotal: 20.00,
+                serviceFee: 5.00,
+                total: 25.00,
+                status: status,
+                statusText: status.charAt(0).toUpperCase() + status.slice(1),
+                statusColor: status === 'pending' ? '#F2A78C' : status === 'accepted' ? '#2C9043' : '#2CAA48',
+                product: 'Test Product',
+                recipient: { name: 'Test User', phone: '0000000000', email: 'test@example.com' },
+                timestamp: new Date().toISOString(),
+                deliveryAddress: 'Test Delivery Address',
+                deliveryLocation: 'Test Delivery Location',
+                deliveryTime: 'Test Delivery Time',
+                deliveryDate: 'Test Delivery Date'
+            };
+
+            this.orders.push(testOrder);
+            localStorage.setItem('phluowiseOrders', JSON.stringify(this.orders));
+            this.updateNotifications();
+        }
     }
-    
-    window.updatePushNotificationToggleUI();
-};
 
-window.updatePushNotificationToggleUI = function() {
-    const toggles = document.querySelectorAll('input[type="checkbox"][onchange*="togglePushNotifications"]');
-    const isEnabled = localStorage.getItem('phluowisePushEnabled') === 'true';
-    toggles.forEach(toggle => {
-        toggle.checked = isEnabled;
-    });
-};
+    // Initialize the notification system
+    let notificationManager;
 
-function getSettingsModalHTML() {
-    const isEnabled = localStorage.getItem('phluowisePushEnabled') === 'true';
-    const isChecked = isEnabled ? 'checked' : '';
-    return `
-    <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    // Global function to access the notification manager
+    window.getNotificationManager = function () {
+        if (!notificationManager) {
+            notificationManager = new ScheduleNotificationManager();
+        }
+        return notificationManager;
+    };
+
+    // UI Toggle logic
+    window.togglePushNotifications = function (checkbox) {
+        if (checkbox.checked) {
+            // ALWAYS enable local push preference so in-app notifications (dots/sounds) activate
+            localStorage.setItem('phluowisePushEnabled', 'true');
+
+            if ('Notification' in window) {
+                Notification.requestPermission().then(function (permission) {
+                    if (permission !== 'granted') {
+                        // Browser permission denied, but we keep in-app notifications enabled
+                        console.log('Push notifications permission was denied by the OS. In-app notifications will still work.');
+                    }
+                });
+            }
+
+            // Android WebView generic javascript interface fallback if one exists
+            if (typeof window.Android !== 'undefined' && typeof window.Android.requestNotificationPermission === 'function') {
+                try {
+                    window.Android.requestNotificationPermission();
+                } catch (e) { }
+            }
+        } else {
+            localStorage.setItem('phluowisePushEnabled', 'false');
+        }
+
+        window.updatePushNotificationToggleUI();
+    };
+
+    window.updatePushNotificationToggleUI = function () {
+        const toggles = document.querySelectorAll('input[type="checkbox"][onchange*="togglePushNotifications"]');
+        const isEnabled = localStorage.getItem('phluowisePushEnabled') === 'true';
+        toggles.forEach(toggle => {
+            toggle.checked = isEnabled;
+        });
+    };
+
+    function getSettingsModalHTML() {
+        const isEnabled = localStorage.getItem('phluowisePushEnabled') === 'true';
+        const isChecked = isEnabled ? 'checked' : '';
+        return `
+    <div id="settingsModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" style="display: none; z-index: 999999 !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
         <div class="w-full h-full flex flex-col items-center justify-center p-5">
             <!-- Back Button -->
             <div class="w-full max-w-[400px] mb-4">
@@ -833,51 +833,51 @@ function getSettingsModalHTML() {
         </div>
     </div>
     `;
-}
-
-window.openSettingsModal = function() {
-    let modal = document.getElementById('settingsModal');
-
-    if (!modal) {
-        // Create modal if it doesn't exist
-        const modalContainer = document.createElement('div');
-        modalContainer.innerHTML = getSettingsModalHTML();
-        document.body.appendChild(modalContainer.firstElementChild);
-        modal = document.getElementById('settingsModal');
-    } else {
-        // Refresh HTML content to reflect current state
-        modal.outerHTML = getSettingsModalHTML();
-        modal = document.getElementById('settingsModal');
     }
 
-    modal.style.display = 'flex';
-};
+    window.openSettingsModal = function () {
+        let modal = document.getElementById('settingsModal');
 
-window.closeSettingsModal = function() {
-    const modal = document.getElementById('settingsModal');
-    if (modal) {
-        modal.style.display = 'none';
+        if (!modal) {
+            // Create modal if it doesn't exist
+            const modalContainer = document.createElement('div');
+            modalContainer.innerHTML = getSettingsModalHTML();
+            document.body.appendChild(modalContainer.firstElementChild);
+            modal = document.getElementById('settingsModal');
+        } else {
+            // Refresh HTML content to reflect current state
+            modal.outerHTML = getSettingsModalHTML();
+            modal = document.getElementById('settingsModal');
+        }
+
+        modal.style.display = 'flex';
+    };
+
+    window.closeSettingsModal = function () {
+        const modal = document.getElementById('settingsModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    // Auto-initialize when script loads - but only if no manager exists
+    if (typeof window !== 'undefined' && typeof window.ScheduleNotificationManager === 'undefined') {
+        notificationManager = new ScheduleNotificationManager();
+        // Set the global reference to prevent re-creation
+        window.ScheduleNotificationManager = ScheduleNotificationManager;
+        window.notificationManagerInstance = notificationManager;
+    } else if (window.notificationManagerInstance) {
+        // Use existing instance if available
+        notificationManager = window.notificationManagerInstance;
     }
-};
-
-// Auto-initialize when script loads - but only if no manager exists
-if (typeof window !== 'undefined' && typeof window.ScheduleNotificationManager === 'undefined') {
-    notificationManager = new ScheduleNotificationManager();
-    // Set the global reference to prevent re-creation
-    window.ScheduleNotificationManager = ScheduleNotificationManager;
-    window.notificationManagerInstance = notificationManager;
-} else if (window.notificationManagerInstance) {
-    // Use existing instance if available
-    notificationManager = window.notificationManagerInstance;
-}
 
 
-// Update UI toggle on load
-if (typeof document !== 'undefined') {
-    document.addEventListener('DOMContentLoaded', () => {
-        window.updatePushNotificationToggleUI();
-    });
-}
+    // Update UI toggle on load
+    if (typeof document !== 'undefined') {
+        document.addEventListener('DOMContentLoaded', () => {
+            window.updatePushNotificationToggleUI();
+        });
+    }
 
-// Close the guard block
+    // Close the guard block
 }

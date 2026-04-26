@@ -131,7 +131,7 @@
         }
 
         body.gray-theme .sliding-menu {
-            box-shadow: -10px 0 30px rgba(0,0,0,0.2) !important;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2) !important;
         }
 
         body.gray-theme .sliding-menu span,
@@ -457,10 +457,23 @@
 
         /* Header Bar: Deep Liquid Glass with Water Effect */
         @keyframes headerWaterShimmer {
-            0%   { transform: translateX(-200%) skewX(-15deg); opacity: 0; }
-            20%  { opacity: 0.45; }
-            80%  { opacity: 0.25; }
-            100% { transform: translateX(500%) skewX(-15deg); opacity: 0; }
+            0% {
+                transform: translateX(-200%) skewX(-15deg);
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 0.45;
+            }
+
+            80% {
+                opacity: 0.25;
+            }
+
+            100% {
+                transform: translateX(500%) skewX(-15deg);
+                opacity: 0;
+            }
         }
 
         body.liquid-glass-theme .header-bar {
@@ -487,21 +500,23 @@
         body.liquid-glass-theme .header-bar::after {
             content: '';
             position: absolute;
-            top: 0; left: 0;
-            width: 80px; height: 100%;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 100%;
             pointer-events: none;
             background: linear-gradient(90deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0.3) 40%,
-                rgba(255, 255, 255, 0.55) 50%,
-                rgba(255, 255, 255, 0.3) 60%,
-                transparent 100%);
+                    transparent 0%,
+                    rgba(255, 255, 255, 0.3) 40%,
+                    rgba(255, 255, 255, 0.55) 50%,
+                    rgba(255, 255, 255, 0.3) 60%,
+                    transparent 100%);
             animation: headerWaterShimmer 5s ease-in-out infinite;
             animation-delay: 0.5s;
             z-index: 0;
         }
 
-        body.liquid-glass-theme .header-bar > * {
+        body.liquid-glass-theme .header-bar>* {
             position: relative;
             z-index: 1;
         }
@@ -549,20 +564,45 @@
 
         /* Water shimmer sweep animation */
         @keyframes navWaterShimmer {
-            0% { transform: translateX(-150%) skewX(-20deg); opacity: 0; }
-            30% { opacity: 0.5; }
-            70% { opacity: 0.3; }
-            100% { transform: translateX(400%) skewX(-20deg); opacity: 0; }
+            0% {
+                transform: translateX(-150%) skewX(-20deg);
+                opacity: 0;
+            }
+
+            30% {
+                opacity: 0.5;
+            }
+
+            70% {
+                opacity: 0.3;
+            }
+
+            100% {
+                transform: translateX(400%) skewX(-20deg);
+                opacity: 0;
+            }
         }
 
         @keyframes navRipplePulse {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.02); }
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: scale(1.02);
+            }
         }
 
         body.liquid-glass-theme .tab-water-sheen {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             pointer-events: none;
             z-index: 0;
             overflow: hidden;
@@ -571,14 +611,16 @@
         body.liquid-glass-theme .tab-water-sheen::before {
             content: '';
             position: absolute;
-            top: 0; left: 0;
-            width: 60px; height: 100%;
+            top: 0;
+            left: 0;
+            width: 60px;
+            height: 100%;
             background: linear-gradient(90deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0.35) 40%,
-                rgba(255, 255, 255, 0.6) 50%,
-                rgba(255, 255, 255, 0.35) 60%,
-                transparent 100%);
+                    transparent 0%,
+                    rgba(255, 255, 255, 0.35) 40%,
+                    rgba(255, 255, 255, 0.6) 50%,
+                    rgba(255, 255, 255, 0.35) 60%,
+                    transparent 100%);
             animation: navWaterShimmer 4.5s ease-in-out infinite;
             animation-delay: 1.5s;
         }
@@ -586,12 +628,14 @@
         body.liquid-glass-theme .tab-water-sheen::after {
             content: '';
             position: absolute;
-            top: 0; left: 0;
-            width: 30px; height: 100%;
+            top: 0;
+            left: 0;
+            width: 30px;
+            height: 100%;
             background: linear-gradient(90deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0.2) 50%,
-                transparent 100%);
+                    transparent 0%,
+                    rgba(255, 255, 255, 0.2) 50%,
+                    transparent 100%);
             animation: navWaterShimmer 6s ease-in-out infinite;
             animation-delay: 3s;
         }
@@ -602,7 +646,7 @@
         }
 
         body.liquid-glass-theme .tab-bar a svg {
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
         }
 
         body.liquid-glass-theme .tab-bar a span {
@@ -612,6 +656,7 @@
         body.liquid-glass-theme .tab-bar a span.text-\[\#3B74FF\] {
             color: #1570EF !important;
         }
+
         body.liquid-glass-theme .filter-button {
             background: rgba(255, 255, 255, 0.2) !important;
             border: 1px solid rgba(255, 255, 255, 0.4) !important;
@@ -2494,8 +2539,7 @@
             // Create modal overlay following the existing pattern
             const modalOverlay = document.createElement('div');
             modalOverlay.id = 'deleteAccountModal';
-            modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
-            modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
+            modalOverlay.style.cssText = 'position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 2.25rem; z-index: 999999 !important; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
 
             // Create modal content following existing modal pattern
             const modalContent = document.createElement('div');
@@ -2590,8 +2634,7 @@
             // Create success modal overlay
             const modalOverlay = document.createElement('div');
             modalOverlay.id = 'deleteSuccessModal';
-            modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-9';
-            modalOverlay.style.cssText = 'display: flex; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
+            modalOverlay.style.cssText = 'position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 2.25rem; z-index: 999999 !important; backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.5);';
 
             // Create modal content
             const modalContent = document.createElement('div');
