@@ -2563,6 +2563,22 @@
                 font-size: 15px;
             }
         }
+        /* Glass Tag for Branch/Admin */
+        .glass-tag {
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #FFFFFF;
+        }
+
+        body.light-theme .glass-tag,
+        body.liquid-glass-theme .glass-tag {
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(15, 23, 42, 0.15);
+            color: #1D1D1F !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
@@ -2646,6 +2662,7 @@
                     <h1 id="companyName" class="text-white text-2xl font-bold hidden">
                         <span id="companyNameText"></span>
                         <span id="verifiedBadge" class="material-symbols-outlined">verified</span>
+                        <span id="branchTypeTag" class="glass-tag px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-sm ml-2 hidden" style="vertical-align: middle;"></span>
                     </h1>
 
                     <!-- Loading spinner for location -->
@@ -8450,16 +8467,26 @@
                         // Update verification badge with tier-based styling
                         const verifiedBadge = document.getElementById('verifiedBadge');
                         if (verifiedBadge) {
-                            // Get verification tier from branch data
-                            const verificationTier = branchData.verification_tier || 2; // Default to tier2
+                            const verificationTier = branchData.verification_tier || 2;
                             const iconClass = getVerifiedIconClass(verificationTier);
+                            verifiedBadge.className = `material-symbols-outlined ${iconClass} text-lg sm:text-xl ml-1`;
+                        }
 
-                            // Remove all existing verified classes
-                            verifiedBadge.classList.remove('verified-checkmark', 'verified-checkmark-tier2', 'verified-checkmark-tier3');
-                            // Add the appropriate tier class
-                            verifiedBadge.classList.add(iconClass);
-
-                        } else {
+                        // 4. Update branch type tag (Admin HQ / Branch)
+                        const branchTypeTag = document.getElementById('branchTypeTag');
+                        console.log('[DEBUG] branchData in updateBranchDataInHTML:', branchData);
+                        if (branchTypeTag) {
+                            if (branchData.branch_type) {
+                                branchTypeTag.textContent = (branchData.branch_type.toLowerCase() === 'hq' || branchData.branch_type.toLowerCase() === 'admin') ? 'Admin HQ' : 'Branch';
+                                branchTypeTag.classList.remove('hidden');
+                                branchTypeTag.style.display = 'inline-block';
+                            } else {
+                                // Default to Branch if we have branch data but no specific type?
+                                // Let's try showing 'Branch' by default to see if it works
+                                branchTypeTag.textContent = 'Branch';
+                                branchTypeTag.classList.remove('hidden');
+                                branchTypeTag.style.display = 'inline-block';
+                            }
                         }
 
                         if (locationElement && branchData.location) {

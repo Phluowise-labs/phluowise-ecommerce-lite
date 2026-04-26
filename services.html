@@ -320,6 +320,23 @@
             z-index: 1;
         }
 
+        /* Glass Tag for Branch/Admin */
+        .glass-tag {
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #FFFFFF;
+        }
+
+        body.light-theme .glass-tag,
+        body.liquid-glass-theme .glass-tag {
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(15, 23, 42, 0.15);
+            color: #1D1D1F !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
         body.liquid-glass-theme .menu-toggle-button,
         body.liquid-glass-theme .search-container,
         body.liquid-glass-theme .theme-modal-back-btn {
@@ -3977,7 +3994,7 @@
             purchase_recipient_type: 'you' // Default to 'you'
         };
         let userRating = 0;
-        let selectedCompany = '';
+        let selectedBranchId = '';
         let recipientType = 'you';
         const SERVICE_FEE_PER_ITEM = 0.2; // GHS 0.2 per bag/pack/bottle
         let savedRecipients = [];
@@ -4188,8 +4205,8 @@
 
                         // Initialize serviceProducts object for each company
                         services.forEach(service => {
-                            if (!serviceProducts[service.name]) {
-                                serviceProducts[service.name] = [];
+                            if (!serviceProducts[service.branch_id]) {
+                                serviceProducts[service.branch_id] = [];
                             }
                         });
 
@@ -4239,8 +4256,8 @@
                     // Re-initialize serviceProducts
                     serviceProducts = {};
                     services.forEach(service => {
-                        if (!serviceProducts[service.name]) {
-                            serviceProducts[service.name] = [];
+                        if (!serviceProducts[service.branch_id]) {
+                            serviceProducts[service.branch_id] = [];
                         }
                     });
 
@@ -4317,8 +4334,8 @@
 
                 // Initialize serviceProducts object for each company
                 services.forEach(service => {
-                    if (!serviceProducts[service.name]) {
-                        serviceProducts[service.name] = [];
+                    if (!serviceProducts[service.branch_id]) {
+                        serviceProducts[service.branch_id] = [];
                     }
                 });
 
@@ -4360,8 +4377,8 @@
 
                 // Initialize serviceProducts object for each company
                 services.forEach(service => {
-                    if (!serviceProducts[service.name]) {
-                        serviceProducts[service.name] = [];
+                    if (!serviceProducts[service.branch_id]) {
+                        serviceProducts[service.branch_id] = [];
                     }
                 });
 
@@ -4488,7 +4505,7 @@
             const productsHTML = (service.products || []).map(product => `
                 <div class="flex flex-col items-center gap-2 flex-shrink-0" style="scroll-snap-align: start;">
                     <div class="product-item bg-[#292B2F] rounded-[12px] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl" style="height: clamp(80px, 20vw, 100px); width: clamp(80px, 20vw, 100px); ${product.image ? `background-image: url('${product.image}'); background-size: cover; background-position: center;` : ''}"
-                        onclick="toggleServiceProduct(this, '${service.name.replace(/'/g, "\\'")}', '${(product.name || product.product_name || 'Unknown Product').replace(/'/g, "\\'")}', ${parseFloat(product.price) || 0}, '${(product.image || '').replace(/'/g, "\\'")}', '${(product.type || 'product').replace(/'/g, "\\'")}')">
+                        onclick="toggleServiceProduct(this, '${service.branch_id}', '${(product.name || product.product_name || 'Unknown Product').replace(/'/g, "\\'")}', ${parseFloat(product.price) || 0}, '${(product.image || '').replace(/'/g, "\\'")}', '${(product.type || 'product').replace(/'/g, "\\'")}')">
                         ${product.image ? '' : `
                             <div class="text-center px-1">
                                 <svg class="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -4502,9 +4519,15 @@
                 </div>
             `).join('');
 
+            const branchType = service.branch_type || 'branch';
+            const branchTypeTag = `<div class="glass-tag absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-sm z-10">
+                    ${branchType.toLowerCase() === 'hq' || branchType.toLowerCase() === 'admin' ? 'Admin HQ' : 'Branch'}
+                </div>`;
+
             card.innerHTML = `
                 <!-- Primary Image (height: 120-140px responsive) -->
-                <div class="w-full flex-shrink-0" style="height: clamp(120px, 25vw, 140px);">
+                <div class="w-full flex-shrink-0 relative" style="height: clamp(120px, 25vw, 140px);">
+                    ${branchTypeTag}
                     ${bannerImage ?
                     `<img src="${bannerImage}" class="w-full h-full object-cover" alt="Service Banner">` :
                     `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
@@ -4591,7 +4614,7 @@
 
                 <!-- Schedule Order Button (sticky bottom) -->
                 <div class="px-4 sm:px-5 py-3 sm:py-4 mt-auto flex-shrink-0 border-t border-gray-700/30">
-                    <button onclick="openScheduleFlow('${service.name}')"
+                    <button onclick="openScheduleFlow('${service.branch_id}')"
                         class="w-full py-3 sm:py-4 rounded-[20px] glass-action-btn transition-all duration-300 shadow-lg text-base sm:text-lg font-semibold ${(service.products && service.products.length > 0) ? '' : 'opacity-50 cursor-not-allowed'}"
                         ${(service.products && service.products.length > 0) ? '' : 'disabled'}>
                         <span class="capitalize">${(service.products && service.products.length > 0) ? 'Schedule Order' : 'No Products'}</span>
@@ -4685,20 +4708,22 @@
         }
 
         // Toggle product selection in service card
-        function toggleServiceProduct(element, companyName, productName, price, image, type) {
+        function toggleServiceProduct(element, branchId, productName, price, image, type) {
+            // Find the service by branchId (fallback to name for compatibility)
+            const service = services.find(s => s.branch_id === branchId) || services.find(s => s.name === branchId);
+            const companyName = service ? service.name : branchId;
 
             // Find the original product to get minQuantity
-            const originalProduct = services.find(service => service.name === companyName)
-                ?.products.find(p => p.name === productName && p.type === type);
+            const originalProduct = service?.products.find(p => p.name === productName && p.type === type);
 
             const minQuantity = originalProduct?.minQuantity || 1;
 
             // Check if product is already selected
-            const existingIndex = serviceProducts[companyName].findIndex(p => p.name === productName);
+            const existingIndex = serviceProducts[branchId] ? serviceProducts[branchId].findIndex(p => p.name === productName) : -1;
 
             if (existingIndex > -1) {
                 // Remove product
-                serviceProducts[companyName].splice(existingIndex, 1);
+                serviceProducts[branchId].splice(existingIndex, 1);
                 element.classList.remove('selected');
 
                 // Remove quantity indicator if exists
@@ -4708,9 +4733,11 @@
                 }
             } else {
                 // Add product with minimum quantity
-                serviceProducts[companyName].push({
+                if (!serviceProducts[branchId]) serviceProducts[branchId] = [];
+                serviceProducts[branchId].push({
                     id: Date.now(),
                     company: companyName,
+                    branchId: branchId,
                     name: productName,
                     price: parseFloat(price) || 0,
                     image: image,
@@ -4727,24 +4754,26 @@
             }
 
             // Update selected count display
-            updateServiceProductCount(companyName);
+            updateServiceProductCount(branchId);
         }
 
         // Toggle product selection in swipe view
-        function toggleSwipeProduct(element, companyName, productName, price, image, type) {
+        function toggleSwipeProduct(element, branchId, productName, price, image, type) {
+            // Find the service by branchId (fallback to name for compatibility)
+            const service = services.find(s => s.branch_id === branchId) || services.find(s => s.name === branchId);
+            const companyName = service ? service.name : branchId;
 
             // Find original product to get minQuantity
-            const originalProduct = services.find(service => service.name === companyName)
-                ?.products.find(p => p.name === productName && p.type === type);
+            const originalProduct = service?.products.find(p => p.name === productName && p.type === type);
 
             const minQuantity = originalProduct?.minQuantity || 1;
 
             // Check if product is already selected
-            const existingIndex = serviceProducts[companyName].findIndex(p => p.name === productName);
+            const existingIndex = serviceProducts[branchId] ? serviceProducts[branchId].findIndex(p => p.name === productName) : -1;
 
             if (existingIndex > -1) {
                 // Remove product
-                serviceProducts[companyName].splice(existingIndex, 1);
+                serviceProducts[branchId].splice(existingIndex, 1);
                 element.classList.remove('selected');
 
                 // Remove quantity indicator if exists
@@ -4754,9 +4783,11 @@
                 }
             } else {
                 // Add product with minimum quantity
-                serviceProducts[companyName].push({
+                if (!serviceProducts[branchId]) serviceProducts[branchId] = [];
+                serviceProducts[branchId].push({
                     id: Date.now(),
                     company: companyName,
+                    branchId: branchId,
                     name: productName,
                     price: parseFloat(price) || 0,
                     image: image,
@@ -4773,7 +4804,7 @@
             }
 
             // Update selected count display
-            updateServiceProductCount(companyName);
+            updateServiceProductCount(branchId);
         }
 
         // Update service product count display
@@ -4949,11 +4980,17 @@
             const container = document.getElementById('swipeCard');
 
             // Get selected products for this service
-            const selectedForService = serviceProducts[service.name] || [];
+            const selectedForService = serviceProducts[service.branch_id] || [];
             const selectedCount = selectedForService.length;
 
+            const branchType = service.branch_type || 'branch';
+            const branchTypeTag = `<div class="glass-tag absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-sm z-10">
+                    ${branchType.toLowerCase() === 'hq' || branchType.toLowerCase() === 'admin' ? 'Admin HQ' : 'Branch'}
+                </div>`;
+
             container.innerHTML = `
-                <div class="w-full" style="height: 135px;">
+                <div class="w-full relative" style="height: 135px;">
+                    ${branchTypeTag}
                     ${service.header_image ?
                     `<img src="${service.header_image}" class="w-full h-full object-cover" alt="Service Banner">` :
                     `<div class="w-full h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
@@ -5006,7 +5043,7 @@
                                 <div class="flex flex-col items-center gap-3 flex-shrink-0" style="scroll-snap-align: start;">
                                     <div class="swipe-product-item rounded-[12px] flex items-center justify-center ${isSelected ? 'selected' : ''} transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl" 
                                          style="height: 100px; width: 100px; ${p.image ? `background-image: url('${p.image}'); background-size: cover; background-position: center;` : ''}"
-                                         onclick="toggleSwipeProduct(this, '${service.name.replace(/'/g, "\\'")}', '${(p.name || p.product_name || 'Unknown Product').replace(/'/g, "\\'")}', ${parseFloat(p.price) || 0}, '${(p.image || '').replace(/'/g, "\\'")}', '${(p.type || 'product').replace(/'/g, "\\'")}')">
+                                         onclick="toggleSwipeProduct(this, '${service.branch_id}', '${(p.name || p.product_name || 'Unknown Product').replace(/'/g, "\\'")}', ${parseFloat(p.price) || 0}, '${(p.image || '').replace(/'/g, "\\'")}', '${(p.type || 'product').replace(/'/g, "\\'")}')">
                                         ${isSelected ? `<div class="product-item-quantity">${quantity}</div>` : ''}
                                         ${p.image ? '' : `
                                             <div class="text-center">
@@ -5030,7 +5067,7 @@
                 </div>
                 
                 <div class="px-10 mt-6">
-                    <button onclick="scheduleOrder('${service.name}')" 
+                    <button onclick="scheduleOrder('${service.branch_id}')" 
                             class="h-[46px] w-full rounded-[20px] flex items-center justify-center border shadow-md active:scale-95 transition-transform glass-action-btn"
                             style="border-color: rgba(37, 99, 235, 0.35);">
                         <span class="text-white text-xl font-semibold capitalize">Schedule Order</span>
@@ -5064,11 +5101,11 @@
         }
 
         // Schedule order - Open bottom sheet
-        async function scheduleOrder(companyName) {
-            selectedCompany = companyName;
+        async function scheduleOrder(branchId) {
+            selectedBranchId = branchId;
 
             // Get selected products for this company
-            selectedProducts = [...serviceProducts[companyName]];
+            selectedProducts = serviceProducts[branchId] ? [...serviceProducts[branchId]] : [];
 
             if (selectedProducts.length === 0) {
                 showMobileNotification('Please select at least one product first before scheduling an order.', 'error');
@@ -5079,11 +5116,11 @@
         }
 
         // Open schedule flow - same as scheduleOrder
-        async function openScheduleFlow(companyName) {
-            selectedCompany = companyName;
+        async function openScheduleFlow(branchId) {
+            selectedBranchId = branchId;
 
             // Get selected products for this company
-            let products = serviceProducts[companyName] || [];
+            let products = serviceProducts[branchId] || [];
 
             if (products.length === 0) {
                 // No products selected - show error and don't open schedule flow
@@ -5506,7 +5543,7 @@
             dateInput.min = minDateString;
 
             // Get selected company's working days
-            const company = services.find(service => service.name === selectedCompany);
+            const company = services.find(service => service.branch_id === selectedBranchId) || services.find(service => service.name === selectedBranchId);
             if (company && company.working_days && company.working_days.length > 0) {
                 // Find the next available working day
                 let nextAvailableDate = new Date(minDate);
@@ -5562,7 +5599,7 @@
             timeSlotsGrid.innerHTML = '';
 
             // Get selected company's working hours for the selected date
-            const company = services.find(service => service.name === selectedCompany);
+            const company = services.find(service => service.branch_id === selectedBranchId) || services.find(service => service.name === selectedBranchId);
             if (!company || !company.working_days || !selectedDate) {
                 // Fallback to default time slots if no working hours data
                 generateDefaultTimeSlots();
@@ -5755,7 +5792,7 @@
 
         // Validate selected date and time against company working hours
         function validateDateTimeAgainstWorkingHours() {
-            const company = services.find(service => service.name === selectedCompany);
+            const company = services.find(service => service.branch_id === selectedBranchId) || services.find(service => service.name === selectedBranchId);
             if (!company || !company.working_days || !selectedDate || !selectedTime) {
                 return true; // Skip validation if no working hours data
             }
@@ -6342,11 +6379,11 @@
         // Update date and time step
         function updateDateTimeStep() {
             console.log('🔍 Updating date/time step...');
-            console.log('🔍 Selected company:', selectedCompany);
+            console.log('🔍 Selected branch:', selectedBranchId);
             console.log('🔍 Services loaded:', services.length > 0);
 
             // Display company working hours
-            const company = services.find(service => service.name === selectedCompany);
+            const company = services.find(service => service.branch_id === selectedBranchId) || services.find(service => service.name === selectedBranchId);
             const workingHoursDisplay = document.getElementById('workingHoursDisplay');
             const workingHoursText = document.getElementById('workingHoursText');
 
@@ -6491,7 +6528,7 @@
         function updateQuantityStep() {
             console.log('🔍 Updating quantity step...');
             console.log('🔍 Selected products:', selectedProducts);
-            console.log('🔍 Selected company:', selectedCompany);
+            console.log('🔍 Selected branch:', selectedBranchId);
 
             const selectedContainer = document.getElementById('selectedProductsContainer');
             console.log('🔍 Container element:', selectedContainer);
@@ -6555,7 +6592,7 @@
 
             // Scroll to the selected company's card
             setTimeout(() => {
-                const companyCard = document.querySelector(`h3:contains('${selectedCompany}')`)?.closest('.card-bg');
+                const companyCard = document.querySelectorAll('h3 a').find(el => el.textContent.trim() === selectedBranchId || services.find(s => s.branch_id === selectedBranchId)?.name === el.textContent.trim())?.closest('.card-bg');
                 if (companyCard) {
                     companyCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
@@ -6570,6 +6607,7 @@
 
                 // Find the original product to get minQuantity
                 const originalProduct = services.find(service =>
+                    (service.branch_id === product.branchId || service.name === product.company) &&
                     service.products.some(p => p.name === product.name && p.type === product.type)
                 )?.products.find(p => p.name === product.name && p.type === product.type);
 
@@ -6591,9 +6629,10 @@
                 selectedProducts[productIndex].quantity = newQuantity;
 
                 // Update the product in serviceProducts as well
-                const serviceIndex = serviceProducts[product.company].findIndex(p => p.name === product.name);
+                const lookupId = product.branchId || product.company;
+                const serviceIndex = serviceProducts[lookupId] ? serviceProducts[lookupId].findIndex(p => p.name === product.name) : -1;
                 if (serviceIndex > -1) {
-                    serviceProducts[product.company][serviceIndex].quantity = newQuantity;
+                    serviceProducts[lookupId][serviceIndex].quantity = newQuantity;
 
                     // Update quantity indicator in UI
                     if (viewSwipe) {
@@ -6601,7 +6640,7 @@
                         renderSwipeCard(currentCardIndex);
                     } else {
                         // Update list view
-                        updateProductQuantityInListView(product.company, product.name, newQuantity);
+                        updateProductQuantityInListView(lookupId, product.name, newQuantity);
                     }
                 }
 
@@ -6610,8 +6649,8 @@
         }
 
         // Check if company is open at selected date and time
-        function isCompanyOpen(companyName, date, time) {
-            const company = services.find(service => service.name === companyName);
+        function isCompanyOpen(branchId, date, time) {
+            const company = services.find(service => service.branch_id === branchId) || services.find(service => service.name === branchId);
             if (!company || !company.openingHours) return false;
 
             // Get day of week (0 = Sunday, 1 = Monday, etc.)
@@ -6662,8 +6701,8 @@
         }
 
         // Get company opening hours info
-        function getCompanyHoursInfo(companyName, date) {
-            const company = services.find(service => service.name === companyName);
+        function getCompanyHoursInfo(branchId, date) {
+            const company = services.find(service => service.branch_id === branchId) || services.find(service => service.name === branchId);
             if (!company || !company.openingHours) return null;
 
             const selectedDate = new Date(date);
@@ -6702,11 +6741,12 @@
             }
 
             // Check if company is open
-            if (!isCompanyOpen(selectedCompany, selectedDate, selectedTime)) {
-                const hoursInfo = getCompanyHoursInfo(selectedCompany, selectedDate);
+            if (!isCompanyOpen(selectedBranchId, selectedDate, selectedTime)) {
+                const hoursInfo = getCompanyHoursInfo(selectedBranchId, selectedDate);
+                const companyName = services.find(s => s.branch_id === selectedBranchId || s.name === selectedBranchId)?.name || selectedBranchId;
                 const errorMessage = hoursInfo && hoursInfo.message
                     ? hoursInfo.message
-                    : `${selectedCompany} is closed at the selected time. Please choose a different time.`;
+                    : `${companyName} is closed at the selected time. Please choose a different time.`;
                 showError(errorMessage);
                 return false;
             }
@@ -6733,12 +6773,13 @@
         }
 
         // Update product quantity in list view
-        function updateProductQuantityInListView(companyName, productName, quantity) {
+        function updateProductQuantityInListView(branchId, productName, quantity) {
             // Find the product item in list view and update its quantity indicator
             const serviceCards = document.querySelectorAll('#listView > .card-bg');
             serviceCards.forEach(card => {
-                const cardCompany = card.querySelector('h3 a').textContent;
-                if (cardCompany === companyName) {
+                const nameEl = card.querySelector('h3 a');
+                const cardService = services.find(s => s.name === nameEl?.textContent.trim());
+                if (cardService && (cardService.branch_id === branchId || cardService.name === branchId)) {
                     const productItems = card.querySelectorAll('.product-item');
                     productItems.forEach(item => {
                         // We need to match the product somehow - this is a simplified version
@@ -7332,9 +7373,9 @@
                 closeScheduleFlow();
 
                 // NOW it's safe to reset products after the save is complete
-                serviceProducts[selectedCompany] = [];
+                serviceProducts[selectedBranchId] = [];
                 selectedProducts = [];
-                updateServiceProductCount(selectedCompany);
+                updateServiceProductCount(selectedBranchId);
 
                 // Reset UI selections
                 if (viewSwipe) {
@@ -7406,7 +7447,7 @@
                         const orderManager = new window.OrderManager();
 
                         // Prepare order data for database (orders table)
-                        const selectedCompanyData = services.find(s => s.name === selectedCompany);
+                        const selectedCompanyData = services.find(s => s.branch_id === selectedBranchId) || services.find(s => s.name === selectedBranchId);
                         console.log('🔍 Selected company data:', selectedCompanyData);
                         console.log('🔍 Branch ID from company:', selectedCompanyData?.branch_id);
 
@@ -7427,7 +7468,7 @@
 
                             // Order details
                             company_id: selectedCompanyData?.company_id || '',
-                            branch_id: selectedCompanyData?.branch_id || '',
+                            branch_id: selectedCompanyData?.branch_id || selectedBranchId || '',
                             deliveryTime: orderData.deliveryTime,
                             deliveryDate: orderData.deliveryDate,
                             orderComment: orderData.deliveryInstructions || '',

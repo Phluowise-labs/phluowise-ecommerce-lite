@@ -30,6 +30,7 @@ if (typeof Appwrite === "undefined") {
     ORDER_ITEMS_TABLE: "order_items",
     PURCHASE_RECIPIENT_TABLE: "purchase_recipient_info",
     COMPANY_VERIFICATION_TABLE: "company_verification",
+    RETURN_PICKUPS_TABLE: "return_pickups",
     // Community Collections
     COMMUNITY_REQUESTS_TABLE: "community_requests",
     COMMUNITY_VOTES_TABLE: "community_votes",
