@@ -2603,7 +2603,8 @@
                     <span class="text-gray-500 text-sm">No Banner Image</span>
                 </div>
             </div>
-        </div>
+            </div>
+
 
         <!-- Back Button -->
         <div class="absolute top-5 left-4 z-40">
@@ -2613,8 +2614,11 @@
             </button>
         </div>
 
-        <!-- Menu Button -->
-        <div class="absolute top-5 right-4 z-40">
+        <!-- Menu Button + Branch Tag -->
+        <div class="absolute top-5 right-4 z-50 flex items-center gap-2">
+            <!-- Branch/Admin Tag -->
+            <span id="branchTypeTag" class="glass-tag px-3 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase shadow-2xl" style="display: none;"></span>
+            
             <button onclick="openTermsOfService()"
                 class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all shadow-lg">
                 <span class="material-symbols-outlined text-white">contract</span>
@@ -2623,6 +2627,7 @@
 
         <!-- Header Space (height: 80) -->
         <div class="h-[80px] w-full"></div>
+    </div>
 
         <!-- Profile Image Container (top: 40, left: 40, p: 8, rounded: 14, height: 90, width: 95) -->
         <div class="absolute top-[60px] left-10 z-50 p-2 rounded-[14px]"
@@ -2662,7 +2667,6 @@
                     <h1 id="companyName" class="text-white text-2xl font-bold hidden">
                         <span id="companyNameText"></span>
                         <span id="verifiedBadge" class="material-symbols-outlined">verified</span>
-                        <span id="branchTypeTag" class="glass-tag px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-sm ml-2 hidden" style="vertical-align: middle;"></span>
                     </h1>
 
                     <!-- Loading spinner for location -->

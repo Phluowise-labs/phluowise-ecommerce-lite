@@ -883,7 +883,7 @@
         /* Search Input */
         .dispenser-search-input {
             width: 100%;
-            padding: 10px 16px 10px 36px;
+            padding: 10px 16px 10px 48px;
             border-radius: 16px;
             font-size: 14px;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1295,7 +1295,7 @@
             color: var(--text-color);
             font-weight: 600;
             font-size: 0.85rem;
-            z-index: 2000;
+            z-index: 20000;
             transition: transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
             pointer-events: none;
             white-space: nowrap;
@@ -1969,9 +1969,11 @@
             <!-- Search + PDF row -->
             <div class="flex items-center gap-2 mb-3">
                 <div class="relative flex-1">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                    <div class="absolute top-0 bottom-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
                     <input type="text" id="dispenserSearch" placeholder="Search returns..." 
                         oninput="filterDispenserReturns()"
                         class="dispenser-search-input">
@@ -3512,7 +3514,8 @@
                 info: { bg: 'bg-blue-500/20', border: 'border-blue-500/50', text: 'text-blue-500', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />' }
             };
             const s = styles[type] || styles.info;
-            n.className = `fixed top-4 right-4 glass border ${s.border} text-foreground px-4 py-3 rounded-lg shadow-lg z-[10001] animate-slide-up max-w-sm`;
+            n.className = `fixed top-4 right-4 glass border ${s.border} text-foreground px-4 py-3 rounded-lg shadow-lg animate-slide-up max-w-sm`;
+            n.style.zIndex = '20001';
             n.innerHTML = `<div class="flex items-center gap-3"><div class="w-8 h-8 ${s.bg} rounded-full flex items-center justify-center"><svg viewBox="0 0 24 24" class="w-5 h-5 ${s.text}" fill="none" stroke="currentColor" stroke-width="2">${s.icon}</svg></div><div><p class="text-sm font-medium">${msg}</p></div></div>`;
             document.body.appendChild(n);
             setTimeout(() => { n.style.opacity = '0'; n.style.transition = 'opacity 0.3s'; setTimeout(() => { if (n.parentNode) n.remove(); }, 300); }, 3000);
@@ -4296,8 +4299,8 @@
                         price: `GH₵ ${parseFloat(doc.productPrice || 0).toFixed(2)}`,
                         qty: doc.productQty || 1,
                         status: doc.returnStatus === 'none' || !doc.returnStatus ? 'returnable' : doc.returnStatus,
-                        deliveryDate: pickup && pickup.pickup_date ? window.sanitize(pickup.pickup_date) : (doc.$updatedAt ? new Date(doc.$updatedAt).toLocaleDateString() : null),
-                        deliveryTime: pickup && pickup.pickup_time ? window.sanitize(pickup.pickup_time) : (doc.$updatedAt ? new Date(doc.$updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : null),
+                        deliveryDate: pickup ? (pickup.pickup_at ? new Date(pickup.pickup_at).toLocaleDateString() : (pickup.pickup_date ? window.sanitize(pickup.pickup_date) : null)) : (doc.$updatedAt ? new Date(doc.$updatedAt).toLocaleDateString() : null),
+                        deliveryTime: pickup ? (pickup.pickup_at ? new Date(pickup.pickup_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : (pickup.pickup_time ? window.sanitize(pickup.pickup_time) : null)) : (doc.$updatedAt ? new Date(doc.$updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : null),
                         companyInfo: window.sanitize(doc.returnComment)
                     };
                 });
