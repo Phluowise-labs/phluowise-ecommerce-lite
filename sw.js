@@ -1,7 +1,14 @@
-const CACHE_NAME = 'phluowise-v10';
+const CACHE_NAME = 'phluowise-v11';
 const urlsToCache = [
   './',
-  './offline.html'
+  './index.html',
+  './offline.html',
+  './css/output.css',
+  './css/notifications.css',
+  './js/notifications.js',
+  './js/page-tracker.js',
+  './js/pullToRefresh.js',
+  './js/splash-animation.js'
 ];
 
 // Listen for skipWaiting message

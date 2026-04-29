@@ -1,0 +1,184 @@
+/* Interactive Emotional Tutorial Styles */
+.tutorial-overlay, .tutorial-overlay *, .tutorial-overlay *:before, .tutorial-overlay *:after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    z-index: 2147483645;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.tutorial-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.tutorial-highlight {
+    position: fixed;
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85), 0 0 20px 5px rgba(59, 116, 255, 0.5);
+    border: 2px solid rgba(59, 116, 255, 0.8);
+    z-index: 2147483646;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+}
+
+/* Pulsing effect for the highlight */
+@keyframes tutorialPulse {
+    0% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 10px 2px rgba(59, 116, 255, 0.4); }
+    50% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 25px 8px rgba(59, 116, 255, 0.6); }
+    100% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 10px 2px rgba(59, 116, 255, 0.4); }
+}
+
+.tutorial-highlight.pulsing {
+    animation: tutorialPulse 2s infinite ease-in-out, tutorialTap 1.5s infinite;
+}
+
+@keyframes tutorialTap {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.tutorial-box {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%) translateY(50px) scale(0.9) rotate(-2deg);
+    width: 90%;
+    max-width: 360px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(25px) brightness(1.1);
+    -webkit-backdrop-filter: blur(25px) brightness(1.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    padding: 24px;
+    z-index: 2147483647;
+    opacity: 0;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    color: white;
+    pointer-events: auto;
+}
+
+.tutorial-overlay.active .tutorial-box {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1) rotate(0deg);
+}
+
+.tutorial-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(45deg, #FFF, #3B74FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.tutorial-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.tutorial-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.tutorial-steps {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+}
+
+.tutorial-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.tutorial-btn {
+    padding: 8px 20px;
+    border-radius: 100px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tutorial-btn-next {
+    background: #3B74FF;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(59, 116, 255, 0.3);
+}
+
+.tutorial-btn-next:hover {
+    transform: scale(1.05);
+    background: #4A84FF;
+    box-shadow: 0 6px 20px rgba(59, 116, 255, 0.4);
+}
+
+.tutorial-btn-skip {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tutorial-btn-skip:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+/* Floating Icon animation */
+.tutorial-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    animation: floatingIcon 3s infinite ease-in-out;
+}
+
+@keyframes floatingIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Liquid Glass Theme Overrides */
+body.liquid-glass-theme .tutorial-box {
+    background: rgba(255, 255, 255, 0.45) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    color: #111 !important;
+}
+
+body.liquid-glass-theme .tutorial-title {
+    background: linear-gradient(45deg, #111, #007ACC) !important;
+    -webkit-background-clip: text !important;
+}
+
+body.liquid-glass-theme .tutorial-text {
+    color: #333 !important;
+}
+
+body.liquid-glass-theme .tutorial-steps {
+    color: #666 !important;
+}
+
+body.liquid-glass-theme .tutorial-btn-skip {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #444 !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
