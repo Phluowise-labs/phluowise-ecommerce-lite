@@ -16,14 +16,59 @@ body {
 }
 
 /* ✓ Avoid Content Selection */
-.element, button, label {
+.element, button, label, .material-symbols-outlined, svg {
     user-select: none;
     -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* ✓ Tap Highlight color */
+/* --- Micro-Emotional Animations --- */
+
+/* 1. Global Tap Bounce Effect */
+button:active, 
+.clickable:active,
+.material-symbols-outlined:active,
+svg:active,
+.active-pop:active {
+    transform: scale(0.92) !important;
+    transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 2. Springy Release Animation */
+button, 
+.clickable,
+.material-symbols-outlined,
+svg,
+.active-pop {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    will-change: transform;
+}
+
+/* 3. Emotional Rotate Effect (for settings/toggle icons) */
+.icon-rotate-tap:active {
+    transform: scale(0.9) rotate(15deg) !important;
+}
+
+/* 4. Pulse/Glow for Important Actions */
+.icon-pulse-tap:active {
+    box-shadow: 0 0 15px rgba(59, 116, 255, 0.4);
+    filter: brightness(1.2);
+}
+
+/* 5. Jiggle for warnings/errors */
+@keyframes emotional-jiggle {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+}
+
+.icon-jiggle-tap:active {
+    animation: emotional-jiggle 0.2s infinite;
+}
+
+/* ✓ Tap Highlight color override */
 button {
-    -webkit-tap-highlight-color: #ffffff;
+    -webkit-tap-highlight-color: transparent;
 }
 
 link[rel="manifest"] {

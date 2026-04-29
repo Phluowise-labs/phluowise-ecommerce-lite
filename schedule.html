@@ -22,6 +22,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Phluowise">
     <link rel="stylesheet" href="css/tailwind-global.css" />
+    <link rel="stylesheet" href="css/native-like-experience.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="js/pdfReceiptGenerator.js"></script>
@@ -8354,14 +8355,16 @@
                             for (let i = 0; i < companyData.length; i++) {
                                 const branch = companyData[i];
 
-                                // Try exact match
-                                if (branch.branch_id === branchId) {
+                                // Try exact match against branch_id, id, OR document ID ($id)
+                                if (branch.branch_id === branchId || branch.id === branchId || (branch.$id === branchId)) {
                                     branchData = branch;
                                     break;
                                 }
 
                                 // Try string conversion match (in case of type issues)
-                                if (String(branch.branch_id) === String(branchId)) {
+                                if (String(branch.branch_id) === String(branchId) || 
+                                    String(branch.id) === String(branchId) || 
+                                    String(branch.$id) === String(branchId)) {
                                     branchData = branch;
                                     break;
                                 }
@@ -8378,15 +8381,11 @@
 
                                 if (idCorrections[branchId]) {
                                     const correctId = idCorrections[branchId];
-
-                                    // Update URL without page reload
-                                    const newUrl = `${window.location.pathname}?branch_id=${correctId}`;
-                                    window.history.replaceState({}, '', newUrl);
-
+                                    
                                     // Search again with correct ID
                                     for (let i = 0; i < companyData.length; i++) {
                                         const branch = companyData[i];
-                                        if (branch.branch_id === correctId) {
+                                        if (branch.branch_id === correctId || branch.id === correctId || branch.$id === correctId) {
                                             branchData = branch;
                                             break;
                                         }
