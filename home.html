@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="css/notifications.css" />
     <link rel="stylesheet" href="css/mobile-responsive.css" />
     <link rel="stylesheet" href="css/nav-animations.css" />
+    <link rel="stylesheet" href="css/tutorial.css" />
     <script src="js/notifications.js"></script>
     <script src="js/navAnimations.js"></script>
     <style>
@@ -1066,6 +1067,21 @@
                         </div>
                     </button>
 
+                    <!-- App Tutorial -->
+                    <button onclick="window.phTutorial.showHub(); closeMenu();"
+                        class="w-full h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
+                        style="background-color: var(--bg-third);">
+                        <div class="flex flex-row items-center gap-[30px]">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="text-white text-lg font-semibold">App Tutorial</span>
+                        </div>
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+
                     <!-- Profile -->
                     <a href="profile.html" onclick="navigateToPage('profile.html')"
                         class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
@@ -1291,6 +1307,7 @@
     <script src="js/encryption.js"></script>
     <script src="js/appwriteConfig.js"></script>
     <script src="js/companyData.js"></script>
+    <script src="js/tutorial.js"></script>
     <script src="js/cacheManager.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/distanceCalculator.js"></script>

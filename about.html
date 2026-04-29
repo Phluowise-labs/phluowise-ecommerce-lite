@@ -21,6 +21,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Phluowise">
+    <link rel="stylesheet" href="css/nav-animations.css" />
+    <link rel="stylesheet" href="css/tutorial.css" />
     <link rel="stylesheet" href="css/tailwind-global.css" />
     <!-- Capacitor script is automatically injected during native build, not needed statically -->
     <link rel="stylesheet" href="css/mobile-responsive.css" />
@@ -446,8 +448,6 @@
                     }
                 }
             } catch (error) {
-                console.error('Error sharing:', error);
-                // If the user cancelled the Web Share dialog, it throws AbortError perfectly fine
                 if (error.name !== 'AbortError') {
                     // One final attempt with Intent in case navigator.share existed but failed silently
                     const isAndroid = /android/i.test(navigator.userAgent);
@@ -465,6 +465,7 @@
             }
         }
     </script>
+    <script src="js/tutorial.js"></script>
 
     <!-- Service Worker Registration -->
     <script>
