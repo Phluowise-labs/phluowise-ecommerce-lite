@@ -199,10 +199,25 @@ class CompanyDataManager {
                     wd.branch_id === branch.branch_id || wd.company_id === branch.company_id
                 );
 
-                // Get products for this branch/company
-                const branchProducts = this.products.filter(product =>
-                    product.branch_id === branch.branch_id || product.company_id === branch.company_id
-                );
+                // Get products for this branch specifically (Strict matching to prevent leakage)
+                const branchProducts = this.products.filter(product => {
+                    const productBranchId = product.branch_id || product.branchId || '';
+                    const productCompanyId = product.company_id || product.companyId || '';
+                    
+                    // If product has a specific branch_id, it MUST match this branch exactly
+                    if (productBranchId && productBranchId !== '') {
+                        return productBranchId === branch.branch_id;
+                    }
+                    
+                    // Fallback: If no branch_id but has company_id, only show if it matches the company
+                    // AND the branch is the HQ/Admin (to avoid showing "admin" products everywhere)
+                    const isHQ = branch.branch_type?.toLowerCase() === 'hq' || branch.branch_type?.toLowerCase() === 'admin';
+                    if (isHQ) {
+                        return productCompanyId === branch.company_id;
+                    }
+
+                    return false; // Non-HQ branches only show their own specific products
+                });
 
                 // Get social media ONLY for this specific branch (strict matching - no company-level fallback)
                 // This prevents cross-branch social media leakage
