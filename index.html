@@ -27,8 +27,8 @@
     <meta property="og:url" content="https:/phluowise.com" />
     <meta property="og:image" content="https:/phluowise.com/Phuowise Twitter post.png" />
 
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="stylesheet" href="/css/native-like-experience.css" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="css/native-like-experience.css" />
     <script async src="https://unpkg.com/pwacompat" crossOrigin="anonymous"></script>
 
     <!-- Apple touch icon -->
@@ -48,7 +48,7 @@
     <link href="css/output.css" rel="stylesheet">
     <link rel="stylesheet" href="css/notifications.css" />
     <script src="js/notifications.js"></script>
-    <script src="js/pageTracker.js"></script>
+    <script src="js/page-tracker.js"></script>
     <script>
         // Proactive offline detection - immediately show offline page when connection drops
         window.addEventListener('offline', function () {
@@ -534,7 +534,7 @@
             }, 2500); // 2.5 seconds splash screen before transition
         });
 
-        function nextSlide() {
+        window.nextSlide = function() {
             if (currentSlide < totalSlides - 1) {
                 // Move to next slide
                 const currentSlideEl = document.querySelector(`[data-slide="${currentSlide}"]`);
@@ -559,7 +559,7 @@
             }
         }
 
-        function getStarted() {
+        window.getStarted = function() {
             // Mark onboarding as seen
             localStorage.setItem('hasSeenOnboarding', 'true');
 
@@ -567,7 +567,7 @@
             window.location.href = 'signup.html';
         }
 
-        function skipOnboarding() {
+        window.skipOnboarding = function() {
             // Mark onboarding as seen
             localStorage.setItem('hasSeenOnboarding', 'true');
 

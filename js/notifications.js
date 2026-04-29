@@ -23,14 +23,13 @@ if (typeof window.ScheduleNotificationManager !== 'undefined') {
 
             // Initialize notification container when DOM is ready
             if (document.readyState === 'loading') {
-                // console.log('📄 DOM still loading, waiting for DOMContentLoaded...');
                 document.addEventListener('DOMContentLoaded', () => {
-                    // console.log('📄 DOMContentLoaded fired, setting up notifications...');
-                    this.setupNotifications();
+                    this.updateNotifications();
+                    this.initialized = true;
                 });
             } else {
-                // console.log('📄 DOM already loaded, setting up notifications immediately...');
-                this.setupNotifications();
+                this.updateNotifications();
+                this.initialized = true;
             }
 
             // Listen for storage changes (cross-tab synchronization)
@@ -416,9 +415,7 @@ if (typeof window.ScheduleNotificationManager !== 'undefined') {
 
             // console.log(`🔔 Total notification containers setup: ${this.notificationContainers.length}`);
 
-            // Initial notification update
-            // console.log('🚀 Running initial notification update...');
-            this.updateNotifications();
+            // console.log('✅ Notification setup complete.');
         }
 
         getOrderStatusCounts() {
@@ -453,7 +450,8 @@ if (typeof window.ScheduleNotificationManager !== 'undefined') {
             if (this.notificationContainers.length === 0) {
                 // console.log('⚠️ No notification containers found, setting up...');
                 this.setupNotifications();
-                return;
+                // If still no containers after setup, we can't do anything
+                if (this.notificationContainers.length === 0) return;
             }
 
             // Remove existing notifications from all containers
