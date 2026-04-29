@@ -2588,7 +2588,7 @@
     <!-- Header with Back Button and Profile Image (Exact from schedule.tsx) -->
     <div class="relative w-full z-30">
         <!-- Banner Background with Water Animation -->
-        <div class="absolute inset-0 w-full h-[180px] overflow-hidden z-20 banner-shimmer-wrapper">
+        <div id="bannerWrapper" class="absolute inset-0 w-full h-[180px] overflow-hidden z-20 banner-shimmer-wrapper transition-all duration-300 ease-out">
             <div class="ripple-surface"></div>
             <img id="shopBannerImage" class="w-full h-full object-cover" style="display: none;" />
             <div id="bannerPlaceholder"
@@ -2630,8 +2630,8 @@
     </div>
 
         <!-- Profile Image Container (top: 40, left: 40, p: 8, rounded: 14, height: 90, width: 95) -->
-        <div class="absolute top-[60px] left-10 z-50 p-2 rounded-[14px]"
-            style="background-color: var(--bottom-sheet-color); height: 90px; width: 95px;">
+        <div id="profileContainer" class="absolute top-[60px] left-10 z-50 p-2 rounded-[14px] transition-all duration-300 ease-out"
+            style="background-color: var(--bottom-sheet-color); height: 90px; width: 95px; transform-origin: left top;">
             <div
                 class="w-full h-full rounded-[14px] overflow-hidden bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center">
                 <img id="shopProfileImage" class="w-full h-full object-cover rounded-[14px]" style="display: none;" />
@@ -2647,7 +2647,7 @@
     </div>
 
     <!-- Main Scrollable Content -->
-    <div class="flex-1 overflow-y-auto hide-scrollbar pb-[70px] mt-0 relative">
+    <div id="mainScrollContent" class="flex-1 overflow-y-auto hide-scrollbar mt-0 relative" style="scroll-behavior: smooth;">
 
         <!-- Top Spacer - Increased to move company data beneath banner -->
         <div class="h-[110px]"></div>
@@ -9019,10 +9019,11 @@
                 </div>
 
     <script>
-        // Initialize Banner Water Ripples
+        // Initialize Banner Water Ripples and Scroll Animations
         $(document).ready(function () {
             try {
-                $('.ripple-surface').ripples({
+                const $surface = $('.ripple-surface');
+                $surface.ripples({
                     resolution: 400,
                     dropRadius: 20,
                     perturbance: 0.05,
@@ -9031,7 +9032,6 @@
 
                 // Periodic subtle ripples for "vibrant" feel
                 setInterval(function () {
-                    const $surface = $('.ripple-surface');
                     const x = Math.random() * $surface.width();
                     const y = Math.random() * $surface.height();
                     $surface.ripples('drop', x, y, 15, 0.02);
@@ -9039,6 +9039,43 @@
 
             } catch (e) {
                 console.warn("Water ripples initialization skipped or failed:", e);
+            }
+
+            // Scroll Animation Logic
+            const scrollContainer = document.getElementById('mainScrollContent');
+            const banner = document.getElementById('bannerWrapper');
+            const profile = document.getElementById('profileContainer');
+            const backBtn = document.querySelector('.back-btn').parentElement;
+            const menuBtns = document.querySelector('.absolute.top-5.right-4');
+
+            if (scrollContainer && banner && profile) {
+                scrollContainer.addEventListener('scroll', () => {
+                    const scrollTop = scrollContainer.scrollTop;
+                    const maxScroll = 100; // Point where animation is fully completed
+                    const scrollRatio = Math.min(scrollTop / maxScroll, 1);
+
+                    // 1. Animate Banner Height
+                    const bannerHeight = 180 - (scrollRatio * 80); // From 180 to 100
+                    banner.style.height = `${bannerHeight}px`;
+                    
+                    // 2. Animate Profile Image (Scale and Move)
+                    const scale = 1 - (scrollRatio * 0.4); // From 1 to 0.6
+                    const translateX = scrollRatio * 30; // Move slightly right
+                    const translateY = -(scrollRatio * 45); // Move up
+                    
+                    profile.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+                    
+                    // 3. Optional: Fade/Blur Banner on scroll
+                    banner.style.filter = `blur(${scrollRatio * 5}px) brightness(${1 - (scrollRatio * 0.2)})`;
+                    
+                    // 4. Adjust header controls opacity if needed
+                    if (scrollTop > 50) {
+                        // Keep them visible but maybe adjust background
+                        // backBtn.style.opacity = "0.8";
+                    } else {
+                        // backBtn.style.opacity = "1";
+                    }
+                }, { passive: true });
             }
         });
     </script>

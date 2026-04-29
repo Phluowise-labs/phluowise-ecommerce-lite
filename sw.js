@@ -1,4 +1,4 @@
-const CACHE_NAME = 'phluowise-v11';
+const CACHE_NAME = 'phluowise-v12';
 const urlsToCache = [
   './',
   './index.html',
@@ -6,7 +6,7 @@ const urlsToCache = [
   './css/output.css',
   './css/notifications.css',
   './js/notifications.js',
-  './js/page-tracker.js',
+  './js/pageTracker.js',
   './js/pullToRefresh.js',
   './js/splash-animation.js'
 ];
