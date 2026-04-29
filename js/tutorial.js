@@ -12,8 +12,7 @@ class PhluowiseTutorial {
         this.highlight = null;
         this.box = null;
         this.activeTarget = null;
-        this.originalZIndex = '';
-        this.originalPosition = '';
+        this.originalStyles = new Map();
         this.forceKey = forceKey;
         
         this.hubOverlay = null;
@@ -46,7 +45,6 @@ class PhluowiseTutorial {
         const path = window.location.pathname;
         const pageKey = path.split('/').pop().replace('.html', '') || 'home';
         
-        // Check for specific parts (Services Part 1 vs Part 2)
         const forceTutorialPart1 = localStorage.getItem('forceServicesTutorialPart1') === 'true';
         const forceTutorialPart2 = localStorage.getItem('forceServicesTutorialPart2') === 'true';
         
@@ -57,21 +55,21 @@ class PhluowiseTutorial {
             if (forceTutorialPart1) {
                 this.steps = servicesTutorialSteps1;
                 localStorage.removeItem('forceServicesTutorialPart1');
-                setTimeout(() => this.start(), 2000);
+                setTimeout(() => this.start(), 1500);
             } else if (forceTutorialPart2) {
                 this.steps = servicesTutorialSteps2;
                 localStorage.removeItem('forceServicesTutorialPart2');
-                setTimeout(() => this.start(), 2000);
+                setTimeout(() => this.start(), 1500);
             } else if (!hasSeenTutorial || forceTutorial) {
                 if (forceTutorial) localStorage.removeItem(this.forceKey);
-                this.steps = servicesTutorialSteps1; // Default to Part 1
-                setTimeout(() => this.start(), 2000);
+                this.steps = servicesTutorialSteps1;
+                setTimeout(() => this.start(), 1500);
             }
         } else if (this.steps.length > 0 && (!hasSeenTutorial || forceTutorial)) {
             if (forceTutorial && this.forceKey) {
                 localStorage.removeItem(this.forceKey);
             }
-            setTimeout(() => this.start(), 2000);
+            setTimeout(() => this.start(), 1500);
         }
     }
 
@@ -98,7 +96,7 @@ class PhluowiseTutorial {
                         </div>
                         <div class="tutorial-hub-info">
                             <div class="tutorial-hub-name">Service Tutorial 1</div>
-                            <div class="tutorial-hub-desc">Product discovery & selection</div>
+                            <div class="tutorial-hub-desc">Search, Views & Discovery</div>
                         </div>
                     </div>
 
@@ -110,7 +108,7 @@ class PhluowiseTutorial {
                         </div>
                         <div class="tutorial-hub-info">
                             <div class="tutorial-hub-name">Service Tutorial 2</div>
-                            <div class="tutorial-hub-desc">Checkout & Payment process</div>
+                            <div class="tutorial-hub-desc">Checkout & Booking process</div>
                         </div>
                     </div>
                     
@@ -150,7 +148,6 @@ class PhluowiseTutorial {
         const menuList = document.querySelector('.sliding-menu .rounded-\\[15px\\]');
         if (!menuList) return;
 
-        // Check if button already exists
         if (menuList.innerText.includes('App Tutorial')) return;
 
         const tutorialBtn = document.createElement('button');
@@ -200,10 +197,7 @@ class PhluowiseTutorial {
             return;
         }
 
-        if (this.activeTarget) {
-            this.activeTarget.style.zIndex = this.originalZIndex;
-            this.activeTarget.style.position = this.originalPosition;
-        }
+        this.resetTargetStyles();
 
         this.currentStep = index;
         const step = this.steps[index];
@@ -215,13 +209,7 @@ class PhluowiseTutorial {
             return;
         }
 
-        this.activeTarget = target;
-        this.originalZIndex = target.style.zIndex;
-        this.originalPosition = target.style.position;
-        target.style.zIndex = '2147483647';
-        if (!['absolute', 'fixed', 'sticky'].includes(window.getComputedStyle(target).position)) {
-            target.style.position = 'relative';
-        }
+        this.prepareTarget(target);
 
         this.box.innerHTML = `
             <div class="tutorial-icon">${step.icon || '✨'}</div>
@@ -241,9 +229,58 @@ class PhluowiseTutorial {
         setTimeout(() => {
             this.updateHighlight(target); 
             this.adjustBoxPosition(target);
-        }, 100);
+        }, 150);
         
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    prepareTarget(target) {
+        this.activeTarget = target;
+        
+        // Save original styles for all parents to handle stacking contexts
+        let current = target;
+        while (current && current !== document.body) {
+            this.originalStyles.set(current, {
+                zIndex: current.style.zIndex,
+                position: current.style.position,
+                overflow: current.style.overflow,
+                transform: current.style.transform,
+                perspective: current.style.perspective,
+                willChange: current.style.willChange,
+                filter: current.style.filter
+            });
+            
+            // Break stacking contexts
+            if (current !== target) {
+                const computed = window.getComputedStyle(current);
+                if (computed.transform !== 'none' || computed.filter !== 'none' || computed.opacity !== '1') {
+                    current.style.transform = 'none';
+                    current.style.filter = 'none';
+                    current.style.willChange = 'auto';
+                }
+            }
+            current = current.parentElement;
+        }
+
+        // Boost target
+        target.style.zIndex = '2147483647';
+        if (!['absolute', 'fixed', 'sticky'].includes(window.getComputedStyle(target).position)) {
+            target.style.position = 'relative';
+        }
+    }
+
+    resetTargetStyles() {
+        this.originalStyles.forEach((styles, element) => {
+            element.style.zIndex = styles.zIndex;
+            element.style.position = styles.position;
+            element.style.overflow = styles.overflow;
+            element.style.transform = styles.transform;
+            element.style.perspective = styles.perspective;
+            element.style.willChange = styles.willChange;
+            element.style.filter = styles.filter;
+        });
+        this.originalStyles.clear();
+        this.activeTarget = null;
     }
 
     updateHighlight(element) {
@@ -272,10 +309,7 @@ class PhluowiseTutorial {
     }
 
     finish() {
-        if (this.activeTarget) {
-            this.activeTarget.style.zIndex = this.originalZIndex;
-            this.activeTarget.style.position = this.originalPosition;
-        }
+        this.resetTargetStyles();
         this.overlay.classList.remove('active');
         const path = window.location.pathname;
         const pageKey = path.split('/').pop().replace('.html', '') || 'home';
@@ -302,28 +336,30 @@ window.triggerTutorial = function(page, part = null) {
 
 // Tutorial Steps Definitions
 const historyTutorialSteps = [
-    { selector: '.header-bar h1', title: 'Schedule History', content: 'Track all your deliveries.', icon: '🌊' },
-    { selector: '.status-tabs', title: 'Quick Filters', content: 'Organize by status.', icon: '📊' },
-    { selector: '#floatingBottleBtn', title: 'Manage Returns', content: 'Request return pickups.', icon: '♻️' },
-    { selector: '#loadingSkeleton, .schedule-card', title: 'Your Orders', content: 'Real-time updates.', icon: '📋' }
+    { selector: '.header-bar h1', title: 'Schedule History', content: 'Track all your deliveries and manage returns.', icon: '🌊' },
+    { selector: '.status-tabs', title: 'Quick Filters', content: 'Organize orders by their current status.', icon: '📊' },
+    { selector: '#floatingBottleBtn', title: 'Manage Returns', content: 'Request return pickups for your empty dispensers.', icon: '♻️' },
+    { selector: '#loadingSkeleton, .schedule-card', title: 'Your Orders', content: 'View real-time updates for each delivery.', icon: '📋' }
 ];
 
 const servicesTutorialSteps1 = [
-    { selector: '.header-bar h1, .w-full h1', title: 'Service Tutorial 1', content: 'Welcome! Let\'s find the perfect water service for you.', icon: '✨' },
-    { selector: '.product-grid, .swipe-product-item', title: 'Select Products', content: 'Browse our range of premium water and dispenser products.', icon: '💧' },
-    { selector: '.recipient-type-container', title: 'Who is it for?', content: 'Choose between personal delivery or business delivery.', icon: '👤' }
+    { selector: '.header-bar h1, .w-full h1', title: 'Service Discovery', content: 'Welcome! Let\'s explore our premium water services.', icon: '✨' },
+    { selector: '.search-container', title: 'Instant Search', content: 'Quickly find specific water brands or dispenser types.', icon: '🔍' },
+    { selector: '#toggleViewBtn', title: 'View Toggle', content: 'Switch between Vertical List, Horizontal Swipe, and the 3D Revolut Stack.', icon: '🎛️' },
+    { selector: '.product-grid, .swipe-product-item, .card-stack-revolut', title: 'Discovery Views', content: 'Enjoy your chosen view—whether it\'s a classic list or an immersive 3D carousel.', icon: '🎭' },
+    { selector: '.recipient-type-container', title: 'Who is it for?', content: 'Personal or business? We tailor the experience for you.', icon: '👤' }
 ];
 
 const servicesTutorialSteps2 = [
-    { selector: '.form-input, #deliverySection', title: 'Service Tutorial 2', content: 'Almost done! Tell us where to deliver your fresh water.', icon: '📍' },
-    { selector: '.nav-btn.next', title: 'Easy Navigation', content: 'Use these buttons to move through the final booking steps.', icon: '🚀' },
-    { selector: '.payment-method-card', title: 'Secure Payment', content: 'Select your preferred payment method to finalize.', icon: '💳' }
+    { selector: '.form-input, #deliverySection', title: 'Checkout Guide', content: 'Ready to order? Just fill in your delivery details here.', icon: '📍' },
+    { selector: '.nav-btn.next', title: 'Easy Navigation', content: 'Smoothly move through the checkout process with these buttons.', icon: '🚀' },
+    { selector: '.payment-method-card', title: 'Secure Payment', content: 'Choose your payment method and finalize your request.', icon: '💳' }
 ];
 
 const homeTutorialSteps = [
-    { selector: '.header-bar', title: 'Welcome Home', content: 'Your dashboard overview.', icon: '🏠' },
-    { selector: '.search-container', title: 'Find Companies', content: 'Search for local suppliers.', icon: '🔍' },
-    { selector: '.tab-bar', title: 'Quick Access', content: 'Switch between main areas.', icon: '📱' }
+    { selector: '.header-bar', title: 'Welcome Home', content: 'Your dashboard overview for a quick start.', icon: '🏠' },
+    { selector: '.search-container', title: 'Find Companies', content: 'Discover local suppliers in your area.', icon: '🔍' },
+    { selector: '.tab-bar', title: 'Navigation', content: 'Quickly switch between main app sections.', icon: '📱' }
 ];
 
 // Initialize on Load
@@ -336,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         steps = historyTutorialSteps;
         forceKey = 'forceHistoryTutorial';
     } else if (path.includes('services.html')) {
-        // Handled in init() for parts
+        // Handled in init()
     } else if (path.includes('home.html') || path.endsWith('/')) {
         steps = homeTutorialSteps;
         forceKey = 'forceHomeTutorial';
