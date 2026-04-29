@@ -45,14 +45,32 @@ class PhluowiseTutorial {
         // Check if tutorial should be shown
         const path = window.location.pathname;
         const pageKey = path.split('/').pop().replace('.html', '') || 'home';
+        
+        // Check for specific parts (Services Part 1 vs Part 2)
+        const forceTutorialPart1 = localStorage.getItem('forceServicesTutorialPart1') === 'true';
+        const forceTutorialPart2 = localStorage.getItem('forceServicesTutorialPart2') === 'true';
+        
         const hasSeenTutorial = localStorage.getItem(`hasSeen${pageKey}Tutorial`);
         const forceTutorial = this.forceKey ? localStorage.getItem(this.forceKey) === 'true' : false;
 
-        if (this.steps.length > 0 && (!hasSeenTutorial || forceTutorial)) {
+        if (path.includes('services.html')) {
+            if (forceTutorialPart1) {
+                this.steps = servicesTutorialSteps1;
+                localStorage.removeItem('forceServicesTutorialPart1');
+                setTimeout(() => this.start(), 2000);
+            } else if (forceTutorialPart2) {
+                this.steps = servicesTutorialSteps2;
+                localStorage.removeItem('forceServicesTutorialPart2');
+                setTimeout(() => this.start(), 2000);
+            } else if (!hasSeenTutorial || forceTutorial) {
+                if (forceTutorial) localStorage.removeItem(this.forceKey);
+                this.steps = servicesTutorialSteps1; // Default to Part 1
+                setTimeout(() => this.start(), 2000);
+            }
+        } else if (this.steps.length > 0 && (!hasSeenTutorial || forceTutorial)) {
             if (forceTutorial && this.forceKey) {
                 localStorage.removeItem(this.forceKey);
             }
-            // Wait for elements to be rendered
             setTimeout(() => this.start(), 2000);
         }
     }
@@ -72,15 +90,27 @@ class PhluowiseTutorial {
                 <div class="tutorial-hub-subtitle">Choose a guide to help you navigate Phluowise</div>
                 
                 <div class="tutorial-hub-list">
-                    <div class="tutorial-hub-item" onclick="window.triggerTutorial('services.html')">
+                    <div class="tutorial-hub-item" onclick="window.triggerTutorial('services.html', 1)">
                         <div class="tutorial-hub-icon icon-blue">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                             </svg>
                         </div>
                         <div class="tutorial-hub-info">
-                            <div class="tutorial-hub-name">Service Booking</div>
-                            <div class="tutorial-hub-desc">Learn how to order water & dispensers</div>
+                            <div class="tutorial-hub-name">Service Tutorial 1</div>
+                            <div class="tutorial-hub-desc">Product discovery & selection</div>
+                        </div>
+                    </div>
+
+                    <div class="tutorial-hub-item" onclick="window.triggerTutorial('services.html', 2)">
+                        <div class="tutorial-hub-icon icon-blue">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                        </div>
+                        <div class="tutorial-hub-info">
+                            <div class="tutorial-hub-name">Service Tutorial 2</div>
+                            <div class="tutorial-hub-desc">Checkout & Payment process</div>
                         </div>
                     </div>
                     
@@ -143,7 +173,6 @@ class PhluowiseTutorial {
             </svg>
         `;
 
-        // Find the Profile link or logout button to insert before
         const profileLink = Array.from(menuList.querySelectorAll('a, button')).find(el => el.innerText.includes('Profile') || el.innerText.includes('Theme'));
         if (profileLink) {
             profileLink.after(tutorialBtn);
@@ -186,7 +215,6 @@ class PhluowiseTutorial {
             return;
         }
 
-        // Boost target element z-index
         this.activeTarget = target;
         this.originalZIndex = target.style.zIndex;
         this.originalPosition = target.style.position;
@@ -195,7 +223,6 @@ class PhluowiseTutorial {
             target.style.position = 'relative';
         }
 
-        // Update content
         this.box.innerHTML = `
             <div class="tutorial-icon">${step.icon || '✨'}</div>
             <div class="tutorial-title">${step.title}</div>
@@ -211,20 +238,17 @@ class PhluowiseTutorial {
             </div>
         `;
 
-        // Adjust position with small delay for accuracy after scrolling
         setTimeout(() => {
             this.updateHighlight(target); 
             this.adjustBoxPosition(target);
         }, 100);
         
-        // Scroll into view
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     updateHighlight(element) {
         const rect = element.getBoundingClientRect();
         const padding = 10;
-        
         this.highlight.style.width = `${rect.width + padding * 2}px`;
         this.highlight.style.height = `${rect.height + padding * 2}px`;
         this.highlight.style.top = `${rect.top - padding}px`;
@@ -234,7 +258,6 @@ class PhluowiseTutorial {
     adjustBoxPosition(target) {
         const rect = target.getBoundingClientRect();
         const windowHeight = window.innerHeight;
-        
         if (rect.top > windowHeight / 2) {
             this.box.style.bottom = 'auto';
             this.box.style.top = '140px'; 
@@ -264,9 +287,13 @@ class PhluowiseTutorial {
 }
 
 // Global Trigger Helper
-window.triggerTutorial = function(page) {
+window.triggerTutorial = function(page, part = null) {
     let flagName = 'forceHistoryTutorial';
-    if (page.includes('services')) flagName = 'forceServicesTutorial';
+    if (page.includes('services')) {
+        if (part === 1) flagName = 'forceServicesTutorialPart1';
+        else if (part === 2) flagName = 'forceServicesTutorialPart2';
+        else flagName = 'forceServicesTutorial';
+    }
     if (page.includes('home')) flagName = 'forceHomeTutorial';
     
     localStorage.setItem(flagName, 'true');
@@ -281,11 +308,16 @@ const historyTutorialSteps = [
     { selector: '#loadingSkeleton, .schedule-card', title: 'Your Orders', content: 'Real-time updates.', icon: '📋' }
 ];
 
-const servicesTutorialSteps = [
-    { selector: '.header-bar h1, .w-full h1', title: 'Book a Service', content: 'Fresh water delivered.', icon: '✨' },
-    { selector: '.product-grid, .swipe-product-item', title: 'Select Products', content: 'Browse premium water.', icon: '💧' },
-    { selector: '.recipient-type-container', title: 'Recipient Type', content: 'Personal or Business.', icon: '👤' },
-    { selector: '.nav-btn.next', title: 'Navigation', content: 'Move through steps.', icon: '🚀' }
+const servicesTutorialSteps1 = [
+    { selector: '.header-bar h1, .w-full h1', title: 'Service Tutorial 1', content: 'Welcome! Let\'s find the perfect water service for you.', icon: '✨' },
+    { selector: '.product-grid, .swipe-product-item', title: 'Select Products', content: 'Browse our range of premium water and dispenser products.', icon: '💧' },
+    { selector: '.recipient-type-container', title: 'Who is it for?', content: 'Choose between personal delivery or business delivery.', icon: '👤' }
+];
+
+const servicesTutorialSteps2 = [
+    { selector: '.form-input, #deliverySection', title: 'Service Tutorial 2', content: 'Almost done! Tell us where to deliver your fresh water.', icon: '📍' },
+    { selector: '.nav-btn.next', title: 'Easy Navigation', content: 'Use these buttons to move through the final booking steps.', icon: '🚀' },
+    { selector: '.payment-method-card', title: 'Secure Payment', content: 'Select your preferred payment method to finalize.', icon: '💳' }
 ];
 
 const homeTutorialSteps = [
@@ -304,8 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
         steps = historyTutorialSteps;
         forceKey = 'forceHistoryTutorial';
     } else if (path.includes('services.html')) {
-        steps = servicesTutorialSteps;
-        forceKey = 'forceServicesTutorial';
+        // Handled in init() for parts
     } else if (path.includes('home.html') || path.endsWith('/')) {
         steps = homeTutorialSteps;
         forceKey = 'forceHomeTutorial';
