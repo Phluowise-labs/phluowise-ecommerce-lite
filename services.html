@@ -2943,6 +2943,558 @@
                 font-size: 15px;
             }
         }
+
+        /* --- 3D Carousel (Revolut Style) --- */
+        .carousel-container-revolut {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1200px;
+            touch-action: none;
+            overflow: visible;
+        }
+
+        .ambient-glow-revolut {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 500px;
+            height: 500px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(100, 200, 255, 0.2), rgba(150, 100, 255, 0.1), transparent 75%);
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .card-stack-revolut {
+            position: relative;
+            width: 100%;
+            max-width: 340px;
+            height: 500px;
+            transform-style: preserve-3d;
+            cursor: grab;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card-revolut {
+            position: absolute;
+            width: 90%;
+            max-width: 320px;
+            height: 480px;
+            border-radius: 40px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            background: rgba(255, 255, 255, 0.12);
+            transition: transform 0.6s cubic-bezier(0.2, 0.95, 0.3, 1.05), opacity 0.5s ease, filter 0.5s ease;
+            will-change: transform, opacity, filter;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+            backface-visibility: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Light Mode Overrides (Liquid Glass Theme) */
+        body.liquid-glass-theme .card-revolut {
+            background: rgba(255, 255, 255, 0.18) !important;
+            border-top: 1.5px solid rgba(255, 255, 255, 0.9) !important;
+            border-left: 1px solid rgba(255, 255, 255, 0.6) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(35px) brightness(1.05) contrast(1.1) saturate(120%) !important;
+            -webkit-backdrop-filter: blur(35px) brightness(1.05) contrast(1.1) saturate(120%) !important;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+        }
+
+        body.liquid-glass-theme .card-revolut-title { color: #1a1a1a !important; }
+        body.liquid-glass-theme .card-revolut-subtitle { color: rgba(20, 20, 30, 0.6) !important; }
+        body.liquid-glass-theme .dot-revolut { background: rgba(0, 0, 0, 0.1); }
+        body.liquid-glass-theme .dot-revolut.active { background: #007ACC; }
+        
+        body.liquid-glass-theme .card-revolut-action,
+        body.light-theme .card-revolut-action { 
+            background: rgba(0, 122, 204, 0.12) !important; 
+            backdrop-filter: blur(15px) !important;
+            -webkit-backdrop-filter: blur(15px) !important;
+            border-top: 1px solid rgba(0, 122, 204, 0.4) !important;
+            border-left: 1px solid rgba(0, 122, 204, 0.2) !important;
+            color: #007ACC !important;
+            box-shadow: 0 8px 24px rgba(0, 122, 204, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+            opacity: 1 !important;
+        }
+        
+        body.liquid-glass-theme .card-revolut-tag,
+        body.light-theme .card-revolut-tag {
+            background: rgba(0, 0, 0, 0.12) !important;
+            color: #000000 !important;
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
+            backdrop-filter: blur(10px) !important;
+            padding: 5px 14px !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+        }
+
+        body.liquid-glass-theme .card-revolut-action:active { 
+            background: rgba(0, 122, 204, 0.2) !important; 
+            transform: scale(0.97);
+        }
+
+        body.liquid-glass-theme .swipe-product-item {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            backdrop-filter: blur(5px);
+        }
+
+        body.liquid-glass-theme .swipe-product-item.selected {
+            border-color: #007ACC !important;
+            background-color: rgba(0, 122, 204, 0.1) !important;
+        }
+
+        body.liquid-glass-theme .card-revolut p.text-white\/60 {
+            color: rgba(0, 0, 0, 0.45) !important;
+        }
+
+        body.liquid-glass-theme .card-revolut span.text-white\/80 {
+            color: rgba(0, 0, 0, 0.75) !important;
+        }
+
+        body.liquid-glass-theme .ambient-glow-revolut {
+            background: radial-gradient(circle, rgba(0, 122, 204, 0.1), rgba(0, 200, 255, 0.05), transparent 75%);
+        }
+
+        /* vibrant gradient overlays for each card theme */
+        .card-revolut[data-theme="0"] { background: linear-gradient(135deg, rgba(110, 69, 226, 0.35), rgba(0, 212, 255, 0.25)), rgba(255, 255, 255, 0.12); }
+        .card-revolut[data-theme="1"] { background: linear-gradient(135deg, rgba(255, 94, 98, 0.35), rgba(255, 154, 0, 0.3)), rgba(255, 255, 255, 0.12); }
+        .card-revolut[data-theme="2"] { background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(6, 182, 212, 0.3)), rgba(255, 255, 255, 0.12); }
+        .card-revolut[data-theme="3"] { background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(251, 113, 133, 0.3)), rgba(255, 255, 255, 0.12); }
+        .card-revolut[data-theme="4"] { background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(236, 72, 153, 0.3)), rgba(255, 255, 255, 0.12); }
+        .card-revolut[data-theme="5"] { background: linear-gradient(135deg, rgba(6, 182, 212, 0.35), rgba(59, 130, 246, 0.3)), rgba(255, 255, 255, 0.12); }
+
+        .card-revolut.active {
+            z-index: 200;
+            background: rgba(255, 255, 255, 0.22);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+        }
+
+
+
+
+
+        .indicators-revolut {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            z-index: 30;
+            pointer-events: auto;
+        }
+
+        .dot-revolut {
+            width: 7px;
+            height: 7px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 20px;
+            transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+            cursor: pointer;
+        }
+
+        .dot-revolut.active {
+            width: 32px;
+            background: #ffffff;
+        }
+
+        .card-revolut-title {
+            color: var(--text-main, #fff);
+            font-size: clamp(20px, 5.5vw, 28px);
+            font-weight: 800;
+            margin-bottom: 4px;
+            z-index: 1;
+            letter-spacing: -0.5px;
+        }
+
+        .card-revolut-subtitle {
+            color: var(--text-secondary, rgba(255,255,255,0.6));
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1;
+            margin-bottom: 15px;
+        }
+
+        .card-revolut-action {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(0, 122, 204, 0.45);
+            border: 2px solid rgba(0, 122, 204, 0.7);
+            color: #fff;
+            font-weight: 900;
+            text-align: center;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 13px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-revolut-tag {
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            padding: 5px 14px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-revolut-action:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Droplet Effects */
+        .droplet-container-revolut {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .joy-droplet-revolut {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #7ec8ff, #2a9df4);
+            border-radius: 50%;
+            filter: blur(1px);
+            animation: dropletFlyRevolut 0.8s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+            box-shadow: 0 0 6px rgba(100, 200, 255, 0.6);
+        }
+
+        @keyframes dropletFlyRevolut {
+            0% { transform: scale(0) translate(0, 0); opacity: 1; }
+            40% { transform: scale(1.2) translate(var(--dx, 0px), var(--dy, -30px)); opacity: 0.9; }
+            100% { transform: scale(0) translate(var(--dx2, 0px), var(--dy2, -100px)); opacity: 0; }
+        }
+
+        .splash-ring-revolut {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 2px solid rgba(100, 200, 255, 0.7);
+            border-radius: 50%;
+            animation: splashRingRevolut 0.7s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes splashRingRevolut {
+            0% { width: 10px; height: 10px; opacity: 0.8; transform: translate(-5px, -5px); }
+            100% { width: 80px; height: 80px; opacity: 0; transform: translate(-40px, -40px); }
+        }
+
+        @keyframes iosCardPopRevolut {
+            0% { transform: scale(0.97); filter: brightness(1.05); }
+            50% { transform: scale(1.01); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+        
+        .focus-animation-revolut {
+            animation: iosCardPopRevolut 0.4s cubic-bezier(0.2, 1.1, 0.4, 1) forwards;
+        }
+
+        /* View Selection Popup */
+        #viewSelectionPopup {
+            position: fixed;
+            bottom: 150px; /* Positioned above the tab bar and search row */
+            right: 25px;
+            width: 240px;
+            background: var(--bg-third);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid var(--modal-border);
+            border-radius: 24px;
+            padding: 12px;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            transform-origin: bottom right;
+            animation: popupScaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popupScaleIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .view-option-btn {
+            width: 100%;
+            height: 54px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            padding: 0 18px;
+            gap: 15px;
+            color: var(--text-color);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .view-option-btn:active {
+            transform: scale(0.96);
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .view-option-btn.active {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.4);
+            color: #3B82F6;
+        }
+
+        .view-option-btn svg {
+            width: 22px;
+            height: 22px;
+            opacity: 0.9;
+        }
+
+        /* Tutorial Overlay - dark background layer */
+        #tutorialOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 9998;
+            display: none;
+        }
+
+        /* Tutorial Card - separate high-priority layer */
+        .tutorial-content {
+            width: 88%;
+            max-width: 360px;
+            background: rgba(20, 25, 40, 0.65);
+            backdrop-filter: blur(40px) brightness(1.1) saturate(150%);
+            -webkit-backdrop-filter: blur(40px) brightness(1.1) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 36px;
+            padding: 40px 30px;
+            text-align: center;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20000;
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.6),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15);
+            pointer-events: auto;
+            display: none;
+        }
+
+        .tutorial-content.visible {
+            display: block;
+            animation: tutorialCardIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        @keyframes tutorialCardIn {
+            from { opacity: 0; transform: translate(-50%, -40%) scale(0.95); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .tutorial-content.position-bottom {
+            top: auto;
+            bottom: 8%;
+            transform: translateX(-50%);
+            animation: tutorialCardInBottom 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        @keyframes tutorialCardInBottom {
+            from { opacity: 0; transform: translateX(-50%) translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+        }
+
+        .tutorial-content.position-top {
+            top: 8%;
+            bottom: auto;
+            transform: translateX(-50%);
+            animation: tutorialCardInTop 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        @keyframes tutorialCardInTop {
+            from { opacity: 0; transform: translateX(-50%) translateY(-30px) scale(0.95); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+        }
+
+        .tutorial-icon-wrapper {
+            width: 88px;
+            height: 88px;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 28px;
+            color: #60A5FA;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+        }
+
+        .tutorial-title {
+            color: #FFFFFF;
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 14px;
+            letter-spacing: -0.8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .tutorial-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: 35px;
+        }
+
+        .tutorial-btn-primary {
+            width: 100%;
+            height: 60px;
+            background: rgba(59, 130, 246, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: #FFFFFF;
+            border-radius: 18px;
+            font-weight: 700;
+            font-size: 17px;
+            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .tutorial-btn-primary:active {
+            transform: scale(0.96);
+            background: rgba(59, 130, 246, 0.35);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .tutorial-btn-secondary {
+            width: 100%;
+            height: 50px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.4);
+            border-radius: 18px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .tutorial-btn-secondary:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Spotlight Effect with Pulse Animation */
+        .tutorial-spotlight {
+            z-index: 10001 !important;
+            position: relative !important;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85) !important;
+            pointer-events: none !important;
+            border-radius: 16px !important;
+            animation: spotlightPulse 2s infinite ease-in-out;
+            outline: 2px solid rgba(59, 130, 246, 0.8);
+            outline-offset: 4px;
+        }
+
+        @keyframes spotlightPulse {
+            0% { outline-offset: 4px; outline-color: rgba(59, 130, 246, 0.8); }
+            50% { outline-offset: 10px; outline-color: rgba(59, 130, 246, 0); }
+            100% { outline-offset: 4px; outline-color: rgba(59, 130, 246, 0.8); }
+        }
+
+        /* Celebration / Hurray Animation */
+        #celebrationCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            pointer-events: none;
+            display: none;
+        }
+
+        .confetti-particle {
+            position: fixed;
+            width: var(--size, 10px);
+            height: var(--size, 10px);
+            background: var(--color, #3B82F6);
+            border-radius: var(--radius, 2px);
+            top: var(--y, -20px);
+            left: var(--x, 50%);
+            opacity: 1;
+            animation: confettiFall var(--duration, 3s) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            pointer-events: none;
+            z-index: 99999;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            25% {
+                transform: translateY(25vh) rotate(180deg) translateX(var(--drift, 30px)) scale(1);
+                opacity: 1;
+            }
+            75% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(105vh) rotate(720deg) translateX(var(--drift2, -20px)) scale(0.3);
+                opacity: 0;
+            }
+        }
+
+        .celebration-emoji {
+            position: fixed;
+            font-size: var(--size, 30px);
+            top: 50%;
+            left: 50%;
+            z-index: 99999;
+            pointer-events: none;
+            animation: emojiPop 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes emojiPop {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-30deg); opacity: 0; }
+            40% { transform: translate(-50%, -50%) scale(1.4) rotate(10deg); opacity: 1; }
+            60% { transform: translate(-50%, -50%) scale(1) rotate(-5deg); opacity: 1; }
+            100% { transform: translate(-50%, -80vh) scale(0.5) rotate(15deg); opacity: 0; }
+        }
     </style>
 </head>
 
@@ -3106,6 +3658,21 @@
                         </div>
                     </button>
 
+                    <!-- Help/Tutorial -->
+                    <button onclick="startTutorial(); closeMenu();"
+                        class="w-full h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
+                        style="background-color: #101010;">
+                        <div class="flex flex-row items-center gap-[30px]">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="text-white text-lg font-semibold">App Tutorial</span>
+                        </div>
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+
                     <!-- Profile -->
                     <a href="profile.html" onclick="navigateToPage('profile.html')"
                         class="h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
@@ -3212,6 +3779,11 @@
                     <rect x="2" y="7" width="3" height="10" rx="1" stroke-width="2" />
                     <rect x="19" y="7" width="3" height="10" rx="1" stroke-width="2" />
                 </svg>
+                <!-- 3D Stack View Icon -->
+                <svg id="carouselViewIcon" class="w-7 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M7 4h10M7 8h10M7 12h10M7 16h10M7 20h10" stroke-width="2" stroke-linecap="round" />
+                    <path d="M4 2h16a2 2 0 012 2v16a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2z" stroke-width="2" />
+                </svg>
             </button>
         </div>
 
@@ -3245,6 +3817,59 @@
             </button>
         </div>
 
+        <!-- 3D Carousel View (hidden by default) -->
+        <div id="carouselView" class="hidden relative overflow-hidden flex flex-col items-center justify-center" style="height: calc(100vh - 180px); width: 100%;">
+            <div class="carousel-container-revolut">
+                <div class="ambient-glow-revolut" id="carouselAmbientGlow"></div>
+                <div class="card-stack-revolut" id="carouselStack"></div>
+                <div class="indicators-revolut" id="carouselIndicators"></div>
+            </div>
+        </div>
+        <div class="droplet-container-revolut" id="dropletContainerRevolut"></div>
+
+    </div>
+
+    <!-- View Selection Popup -->
+    <div id="viewSelectionPopup" class="glass-panel">
+        <button onclick="selectViewMode('list')" class="view-option-btn" id="option-list">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="3" y="5" width="18" height="3" rx="1" stroke-width="2" />
+                <rect x="3" y="11" width="18" height="2" rx="0.5" stroke-width="2" />
+                <rect x="3" y="16" width="18" height="3" rx="1" stroke-width="2" />
+            </svg>
+            <span class="font-bold">List View</span>
+        </button>
+        <button onclick="selectViewMode('swipe')" class="view-option-btn" id="option-swipe">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="7" y="5" width="10" height="14" rx="2" stroke-width="2" />
+                <rect x="2" y="7" width="3" height="10" rx="1" stroke-width="2" />
+                <rect x="19" y="7" width="3" height="10" rx="1" stroke-width="2" />
+            </svg>
+            <span class="font-bold">Horizontal Swipe</span>
+        </button>
+        <button onclick="selectViewMode('carousel')" class="view-option-btn" id="option-carousel">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M7 4h10M7 8h10M7 12h10M7 16h10M7 20h10" stroke-width="2" stroke-linecap="round" />
+                <path d="M4 2h16a2 2 0 012 2v16a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2z" stroke-width="2" />
+            </svg>
+            <span class="font-bold">3D Revolut Stack</span>
+        </button>
+    </div>
+
+    <!-- Onboarding Tutorial Overlay (Dark Background) -->
+    <div id="tutorialOverlay"></div>
+
+    <!-- Onboarding Tutorial Card (High Priority Layer) -->
+    <div class="tutorial-content" id="tutorialCard">
+        <div class="tutorial-icon-wrapper" id="tutorialIcon">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z" />
+            </svg>
+        </div>
+        <h2 class="tutorial-title" id="tutorialTitle">Welcome!</h2>
+        <p class="tutorial-text" id="tutorialText">Discover the best water services near you with our new premium experience.</p>
+        <button class="tutorial-btn-primary" onclick="nextTutorialStep()" id="tutorialActionBtn">Get Started</button>
+        <button class="tutorial-btn-secondary" onclick="closeTutorial()">Skip Tutorial</button>
     </div>
 
     <!-- Bottom Tab Navigation Bar (3 Tabs - height: 64px) -->
@@ -3971,7 +4596,7 @@
 
     <script src="js/theme.js"></script>
     <script>
-        let viewSwipe = false;
+        let viewMode = 'list'; // 'list', 'swipe', or 'carousel'
         let currentCardIndex = 0;
         let searchQuery = '';
         let userLocation = null;
@@ -4205,8 +4830,8 @@
 
                         // Initialize serviceProducts object for each company
                         services.forEach(service => {
-                            if (!serviceProducts[service.branch_id]) {
-                                serviceProducts[service.branch_id] = [];
+                            if (!serviceProducts[service.id]) {
+                                serviceProducts[service.id] = [];
                             }
                         });
 
@@ -4256,8 +4881,8 @@
                     // Re-initialize serviceProducts
                     serviceProducts = {};
                     services.forEach(service => {
-                        if (!serviceProducts[service.branch_id]) {
-                            serviceProducts[service.branch_id] = [];
+                        if (!serviceProducts[service.id]) {
+                            serviceProducts[service.id] = [];
                         }
                     });
 
@@ -4334,8 +4959,8 @@
 
                 // Initialize serviceProducts object for each company
                 services.forEach(service => {
-                    if (!serviceProducts[service.branch_id]) {
-                        serviceProducts[service.branch_id] = [];
+                    if (!serviceProducts[service.id]) {
+                        serviceProducts[service.id] = [];
                     }
                 });
 
@@ -4377,8 +5002,8 @@
 
                 // Initialize serviceProducts object for each company
                 services.forEach(service => {
-                    if (!serviceProducts[service.branch_id]) {
-                        serviceProducts[service.branch_id] = [];
+                    if (!serviceProducts[service.id]) {
+                        serviceProducts[service.id] = [];
                     }
                 });
 
@@ -4504,8 +5129,9 @@
             // Create products HTML
             const productsHTML = (service.products || []).map(product => `
                 <div class="flex flex-col items-center gap-2 flex-shrink-0" style="scroll-snap-align: start;">
-                    <div class="product-item bg-[#292B2F] rounded-[12px] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl" style="height: clamp(80px, 20vw, 100px); width: clamp(80px, 20vw, 100px); ${product.image ? `background-image: url('${product.image}'); background-size: cover; background-position: center;` : ''}"
-                        onclick="toggleServiceProduct(this, '${service.branch_id}', '${(product.name || product.product_name || 'Unknown Product').replace(/'/g, "\\'")}', ${parseFloat(product.price) || 0}, '${(product.image || '').replace(/'/g, "\\'")}', '${(product.type || 'product').replace(/'/g, "\\'")}')">
+                    <div class="product-item bg-[#292B2F] rounded-[12px] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl ${serviceProducts[service.id]?.some(p => p.name === (product.name || product.product_name)) ? 'selected' : ''}" style="height: clamp(80px, 20vw, 100px); width: clamp(80px, 20vw, 100px); ${product.image ? `background-image: url('${product.image}'); background-size: cover; background-position: center;` : ''}"
+                        onclick="toggleProduct(this, '${service.id}', '${(product.name || product.product_name || 'Unknown Product').replace(/'/g, "\\'")}', ${parseFloat(product.price) || 0}, '${(product.image || '').replace(/'/g, "\\'")}', '${(product.type || 'product').replace(/'/g, "\\'")}')">
+                        ${serviceProducts[service.id]?.some(p => p.name === (product.name || product.product_name)) ? `<div class="product-item-quantity">${serviceProducts[service.id].find(p => p.name === (product.name || product.product_name)).quantity}</div>` : ''}
                         ${product.image ? '' : `
                             <div class="text-center px-1">
                                 <svg class="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -4559,7 +5185,7 @@
                     <!-- Company Name Row -->
                     <div class="flex items-center gap-1 flex-wrap mb-3 sm:mb-4">
                         <h3 class="text-white text-lg sm:text-xl font-medium line-clamp-2">
-                            <a href="schedule.html?branch_id=${service.branch_id}" class="hover:text-blue-400 transition-colors">${service.name}</a>
+                            <a href="schedule.html?branch_id=${service.id}" class="hover:text-blue-400 transition-colors">${service.name}</a>
                             <span class="material-symbols-outlined ${getVerifiedIconClass(service.verification_tier)} text-lg sm:text-xl">verified</span>
                         </h3>
                     </div>
@@ -4606,15 +5232,15 @@
                 </div>
 
                 <!-- Selected Products Counter -->
-                <div id="selectedCount${index + 1}" class="hidden px-4 sm:px-5">
+                <div id="selectedCount-${service.id}" class="${(serviceProducts[service.id]?.length > 0) ? '' : 'hidden'} px-4 sm:px-5">
                     <span class="text-blue-400 text-sm sm:text-base font-medium">
-                        <span id="selectedProductsCount${index + 1}"><span class="badge">0</span></span> selected
+                        <span id="selectedProductsCount-${service.id}"><span class="badge">${serviceProducts[service.id]?.length || 0}</span></span> selected
                     </span>
                 </div>
 
                 <!-- Schedule Order Button (sticky bottom) -->
                 <div class="px-4 sm:px-5 py-3 sm:py-4 mt-auto flex-shrink-0 border-t border-gray-700/30">
-                    <button onclick="openScheduleFlow('${service.branch_id}')"
+                    <button onclick="openScheduleFlow('${service.id}')"
                         class="w-full py-3 sm:py-4 rounded-[20px] glass-action-btn transition-all duration-300 shadow-lg text-base sm:text-lg font-semibold ${(service.products && service.products.length > 0) ? '' : 'opacity-50 cursor-not-allowed'}"
                         ${(service.products && service.products.length > 0) ? '' : 'disabled'}>
                         <span class="capitalize">${(service.products && service.products.length > 0) ? 'Schedule Order' : 'No Products'}</span>
@@ -4643,7 +5269,7 @@
             const searchInput = document.getElementById('searchInput');
             searchQuery = searchInput.value.toLowerCase();
 
-            if (viewSwipe) {
+            if (viewMode === 'swipe') {
                 const currentService = services[currentCardIndex];
                 
                 if (!currentService || !isSwipeServiceVisible(currentService)) {
@@ -4669,6 +5295,9 @@
                 } else {
                     renderSwipeCard(currentCardIndex);
                 }
+            } else if (viewMode === 'carousel') {
+                carouselCurrentIndex = 0;
+                renderCarousel();
             } else {
                 filterServicesList();
             }
@@ -4707,19 +5336,20 @@
             return R * c;
         }
 
-        // Toggle product selection in service card
-        function toggleServiceProduct(element, branchId, productName, price, image, type) {
+        function toggleProduct(element, branchId, productName, price, image, type) {
             // Find the service by branchId (fallback to name for compatibility)
-            const service = services.find(s => s.branch_id === branchId) || services.find(s => s.name === branchId);
+            // Use loose equality (==) to handle string/number ID mismatches
+            const service = services.find(s => s.id == branchId || s.branch_id == branchId) || services.find(s => s.name == branchId);
             const companyName = service ? service.name : branchId;
 
             // Find the original product to get minQuantity
-            const originalProduct = service?.products.find(p => p.name === productName && p.type === type);
+            const originalProduct = service?.products.find(p => (p.name === productName || p.product_name === productName) && p.type === type);
 
             const minQuantity = originalProduct?.minQuantity || 1;
 
             // Check if product is already selected
-            const existingIndex = serviceProducts[branchId] ? serviceProducts[branchId].findIndex(p => p.name === productName) : -1;
+            if (!serviceProducts[branchId]) serviceProducts[branchId] = [];
+            const existingIndex = serviceProducts[branchId].findIndex(p => p.name === productName);
 
             if (existingIndex > -1) {
                 // Remove product
@@ -4733,7 +5363,6 @@
                 }
             } else {
                 // Add product with minimum quantity
-                if (!serviceProducts[branchId]) serviceProducts[branchId] = [];
                 serviceProducts[branchId].push({
                     id: Date.now(),
                     company: companyName,
@@ -4753,87 +5382,44 @@
                 element.appendChild(quantityIndicator);
             }
 
-            // Update selected count display
+            // Update selected count display across all views
             updateServiceProductCount(branchId);
         }
 
-        // Toggle product selection in swipe view
-        function toggleSwipeProduct(element, branchId, productName, price, image, type) {
-            // Find the service by branchId (fallback to name for compatibility)
-            const service = services.find(s => s.branch_id === branchId) || services.find(s => s.name === branchId);
+        // Update service product count display (Unified)
+        function updateServiceProductCount(branchId) {
+            const count = serviceProducts[branchId] ? serviceProducts[branchId].length : 0;
+            const service = services.find(s => s.id == branchId || s.branch_id == branchId) || services.find(s => s.name == branchId);
             const companyName = service ? service.name : branchId;
 
-            // Find original product to get minQuantity
-            const originalProduct = service?.products.find(p => p.name === productName && p.type === type);
-
-            const minQuantity = originalProduct?.minQuantity || 1;
-
-            // Check if product is already selected
-            const existingIndex = serviceProducts[branchId] ? serviceProducts[branchId].findIndex(p => p.name === productName) : -1;
-
-            if (existingIndex > -1) {
-                // Remove product
-                serviceProducts[branchId].splice(existingIndex, 1);
-                element.classList.remove('selected');
-
-                // Remove quantity indicator if exists
-                const quantityIndicator = element.querySelector('.product-item-quantity');
-                if (quantityIndicator) {
-                    quantityIndicator.remove();
+            // Update List View
+            const countContainer = document.getElementById(`selectedCount-${branchId}`);
+            const countSpan = document.getElementById(`selectedProductsCount-${branchId}`);
+            if (countContainer && countSpan) {
+                countSpan.innerHTML = `<span class="badge">${count}</span>`;
+                if (count > 0) {
+                    countContainer.classList.remove('hidden');
+                } else {
+                    countContainer.classList.add('hidden');
                 }
-            } else {
-                // Add product with minimum quantity
-                if (!serviceProducts[branchId]) serviceProducts[branchId] = [];
-                serviceProducts[branchId].push({
-                    id: Date.now(),
-                    company: companyName,
-                    branchId: branchId,
-                    name: productName,
-                    price: parseFloat(price) || 0,
-                    image: image,
-                    quantity: minQuantity,
-                    type: type
-                });
-                element.classList.add('selected');
-
-                // Add quantity indicator with minimum quantity
-                const quantityIndicator = document.createElement('div');
-                quantityIndicator.className = 'product-item-quantity';
-                quantityIndicator.textContent = minQuantity;
-                element.appendChild(quantityIndicator);
             }
 
-            // Update selected count display
-            updateServiceProductCount(branchId);
-        }
-
-        // Update service product count display
-        function updateServiceProductCount(companyName) {
-            const count = serviceProducts[companyName] ? serviceProducts[companyName].length : 0;
-
-            // Search the list view cards to find the matching company and update it
-            const serviceCards = document.querySelectorAll('#listView > .card-bg');
-            serviceCards.forEach(card => {
-                const nameEl = card.querySelector('h3 a');
-                if (nameEl && nameEl.textContent.trim() === companyName) {
-                    const countContainer = card.querySelector('div[id^="selectedCount"]');
-                    const countSpan = card.querySelector('span[id^="selectedProductsCount"]');
-                    if (countContainer && countSpan) {
-                        countSpan.innerHTML = `<span class="badge">${count}</span>`;
-                        if (count > 0) {
-                            countContainer.classList.remove('hidden');
-                        } else {
-                            countContainer.classList.add('hidden');
-                        }
-                    }
-                }
-            });
-
-            // Also update swipe view if it's active
-            if (viewSwipe) {
+            // Update Swipe View if active and showing this company
+            if (viewMode === 'swipe') {
                 const currentService = services[currentCardIndex];
-                if (currentService && currentService.name === companyName) {
+                if (currentService && currentservice.id == branchId) {
                     renderSwipeCard(currentCardIndex);
+                }
+            } 
+            
+            // Update Carousel View badge
+            const carouselBadge = document.getElementById(`carousel-badge-${branchId}`);
+            if (carouselBadge) {
+                if (count > 0) {
+                    carouselBadge.innerHTML = `${count} items selected`;
+                    carouselBadge.classList.remove('hidden');
+                } else {
+                    carouselBadge.classList.add('hidden');
                 }
             }
         }
@@ -4924,53 +5510,76 @@
             document.addEventListener('mouseup', handleDragEnd);
         }
 
-        // Toggle between list and swipe view
-        function toggleView() {
-            viewSwipe = !viewSwipe;
+        // Helper to set the view mode and update UI
+        function setViewMode(mode) {
             const toggleBtn = document.getElementById('toggleViewBtn');
             const toggleIcon = document.getElementById('toggleIcon');
             const swipeViewIcon = document.getElementById('swipeViewIcon');
+            const carouselViewIcon = document.getElementById('carouselViewIcon');
             const listView = document.getElementById('listView');
             const swipeView = document.getElementById('swipeView');
+            const carouselView = document.getElementById('carouselView');
 
-            if (viewSwipe) {
+            viewMode = mode;
+
+            // Reset UI
+            toggleIcon.classList.add('hidden');
+            swipeViewIcon.classList.add('hidden');
+            carouselViewIcon.classList.add('hidden');
+            listView.classList.add('hidden');
+            swipeView.classList.add('hidden');
+            carouselView.classList.add('hidden');
+            toggleBtn.classList.remove('active');
+
+            if (mode === 'list') {
+                toggleIcon.classList.remove('hidden');
+                listView.classList.remove('hidden');
+                filterServicesList(); // Ensure search filters are applied
+            } else if (mode === 'swipe') {
                 toggleBtn.classList.add('active');
-                // Randomize the services order for the swipe view each time it is opened
-                services = shuffleArray(services);
-
-                // After shuffling, find first visible card for current search/tier filter
-                const firstValidIndex = services.findIndex(isSwipeServiceVisible);
-                currentCardIndex = firstValidIndex !== -1 ? firstValidIndex : 0;
-
-                // Switch to swipe view
-                toggleIcon.classList.add('hidden');
                 swipeViewIcon.classList.remove('hidden');
-                listView.classList.add('hidden');
                 swipeView.classList.remove('hidden');
 
                 if (services[currentCardIndex] && isSwipeServiceVisible(services[currentCardIndex])) {
                     renderSwipeCard(currentCardIndex);
                 } else {
-                    const container = document.getElementById('swipeCard');
-                    if (container) {
-                        container.innerHTML = `
-                            <div class="w-full flex flex-col items-center justify-center py-20">
-                                <svg class="w-16 h-16 text-gray-500 opacity-50 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                                <h4 class="text-gray-400 text-lg font-semibold mb-2">No Companies Found</h4>
-                                <p class="text-gray-500 text-sm text-center">Try adjusting your search query</p>
-                            </div>
-                        `;
+                    const firstValidIndex = services.findIndex(isSwipeServiceVisible);
+                    if (firstValidIndex !== -1) {
+                        currentCardIndex = firstValidIndex;
+                        renderSwipeCard(currentCardIndex);
+                    } else {
+                        const container = document.getElementById('swipeCard');
+                        if (container) {
+                            container.innerHTML = `
+                                <div class="w-full flex flex-col items-center justify-center py-20">
+                                    <svg class="w-16 h-16 text-gray-500 opacity-50 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                    <h4 class="text-gray-400 text-lg font-semibold mb-2">No Companies Found</h4>
+                                    <p class="text-gray-500 text-sm text-center">Try adjusting your search query</p>
+                                </div>
+                            `;
+                        }
                     }
                 }
+            } else if (mode === 'carousel') {
+                toggleBtn.classList.add('active');
+                carouselViewIcon.classList.remove('hidden');
+                carouselView.classList.remove('hidden');
+                renderCarousel();
+            }
+        }
+
+        // Toggle between list, swipe, and carousel view
+        function toggleView() {
+            // Cycle: list -> swipe -> carousel -> list
+            if (viewMode === 'list') {
+                services = shuffleArray(services); // Shuffle only when entering discovery modes
+                setViewMode('swipe');
+            } else if (viewMode === 'swipe') {
+                setViewMode('carousel');
             } else {
-                toggleBtn.classList.remove('active');
-                // Switch to list view
-                toggleIcon.classList.remove('hidden');
-                swipeViewIcon.classList.add('hidden');
-                listView.classList.remove('hidden');
-                swipeView.classList.add('hidden');
+                setViewMode('list');
             }
         }
 
@@ -4978,9 +5587,12 @@
         function renderSwipeCard(index) {
             const service = services[index];
             const container = document.getElementById('swipeCard');
+            if (!service || !container) return;
 
             // Get selected products for this service
-            const selectedForService = serviceProducts[service.branch_id] || [];
+            // Use loose equality (==) for the key lookup as well just in case
+            const branchId = service.id;
+            const selectedForService = serviceProducts[branchId] || [];
             const selectedCount = selectedForService.length;
 
             const branchType = service.branch_type || 'branch';
@@ -5043,7 +5655,7 @@
                                 <div class="flex flex-col items-center gap-3 flex-shrink-0" style="scroll-snap-align: start;">
                                     <div class="swipe-product-item rounded-[12px] flex items-center justify-center ${isSelected ? 'selected' : ''} transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl" 
                                          style="height: 100px; width: 100px; ${p.image ? `background-image: url('${p.image}'); background-size: cover; background-position: center;` : ''}"
-                                         onclick="toggleSwipeProduct(this, '${service.branch_id}', '${(p.name || p.product_name || 'Unknown Product').replace(/'/g, "\\'")}', ${parseFloat(p.price) || 0}, '${(p.image || '').replace(/'/g, "\\'")}', '${(p.type || 'product').replace(/'/g, "\\'")}')">
+                                         onclick="toggleProduct(this, '${service.id}', '${(p.name || p.product_name || 'Unknown Product').replace(/'/g, "\\'")}', ${parseFloat(p.price) || 0}, '${(p.image || '').replace(/'/g, "\\'")}', '${(p.type || 'product').replace(/'/g, "\\'")}')">
                                         ${isSelected ? `<div class="product-item-quantity">${quantity}</div>` : ''}
                                         ${p.image ? '' : `
                                             <div class="text-center">
@@ -5067,13 +5679,371 @@
                 </div>
                 
                 <div class="px-10 mt-6">
-                    <button onclick="scheduleOrder('${service.branch_id}')" 
+                    <button onclick="scheduleOrder('${service.id}')" 
                             class="h-[46px] w-full rounded-[20px] flex items-center justify-center border shadow-md active:scale-95 transition-transform glass-action-btn"
                             style="border-color: rgba(37, 99, 235, 0.35);">
                         <span class="text-white text-xl font-semibold capitalize">Schedule Order</span>
                     </button>
                 </div>
             `;
+        }
+
+        // --- 3D Carousel (Revolut Stack) Logic ---
+        let carouselCurrentIndex = 0;
+        let carouselIsDragging = false;
+        let carouselStartX = 0;
+        let carouselGlowTime = 0;
+
+        let carouselAnimationId = null;
+
+        function animateCarouselGlow() {
+            if (viewMode !== 'carousel' || carouselIsDragging) {
+                carouselAnimationId = null;
+                return;
+            }
+            const glow = document.getElementById('carouselAmbientGlow');
+            if (!glow) {
+                carouselAnimationId = null;
+                return;
+            }
+            
+            carouselGlowTime += 0.006;
+            const offsetX = Math.sin(carouselGlowTime) * 15;
+            const offsetY = Math.cos(carouselGlowTime * 0.7) * 12;
+            glow.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px)) scale(1.02)`;
+            carouselAnimationId = requestAnimationFrame(animateCarouselGlow);
+        }
+
+        function renderCarousel() {
+            const stack = document.getElementById('carouselStack');
+            const indicators = document.getElementById('carouselIndicators');
+            if (!stack || !indicators) return;
+
+            const visibleServices = services.filter(isSwipeServiceVisible);
+            
+            if (visibleServices.length === 0) {
+                stack.innerHTML = `<div class="text-center p-10"><h4 class="text-gray-400">No Services Found</h4></div>`;
+                indicators.innerHTML = '';
+                return;
+            }
+
+            stack.innerHTML = '';
+            indicators.innerHTML = '';
+
+            visibleServices.forEach((service, index) => {
+                const card = document.createElement('div');
+                card.className = `card-revolut ${index === carouselCurrentIndex ? 'active' : ''}`;
+                card.setAttribute('data-theme', index % 6);
+                
+                const branchType = service.branch_type || 'branch';
+                const isHQ = branchType.toLowerCase() === 'hq' || branchType.toLowerCase() === 'admin';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex flex-col gap-1">
+                                <div class="card-revolut-tag">
+                                    ${isHQ ? 'Admin HQ' : 'Branch'}
+                                </div>
+                                <div id="carousel-badge-${service.id}" class="text-[10px] text-[#3B74FF] font-bold ${serviceProducts[service.id]?.length > 0 ? '' : 'hidden'}">
+                                    ${serviceProducts[service.id]?.length || 0} items selected
+                                </div>
+                            </div>
+                            <span class="material-symbols-outlined ${getVerifiedIconClass(service.verification_tier)}">verified</span>
+                        </div>
+                        <h2 class="card-revolut-title">${service.name}</h2>
+                        <p class="card-revolut-subtitle">${service.location || 'Location unknown'}</p>
+                        ${service.company_rating > 0 ? `
+                            <div class="flex items-center gap-1 mt-2">
+                                <svg class="w-4 h-4 text-yellow-500" fill="#FCD34D" viewBox="0 0 24 24">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg>
+                                <span class="text-yellow-400 font-bold">${service.company_rating.toFixed(1)}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="flex flex-col gap-4">
+                        <div class="w-full">
+                            <p class="text-white/60 text-[10px] uppercase font-bold tracking-widest mb-2">Select Products</p>
+                            <div class="flex gap-3 overflow-x-auto pb-2 hide-scrollbar scroll-smooth" style="scroll-snap-type: x mandatory;">
+                                ${(service.products || []).map(p => {
+                                    const isSelected = (serviceProducts[service.id] || []).some(sp => sp.name === (p.name || p.product_name));
+                                    const quantity = isSelected ? serviceProducts[service.id].find(sp => sp.name === (p.name || p.product_name)).quantity : 0;
+                                    
+                                    return `
+                                        <div class="flex flex-col items-center gap-1 flex-shrink-0" style="scroll-snap-align: start;">
+                                            <div class="swipe-product-item rounded-xl flex items-center justify-center ${isSelected ? 'selected' : ''} transition-all duration-200" 
+                                                 style="height: 70px; width: 70px; background-image: url('${p.image || ''}'); background-size: cover; background-position: center; background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);"
+                                                 onclick="event.stopPropagation(); toggleProduct(this, '${service.id}', '${(p.name || p.product_name || 'Unknown Product').replace(/'/g, "\\'")}', ${parseFloat(p.price) || 0}, '${(p.image || '').replace(/'/g, "\\'")}', '${(p.type || 'product').replace(/'/g, "\\'")}')">
+                                                ${isSelected ? `<div class="product-item-quantity" style="top: -5px; right: -5px; width: 20px; height: 20px; font-size: 10px;">${quantity}</div>` : ''}
+                                                ${p.image ? '' : '<span class="text-xs text-gray-500">📦</span>'}
+                                            </div>
+                                            <span class="text-white/80 text-[10px] font-bold">GHS ${(parseFloat(p.price) || 0).toFixed(2)}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        <button onclick="event.stopPropagation(); scheduleOrder('${service.id}')" class="card-revolut-action">
+                            Schedule Order
+                        </button>
+                    </div>
+                `;
+
+                stack.appendChild(card);
+
+                const dot = document.createElement('div');
+                dot.className = `dot-revolut ${index === carouselCurrentIndex ? 'active' : ''}`;
+                dot.onclick = () => goToCarouselCard(index);
+                indicators.appendChild(dot);
+            });
+
+            updateCarousel();
+            initCarouselInteractions();
+            if (!carouselAnimationId) {
+                carouselGlowTime = 0;
+                animateCarouselGlow();
+            }
+        }
+
+        function goToCarouselCard(newIndex) {
+            const visibleServices = services.filter(isSwipeServiceVisible);
+            if (newIndex < 0 || newIndex >= visibleServices.length) return;
+            
+            carouselCurrentIndex = newIndex;
+            updateCarousel();
+            
+            const cards = document.querySelectorAll('.card-revolut');
+            const currentCard = cards[carouselCurrentIndex];
+            if (currentCard) {
+                currentCard.classList.add('focus-animation-revolut');
+                setTimeout(() => currentCard.classList.remove('focus-animation-revolut'), 450);
+                createJoyfulDropletBurst(currentCard);
+            }
+        }
+
+        function updateCarousel(dragOffset = 0) {
+            const cards = document.querySelectorAll('.card-revolut');
+            const dots = document.querySelectorAll('.dot-revolut');
+            const ambientGlow = document.getElementById('carouselAmbientGlow');
+
+            cards.forEach((card, index) => {
+                const visualOffset = index - carouselCurrentIndex - dragOffset;
+                const absOffset = Math.abs(visualOffset);
+                
+                let translateX = 0, translateY = 0, scale = 1, opacity = 1, blurVal = 0, rotateY = 0, translateZ = 0, zIndexVal = 10;
+                
+                if (absOffset < 0.2) {
+                    translateX = visualOffset * 10;
+                    translateY = Math.abs(visualOffset) * -4;
+                    scale = 1 - Math.abs(visualOffset) * 0.01;
+                    opacity = 1;
+                    rotateY = visualOffset * 4;
+                    zIndexVal = 200;
+                    translateZ = 0;
+                } 
+                else if (absOffset < 1.0) {
+                    const factor = absOffset;
+                    const dir = visualOffset > 0 ? 1 : -1;
+                    translateX = dir * (55 + factor * 25);
+                    translateY = -14 - factor * 10;
+                    scale = 0.86 - factor * 0.06;
+                    opacity = 0.7 - factor * 0.1;
+                    blurVal = 1.8 + factor * 1.8;
+                    rotateY = dir * (10 + factor * 8);
+                    zIndexVal = 90 - Math.round(factor * 25);
+                    translateZ = -25 - factor * 20;
+                }
+                else if (absOffset < 2.0) {
+                    const deepFactor = (absOffset - 1.0) / 1.0;
+                    const dir = visualOffset > 0 ? 1 : -1;
+                    translateX = dir * (95 + deepFactor * 45);
+                    translateY = -30 - deepFactor * 22;
+                    scale = 0.7 - deepFactor * 0.1;
+                    opacity = 0.45 - deepFactor * 0.2;
+                    blurVal = 4.5 + deepFactor * 6;
+                    rotateY = dir * (18 + deepFactor * 12);
+                    zIndexVal = 45 - Math.round(deepFactor * 20);
+                    translateZ = -65 - deepFactor * 40;
+                }
+                else {
+                    const farFactor = Math.min(1.0, (absOffset - 2.0) / 2.0);
+                    const direction = visualOffset > 0 ? 1 : -1;
+                    translateX = direction * (150 + farFactor * 60);
+                    translateY = -55 - farFactor * 35;
+                    scale = 0.58 - farFactor * 0.12;
+                    opacity = 0.25 - farFactor * 0.12;
+                    blurVal = 11 + farFactor * 10;
+                    rotateY = direction * (28 + farFactor * 10);
+                    zIndexVal = 20 - Math.round(farFactor * 12);
+                    translateZ = -110 - farFactor * 70;
+                }
+
+                card.style.transform = `translateX(${translateX}px) translateY(${translateY}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`;
+                card.style.opacity = Math.max(0, opacity);
+                card.style.filter = blurVal > 0.5 ? `blur(${blurVal}px)` : 'none';
+                card.style.zIndex = zIndexVal;
+                
+                const isActive = index === carouselCurrentIndex;
+                card.classList.toggle('active', isActive);
+                card.style.pointerEvents = isActive ? 'auto' : 'none';
+
+
+            });
+
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === carouselCurrentIndex);
+            });
+
+            if (ambientGlow) {
+                const glowShiftX = dragOffset * 35;
+                const glowShiftY = Math.abs(dragOffset) * -12;
+                ambientGlow.style.transform = `translateX(${glowShiftX}px) translateY(${glowShiftY}px) scale(${0.95 + Math.abs(dragOffset) * 0.12})`;
+            }
+        }
+
+        function createJoyfulDropletBurst(cardElement) {
+            const rect = cardElement.getBoundingClientRect();
+            const container = document.getElementById('dropletContainerRevolut');
+            if (!container) return;
+            
+            const perimeterPoints = [
+                { x: rect.left + rect.width * 0.2, y: rect.top - 8, angle: -90, range: 50 },
+                { x: rect.left + rect.width * 0.5, y: rect.top - 12, angle: -90, range: 65 },
+                { x: rect.left + rect.width * 0.8, y: rect.top - 8, angle: -90, range: 50 },
+                { x: rect.left + rect.width * 0.3, y: rect.bottom + 8, angle: 90, range: 50 },
+                { x: rect.left + rect.width * 0.7, y: rect.bottom + 12, angle: 90, range: 65 },
+                { x: rect.left - 8, y: rect.top + rect.height * 0.3, angle: 180, range: 50 },
+                { x: rect.right + 8, y: rect.top + rect.height * 0.3, angle: 0, range: 50 },
+                { x: rect.left - 5, y: rect.top - 5, angle: -135, range: 70 },
+                { x: rect.right + 5, y: rect.top - 5, angle: -45, range: 70 }
+            ];
+            
+            perimeterPoints.forEach(point => {
+                const count = 2 + Math.floor(Math.random() * 3);
+                for (let i = 0; i < count; i++) {
+                    const droplet = document.createElement('div');
+                    droplet.className = 'joy-droplet-revolut';
+                    
+                    const angleRad = (point.angle + (Math.random() - 0.5) * 40) * Math.PI / 180;
+                    const dist = 10 + Math.random() * point.range;
+                    const dx = Math.cos(angleRad) * dist;
+                    const dy = Math.sin(angleRad) * dist;
+                    
+                    droplet.style.setProperty('--dx', `${dx}px`);
+                    droplet.style.setProperty('--dy', `${dy}px`);
+                    droplet.style.setProperty('--dx2', `${dx * 1.5}px`);
+                    droplet.style.setProperty('--dy2', `${dy * 1.5 - 20}px`);
+                    
+                    droplet.style.left = point.x + 'px';
+                    droplet.style.top = point.y + 'px';
+                    container.appendChild(droplet);
+                    setTimeout(() => droplet.remove(), 800);
+                }
+            });
+
+            // Splash rings
+            [0.2, 0.5, 0.8].forEach(f => {
+                const ring = document.createElement('div');
+                ring.className = 'splash-ring-revolut';
+                ring.style.left = (rect.left + rect.width * f) + 'px';
+                ring.style.top = rect.top + 'px';
+                container.appendChild(ring);
+                setTimeout(() => ring.remove(), 700);
+            });
+
+            if (window.navigator?.vibrate) window.navigator.vibrate([10, 5, 10]);
+        }
+
+        function initCarouselInteractions() {
+            const stack = document.getElementById('carouselStack');
+            if (!stack) return;
+
+            let startX = 0;
+            let currentDelta = 0;
+
+            const onStart = (e) => {
+                if (e.target.closest('.swipe-product-item') || e.target.closest('button')) return;
+                carouselIsDragging = true;
+                startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                stack.style.cursor = 'grabbing';
+            };
+
+            const onMove = (e) => {
+                if (!carouselIsDragging) return;
+                const x = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                currentDelta = x - startX;
+                const factor = currentDelta / 200;
+                updateCarousel(factor);
+            };
+
+            const onEnd = () => {
+                if (!carouselIsDragging) return;
+                carouselIsDragging = false;
+                stack.style.cursor = 'grab';
+                
+                const threshold = 50;
+                const visibleServices = services.filter(isSwipeServiceVisible);
+                
+                if (Math.abs(currentDelta) > threshold) {
+                    if (currentDelta < 0 && carouselCurrentIndex < visibleServices.length - 1) {
+                        goToCarouselCard(carouselCurrentIndex + 1);
+                    } else if (currentDelta > 0 && carouselCurrentIndex > 0) {
+                        goToCarouselCard(carouselCurrentIndex - 1);
+                    } else {
+                        updateCarousel(0);
+                    }
+                } else {
+                    updateCarousel(0);
+                }
+                currentDelta = 0;
+            };
+
+            stack.onmousedown = onStart;
+            window.onmousemove = onMove;
+            window.onmouseup = onEnd;
+            stack.ontouchstart = onStart;
+            stack.ontouchmove = onMove;
+            stack.ontouchend = onEnd;
+        }
+
+        function createBurst(x, y) {
+            const colors = ['#fff', '#3B74FF', '#10B981', '#FCD34D'];
+            const container = document.getElementById('dropletContainerRevolut') || document.body;
+            
+            for (let i = 0; i < 12; i++) {
+                const p = document.createElement('div');
+                p.className = 'joy-droplet-revolut';
+                const size = Math.random() * 6 + 4;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                
+                const angleRad = Math.random() * Math.PI * 2;
+                const dist = 30 + Math.random() * 50;
+                const dx = Math.cos(angleRad) * dist;
+                const dy = Math.sin(angleRad) * dist;
+                
+                p.style.setProperty('--dx', `${dx}px`);
+                p.style.setProperty('--dy', `${dy}px`);
+                p.style.setProperty('--dx2', `${dx * 1.4}px`);
+                p.style.setProperty('--dy2', `${dy * 1.4 - 20}px`);
+                
+                container.appendChild(p);
+                setTimeout(() => p.remove(), 800);
+            }
+        }
+
+        function openCarouselService(branchId) {
+            // Use loose equality (==) to handle potential string/number ID mismatches from HTML attributes
+            const serviceIndex = services.findIndex(s => s.id == branchId || s.branch_id == branchId);
+            if (serviceIndex !== -1) {
+                currentCardIndex = serviceIndex;
+                setViewMode('swipe');
+            }
         }
 
         // Navigate to previous card
@@ -5102,6 +6072,7 @@
 
         // Schedule order - Open bottom sheet
         async function scheduleOrder(branchId) {
+            console.log('📅 scheduleOrder called for branch:', branchId);
             selectedBranchId = branchId;
 
             // Get selected products for this company
@@ -5543,7 +6514,7 @@
             dateInput.min = minDateString;
 
             // Get selected company's working days
-            const company = services.find(service => service.branch_id === selectedBranchId) || services.find(service => service.name === selectedBranchId);
+            const company = services.find(service => service.id == selectedBranchId) || services.find(service => service.name == selectedBranchId);
             if (company && company.working_days && company.working_days.length > 0) {
                 // Find the next available working day
                 let nextAvailableDate = new Date(minDate);
@@ -5599,7 +6570,7 @@
             timeSlotsGrid.innerHTML = '';
 
             // Get selected company's working hours for the selected date
-            const company = services.find(service => service.branch_id === selectedBranchId) || services.find(service => service.name === selectedBranchId);
+            const company = services.find(service => service.id == selectedBranchId) || services.find(service => service.name == selectedBranchId);
             if (!company || !company.working_days || !selectedDate) {
                 // Fallback to default time slots if no working hours data
                 generateDefaultTimeSlots();
@@ -5792,7 +6763,7 @@
 
         // Validate selected date and time against company working hours
         function validateDateTimeAgainstWorkingHours() {
-            const company = services.find(service => service.branch_id === selectedBranchId) || services.find(service => service.name === selectedBranchId);
+            const company = services.find(service => service.id == selectedBranchId) || services.find(service => service.name == selectedBranchId);
             if (!company || !company.working_days || !selectedDate || !selectedTime) {
                 return true; // Skip validation if no working hours data
             }
@@ -6383,7 +7354,7 @@
             console.log('🔍 Services loaded:', services.length > 0);
 
             // Display company working hours
-            const company = services.find(service => service.branch_id === selectedBranchId) || services.find(service => service.name === selectedBranchId);
+            const company = services.find(service => service.id == selectedBranchId) || services.find(service => service.name == selectedBranchId);
             const workingHoursDisplay = document.getElementById('workingHoursDisplay');
             const workingHoursText = document.getElementById('workingHoursText');
 
@@ -6592,7 +7563,7 @@
 
             // Scroll to the selected company's card
             setTimeout(() => {
-                const companyCard = document.querySelectorAll('h3 a').find(el => el.textContent.trim() === selectedBranchId || services.find(s => s.branch_id === selectedBranchId)?.name === el.textContent.trim())?.closest('.card-bg');
+                const companyCard = document.querySelectorAll('h3 a').find(el => el.textContent.trim() == selectedBranchId || services.find(s => s.id == selectedBranchId || s.branch_id == selectedBranchId)?.name === el.textContent.trim())?.closest('.card-bg');
                 if (companyCard) {
                     companyCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
@@ -6607,7 +7578,7 @@
 
                 // Find the original product to get minQuantity
                 const originalProduct = services.find(service =>
-                    (service.branch_id === product.branchId || service.name === product.company) &&
+                    (service.id == product.branchId || service.name == product.company) &&
                     service.products.some(p => p.name === product.name && p.type === product.type)
                 )?.products.find(p => p.name === product.name && p.type === product.type);
 
@@ -6635,9 +7606,12 @@
                     serviceProducts[lookupId][serviceIndex].quantity = newQuantity;
 
                     // Update quantity indicator in UI
-                    if (viewSwipe) {
+                    if (viewMode === 'swipe') {
                         // Update swipe view
                         renderSwipeCard(currentCardIndex);
+                    } else if (viewMode === 'carousel') {
+                        // Update carousel view
+                        renderCarousel();
                     } else {
                         // Update list view
                         updateProductQuantityInListView(lookupId, product.name, newQuantity);
@@ -6650,7 +7624,7 @@
 
         // Check if company is open at selected date and time
         function isCompanyOpen(branchId, date, time) {
-            const company = services.find(service => service.branch_id === branchId) || services.find(service => service.name === branchId);
+            const company = services.find(service => service.id == branchId) || services.find(service => service.name == branchId);
             if (!company || !company.openingHours) return false;
 
             // Get day of week (0 = Sunday, 1 = Monday, etc.)
@@ -6702,7 +7676,7 @@
 
         // Get company opening hours info
         function getCompanyHoursInfo(branchId, date) {
-            const company = services.find(service => service.branch_id === branchId) || services.find(service => service.name === branchId);
+            const company = services.find(service => service.id == branchId) || services.find(service => service.name == branchId);
             if (!company || !company.openingHours) return null;
 
             const selectedDate = new Date(date);
@@ -6743,7 +7717,7 @@
             // Check if company is open
             if (!isCompanyOpen(selectedBranchId, selectedDate, selectedTime)) {
                 const hoursInfo = getCompanyHoursInfo(selectedBranchId, selectedDate);
-                const companyName = services.find(s => s.branch_id === selectedBranchId || s.name === selectedBranchId)?.name || selectedBranchId;
+                const companyName = services.find(s => s.id == selectedBranchId || s.branch_id == selectedBranchId || s.name == selectedBranchId)?.name || selectedBranchId;
                 const errorMessage = hoursInfo && hoursInfo.message
                     ? hoursInfo.message
                     : `${companyName} is closed at the selected time. Please choose a different time.`;
@@ -6779,7 +7753,7 @@
             serviceCards.forEach(card => {
                 const nameEl = card.querySelector('h3 a');
                 const cardService = services.find(s => s.name === nameEl?.textContent.trim());
-                if (cardService && (cardService.branch_id === branchId || cardService.name === branchId)) {
+                if (cardService && (cardservice.id == branchId || cardService.name == branchId)) {
                     const productItems = card.querySelectorAll('.product-item');
                     productItems.forEach(item => {
                         // We need to match the product somehow - this is a simplified version
@@ -7165,6 +8139,9 @@
                 orderData.paymentMethod = 'mobile';
                 orderData.timestamp = new Date().toISOString();
             }
+
+            // Trigger celebration animation!
+            triggerCelebration();
         }
 
         function showScheduleSent() {
@@ -7180,6 +8157,61 @@
             orderData.orderId = orderId;
             orderData.orderDate = formatDate(selectedDate);
             orderData.orderTime = formatTime(selectedTime);
+
+            // Trigger celebration animation!
+            triggerCelebration();
+        }
+
+        // Premium Celebration / Hurray Animation
+        function triggerCelebration() {
+            const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#22C55E'];
+            const shapes = ['2px', '50%']; // rectangle or circle
+            const particleCount = 60;
+
+            // Create confetti particles
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'confetti-particle';
+                
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const size = Math.random() * 10 + 5;
+                const x = Math.random() * 100;
+                const duration = Math.random() * 2 + 2.5;
+                const drift = (Math.random() - 0.5) * 120;
+                const drift2 = (Math.random() - 0.5) * 80;
+                const delay = Math.random() * 0.8;
+                const radius = shapes[Math.floor(Math.random() * shapes.length)];
+
+                particle.style.setProperty('--color', color);
+                particle.style.setProperty('--size', size + 'px');
+                particle.style.setProperty('--x', x + '%');
+                particle.style.setProperty('--y', '-20px');
+                particle.style.setProperty('--duration', duration + 's');
+                particle.style.setProperty('--drift', drift + 'px');
+                particle.style.setProperty('--drift2', drift2 + 'px');
+                particle.style.setProperty('--radius', radius);
+                particle.style.animationDelay = delay + 's';
+
+                document.body.appendChild(particle);
+                
+                // Auto-cleanup
+                setTimeout(() => particle.remove(), (duration + delay) * 1000 + 500);
+            }
+
+            // Create center emoji burst
+            const emojis = ['🎉', '🥳', '✨', '🎊', '💧'];
+            emojis.forEach((emoji, i) => {
+                setTimeout(() => {
+                    const el = document.createElement('div');
+                    el.className = 'celebration-emoji';
+                    el.textContent = emoji;
+                    el.style.setProperty('--size', (28 + Math.random() * 20) + 'px');
+                    el.style.left = (40 + Math.random() * 20) + '%';
+                    el.style.top = (40 + Math.random() * 20) + '%';
+                    document.body.appendChild(el);
+                    setTimeout(() => el.remove(), 1500);
+                }, i * 200);
+            });
         }
 
         function setRating(rating) {
@@ -7377,10 +8409,13 @@
                 selectedProducts = [];
                 updateServiceProductCount(selectedBranchId);
 
-                // Reset UI selections
-                if (viewSwipe) {
+                // Reset UI selections based on current view mode
+                if (viewMode === 'swipe') {
                     renderSwipeCard(currentCardIndex);
+                } else if (viewMode === 'carousel') {
+                    renderCarousel();
                 } else {
+                    // List view - reset product selections visually
                     document.querySelectorAll('.product-item').forEach(item => {
                         item.classList.remove('selected');
                         const quantityIndicator = item.querySelector('.product-item-quantity');
@@ -7447,9 +8482,58 @@
                         const orderManager = new window.OrderManager();
 
                         // Prepare order data for database (orders table)
-                        const selectedCompanyData = services.find(s => s.branch_id === selectedBranchId) || services.find(s => s.name === selectedBranchId);
+                        const selectedCompanyData = services.find(s => s.id == selectedBranchId || s.branch_id == selectedBranchId) || services.find(s => s.name == selectedBranchId);
                         console.log('🔍 Selected company data:', selectedCompanyData);
                         console.log('🔍 Branch ID from company:', selectedCompanyData?.branch_id);
+
+                        // --- SECURITY VALIDATION: Recalculate Total and Validate Products ---
+                        const productsToSaveRaw = (orderData.products && orderData.products.length > 0) ? orderData.products : selectedProducts;
+                        const validatedProducts = [];
+                        let calculatedSubtotal = 0;
+
+                        if (productsToSaveRaw && productsToSaveRaw.length > 0 && selectedCompanyData && selectedCompanyData.products) {
+                            for (const product of productsToSaveRaw) {
+                                const realProduct = selectedCompanyData.products.find(p => 
+                                    (p.name === product.name || p.product_name === product.name) && 
+                                    (p.type === product.type)
+                                );
+
+                                if (realProduct) {
+                                    const realPrice = parseFloat(realProduct.price) || 0;
+                                    const qty = Math.max(1, parseInt(product.quantity) || 1);
+                                    
+                                    calculatedSubtotal += realPrice * qty;
+                                    
+                                    validatedProducts.push({
+                                        ...product,
+                                        price: realPrice,
+                                        quantity: qty,
+                                        name: realProduct.name || realProduct.product_name || product.name
+                                    });
+                                } else {
+                                    throw new Error(`Security validation failed: Product ${product.name} is invalid or no longer available.`);
+                                }
+                            }
+                        }
+
+                        if (validatedProducts.length === 0) {
+                            showError('No valid products selected. Please select products again.');
+                            throw new Error('No valid products found during security validation');
+                        }
+
+                        const totalItems = validatedProducts.reduce((sum, p) => sum + p.quantity, 0);
+                        const calculatedServiceFee = totalItems * SERVICE_FEE_PER_ITEM;
+                        const trueTotal = calculatedSubtotal + calculatedServiceFee;
+
+                        console.log(`🛡️ Security Audit: Original Total: ${orderData.total}, True Total: ${trueTotal}`);
+                        
+                        // Enforce current user ID (anti-spoofing)
+                        const activeUserId = window.appwriteUser ? window.appwriteUser.$id : (orderData.customer ? orderData.customer.id : '');
+                        
+                        if (!activeUserId) {
+                            throw new Error('Security validation failed: No active user session found.');
+                        }
+                        // --- END SECURITY VALIDATION ---
 
                         // Resolve paymentMethod: 'delivery' or the actual network (mtn, vodafone, airteltigo)
                         let resolvedPaymentMethod = 'delivery';
@@ -7464,7 +8548,7 @@
 
                         const dbOrderData = {
                             // Required customer field
-                            customer_id: orderData.customer.id,
+                            customer_id: activeUserId,
 
                             // Order details
                             company_id: selectedCompanyData?.company_id || '',
@@ -7477,8 +8561,8 @@
                             transactionId: orderData.transactionId || '',
                             deliveryName: orderData.customer?.full_name || orderData.customer?.name || 'User',
                             deliveryOrgType: orderData.recipient.type || '',
-                            total: Number(orderData.total || 0),
-                            buyerId: orderData.customer.id
+                            total: Number(trueTotal),
+                            buyerId: activeUserId
                         };
 
                         console.log('🔍 Final dbOrderData.branch_id:', dbOrderData.branch_id);
@@ -7527,8 +8611,8 @@
                         console.log('🔍 selectedProducts:', selectedProducts);
                         console.log('🔍 orderData.products length:', orderData.products?.length);
 
-                        // Use selectedProducts as fallback if orderData.products is empty
-                        const productsToSave = (orderData.products && orderData.products.length > 0) ? orderData.products : selectedProducts;
+                        // Security Fix: Use validated products instead of unvalidated client input
+                        const productsToSave = validatedProducts;
 
                         console.log('🔍 Final products to save:', productsToSave);
                         console.log('🔍 Products count:', productsToSave?.length);
@@ -7761,7 +8845,184 @@
 
             // Set greeting
             setGreeting();
+
+            // Initialize Advanced View Interactions
+            initViewToggleInteractions();
+
+            // Check for Tutorial
+            setTimeout(checkTutorial, 1500);
         });
+
+        // Advanced View Toggle Interactions
+        function initViewToggleInteractions() {
+            const btn = document.getElementById('toggleViewBtn');
+            let touchTimer;
+            let lastTap = 0;
+
+            // 1. Double Tap Detection
+            btn.addEventListener('touchend', function(e) {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                if (tapLength < 300 && tapLength > 0) {
+                    e.preventDefault();
+                    showViewSelectionPopup();
+                }
+                lastTap = currentTime;
+            });
+
+            // 2. Double Click Detection (Desktop)
+            btn.addEventListener('dblclick', function(e) {
+                showViewSelectionPopup();
+            });
+
+            // 3. Long Press Detection
+            btn.addEventListener('touchstart', function() {
+                touchTimer = setTimeout(showViewSelectionPopup, 600);
+            });
+
+            btn.addEventListener('touchend', function() {
+                clearTimeout(touchTimer);
+            });
+
+            btn.addEventListener('touchmove', function() {
+                clearTimeout(touchTimer);
+            });
+
+            // Close popup on click outside
+            document.addEventListener('click', function(e) {
+                const popup = document.getElementById('viewSelectionPopup');
+                if (popup.style.display === 'flex' && !popup.contains(e.target) && e.target.id !== 'toggleViewBtn' && !btn.contains(e.target)) {
+                    hideViewSelectionPopup();
+                }
+            });
+        }
+
+        function showViewSelectionPopup() {
+            const popup = document.getElementById('viewSelectionPopup');
+            popup.style.display = 'flex';
+            
+            // Update active state
+            document.querySelectorAll('.view-option-btn').forEach(btn => btn.classList.remove('active'));
+            const activeOption = document.getElementById('option-' + viewMode);
+            if (activeOption) activeOption.classList.add('active');
+        }
+
+        function hideViewSelectionPopup() {
+            const popup = document.getElementById('viewSelectionPopup');
+            popup.style.display = 'none';
+        }
+
+        function selectViewMode(mode) {
+            setViewMode(mode);
+            hideViewSelectionPopup();
+            showMobileNotification(`Switched to ${mode.charAt(0).toUpperCase() + mode.slice(1)} view`, 'success');
+        }
+
+        // Onboarding Tutorial Logic
+        let tutorialStep = 0;
+        const tutorialSteps = [
+            {
+                title: "Welcome to Phluowise!",
+                text: "We've upgraded your service discovery experience. Let's show you around!",
+                icon: `<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z" /></svg>`,
+                target: null
+            },
+            {
+                title: "Smart Search",
+                text: "Instantly find your favorite water branches or search by location.",
+                icon: `<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>`,
+                target: "searchInput"
+            },
+            {
+                title: "View Modes",
+                text: "Switch views with a single tap. **Double tap** or **Long press** for the quick selection menu!",
+                icon: `<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>`,
+                target: "toggleViewBtn"
+            },
+            {
+                title: "Quick Start Guide",
+                text: "Select a water service, choose your products, and hit **Schedule Order**. It's that simple!",
+                icon: `<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`,
+                target: null
+            },
+            {
+                title: "You're All Set!",
+                text: "Start exploring our verified water branches and experience seamless ordering today.",
+                icon: `<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+                target: null,
+                button: "Start Exploring"
+            }
+        ];
+
+        function checkTutorial() {
+            if (!localStorage.getItem('servicesTutorialShown')) {
+                startTutorial();
+            }
+        }
+
+        function startTutorial() {
+            tutorialStep = 0;
+            const overlay = document.getElementById('tutorialOverlay');
+            const card = document.getElementById('tutorialCard');
+            overlay.style.display = 'block';
+            card.classList.add('visible');
+            renderTutorialStep();
+        }
+
+        function nextTutorialStep() {
+            tutorialStep++;
+            if (tutorialStep < tutorialSteps.length) {
+                renderTutorialStep();
+            } else {
+                closeTutorial();
+            }
+        }
+
+        function renderTutorialStep() {
+            const step = tutorialSteps[tutorialStep];
+            const card = document.getElementById('tutorialCard');
+            
+            document.getElementById('tutorialTitle').textContent = step.title;
+            document.getElementById('tutorialText').innerHTML = step.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') + 
+                (step.target ? '<br><span style="font-size: 13px; opacity: 0.5; margin-top: 8px; display: block;">Tap Next to continue →</span>' : '');
+            
+            document.getElementById('tutorialIcon').innerHTML = step.icon;
+            document.getElementById('tutorialActionBtn').textContent = step.button || "Next";
+
+            // Clear spotlights
+            document.querySelectorAll('.tutorial-spotlight').forEach(el => el.classList.remove('tutorial-spotlight'));
+
+            // Reset card position classes
+            card.classList.remove('position-bottom', 'position-top');
+            
+            if (step.target) {
+                const target = document.getElementById(step.target);
+                if (target) {
+                    const container = target.closest('.search-container') || target;
+                    container.classList.add('tutorial-spotlight');
+
+                    // Position card away from the spotlight
+                    setTimeout(() => {
+                        const rect = container.getBoundingClientRect();
+                        if (rect.top < window.innerHeight / 2) {
+                            card.classList.add('position-bottom');
+                        } else {
+                            card.classList.add('position-top');
+                        }
+                    }, 100);
+                }
+            }
+            // If no target, card stays centered (default CSS)
+        }
+
+        function closeTutorial() {
+            const overlay = document.getElementById('tutorialOverlay');
+            const card = document.getElementById('tutorialCard');
+            overlay.style.display = 'none';
+            card.classList.remove('visible', 'position-bottom', 'position-top');
+            document.querySelectorAll('.tutorial-spotlight').forEach(el => el.classList.remove('tutorial-spotlight'));
+            localStorage.setItem('servicesTutorialShown', 'true');
+        }
 
         // Load service data from database
         loadServiceData();
