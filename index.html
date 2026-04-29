@@ -146,6 +146,15 @@
             }
         }
 
+        #splash-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
         .logo-text {
             font-size: 3rem;
             font-weight: 700;
@@ -488,8 +497,9 @@
             </div>
         </div>
     </div>
+    <script type="module">
+        import { initSplashAnimation } from './js/splash-animation.js';
 
-    <script>
         let currentSlide = 0;
         const totalSlides = 3;
 
@@ -498,26 +508,30 @@
             // Check if user has seen onboarding
             const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
 
+            // Initialize Three.js Splash Animation
+            const splashAnim = initSplashAnimation();
+
             // Show splash screen first
             setTimeout(() => {
-                // Hide splash screen
-                const splashScreen = document.getElementById('splashScreen');
-                splashScreen.classList.add('fade-out');
+                // Start the liquid transition
+                splashAnim.startTransition(() => {
+                    // After transition, fade out the splash container
+                    const splashScreen = document.getElementById('splashScreen');
+                    splashScreen.classList.add('fade-out');
 
-                setTimeout(() => {
-                    splashScreen.style.display = 'none';
+                    setTimeout(() => {
+                        splashScreen.style.display = 'none';
 
-                    // Check if should show onboarding or go directly to app
-                    if (hasSeenOnboarding === 'true') {
-                        // User has seen onboarding, go to home
-                        window.location.href = 'home.html';
-                    } else {
-                        // Show onboarding
-                        const onboardingContainer = document.getElementById('onboardingContainer');
-                        onboardingContainer.classList.add('active');
-                    }
-                }, 500);
-            }, 3000); // 3 seconds splash screen
+                        // Check if should show onboarding or go directly to app
+                        if (hasSeenOnboarding === 'true') {
+                            window.location.href = 'home.html';
+                        } else {
+                            const onboardingContainer = document.getElementById('onboardingContainer');
+                            onboardingContainer.classList.add('active');
+                        }
+                    }, 500);
+                });
+            }, 2500); // 2.5 seconds splash screen before transition
         });
 
         function nextSlide() {
