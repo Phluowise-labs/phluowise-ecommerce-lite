@@ -12,6 +12,11 @@ class DistanceCalculator {
             mapbox: null, // Mapbox API key
             openroute: null // OpenRouteService API key
         };
+
+        // Check if any keys are available
+        if (!this.apiKeys.google && !this.apiKeys.mapbox && !this.apiKeys.openroute) {
+            console.warn('⚠️ DistanceCalculator: No API keys provided. Using Enhanced Haversine estimation for distances.');
+        }
     }
 
     // Calculate distance and time between two points

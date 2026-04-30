@@ -615,7 +615,7 @@ if (typeof window.ScheduleNotificationManager !== 'undefined') {
 
                 const options = {
                     body: body,
-                    icon: 'images/icons/icon-192x192.png',
+                    icon: 'images/logo.png',
                     vibrate: [200, 100, 200],
                     tag: 'phluowise-order-update',
                     renotify: true,
@@ -869,6 +869,191 @@ if (typeof window.ScheduleNotificationManager !== 'undefined') {
         notificationManager = window.notificationManagerInstance;
     }
 
+
+
+    // Order Success Premium Glassmorphism Pop-up
+    window.showOrderSuccessPopup = function(orderId) {
+        let popup = document.getElementById('orderSuccessPopup');
+        if (!popup) {
+            popup = document.createElement('div');
+            popup.id = 'orderSuccessPopup';
+            popup.className = 'order-success-popup';
+            
+            // Add CSS to head if not present
+            if (!document.getElementById('orderSuccessPopupStyles')) {
+                const style = document.createElement('style');
+                style.id = 'orderSuccessPopupStyles';
+                style.innerHTML = `
+                    .order-success-popup {
+                        position: fixed;
+                        bottom: 24px;
+                        left: 50%;
+                        transform: translateX(-50%) translateY(30px);
+                        width: calc(100% - 32px);
+                        max-width: 400px;
+                        background: rgba(16, 16, 16, 0.85);
+                        backdrop-filter: blur(20px);
+                        -webkit-backdrop-filter: blur(20px);
+                        border: 1px solid rgba(0, 122, 204, 0.4);
+                        border-radius: 20px;
+                        padding: 24px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 20px;
+                        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+                        z-index: 2147483647;
+                        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                        opacity: 0;
+                        pointer-events: none;
+                    }
+                    .order-success-popup.active {
+                        transform: translateX(-50%) translateY(0);
+                        opacity: 1;
+                        pointer-events: auto;
+                    }
+                    .popup-header-premium {
+                        display: flex;
+                        align-items: center;
+                        gap: 16px;
+                    }
+                    .success-icon-premium {
+                        width: 54px;
+                        height: 54px;
+                        background: rgba(0, 122, 204, 0.15);
+                        border: 1.5px solid rgba(0, 122, 204, 0.5);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                    }
+                    .popup-body-premium {
+                        flex: 1;
+                    }
+                    .popup-title-premium {
+                        color: white;
+                        font-weight: 700;
+                        font-size: 20px;
+                        margin: 0 0 2px 0;
+                        letter-spacing: -0.01em;
+                    }
+                    .popup-message-premium {
+                        color: #BBBBBB;
+                        font-size: 15px;
+                        margin: 0;
+                        line-height: 1.4;
+                    }
+                    .popup-actions-premium {
+                        display: flex;
+                        gap: 12px;
+                    }
+                    .popup-btn-premium {
+                        flex: 1;
+                        height: 50px;
+                        border-radius: 14px;
+                        font-weight: 600;
+                        font-size: 15px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        transition: all 0.25s ease;
+                        outline: none;
+                        backdrop-filter: blur(12px);
+                        -webkit-backdrop-filter: blur(12px);
+                    }
+                    .popup-btn-primary-premium {
+                        background: rgba(0, 122, 204, 0.25);
+                        color: white;
+                        border: 1px solid rgba(0, 122, 204, 0.5);
+                        box-shadow: 0 4px 15px rgba(0, 122, 204, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    }
+                    .popup-btn-primary-premium:active {
+                        transform: scale(0.96);
+                        background: rgba(0, 122, 204, 0.4);
+                    }
+                    .popup-btn-secondary-premium {
+                        background: rgba(255, 255, 255, 0.06);
+                        color: rgba(255, 255, 255, 0.85);
+                        border: 1px solid rgba(255, 255, 255, 0.12);
+                        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+                    }
+                    .popup-btn-secondary-premium:active {
+                        transform: scale(0.96);
+                        background: rgba(255, 255, 255, 0.12);
+                    }
+                    @keyframes check-bounce {
+                        0% { transform: scale(0.5); opacity: 0; }
+                        70% { transform: scale(1.1); }
+                        100% { transform: scale(1); opacity: 1; }
+                    }
+                    .success-icon-premium svg {
+                        animation: check-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            popup.innerHTML = `
+                <div class="popup-header-premium">
+                    <div class="success-icon-premium">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#007ACC" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 6L9 17L4 12"></path>
+                        </svg>
+                    </div>
+                    <div class="popup-body-premium">
+                        <h3 class="popup-title-premium">Order Successful</h3>
+                        <p class="popup-message-premium">Order <span id="popupOrderId" style="color: #007ACC; font-weight: 700;"></span> has been placed.</p>
+                    </div>
+                </div>
+                <div class="popup-actions-premium">
+                    <button class="popup-btn-premium popup-btn-secondary-premium" onclick="closeOrderPopup()">Dismiss</button>
+                    <button class="popup-btn-premium popup-btn-primary-premium" onclick="window.location.href='schedule-history.html'">Track Order</button>
+                </div>
+            `;
+            document.body.appendChild(popup);
+        }
+
+        const idDisplay = document.getElementById('popupOrderId');
+        if (idDisplay) {
+            let finalId = orderId;
+            // Clean up the orderId if it's passed as a string like "Order ID: ORD..."
+            if (typeof finalId === 'string') {
+                finalId = finalId.replace('Order ID: ', '').trim();
+            }
+            
+            if (!finalId || finalId === 'undefined' || finalId === 'N/A' || finalId === '#N/A') {
+                try {
+                    const lastOrder = JSON.parse(localStorage.getItem('lastOrder') || '{}');
+                    finalId = lastOrder.orderId || lastOrder.transactionId || 'Confirmed';
+                } catch (e) {
+                    finalId = 'Confirmed';
+                }
+            }
+            idDisplay.textContent = finalId.startsWith('#') ? finalId : '#' + finalId;
+        }
+        
+        // Trigger animation
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                popup.classList.add('active');
+            });
+        });
+
+        // Auto close after 10 seconds
+        if (window.orderPopupTimeout) clearTimeout(window.orderPopupTimeout);
+        window.orderPopupTimeout = setTimeout(() => {
+            closeOrderPopup();
+        }, 10000);
+    };
+
+    window.closeOrderPopup = function() {
+        const popup = document.getElementById('orderSuccessPopup');
+        if (popup) {
+            popup.classList.remove('active');
+            if (window.orderPopupTimeout) clearTimeout(window.orderPopupTimeout);
+        }
+    };
 
     // Update UI toggle on load
     if (typeof document !== 'undefined') {

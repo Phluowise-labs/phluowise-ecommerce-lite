@@ -4603,7 +4603,20 @@
         let viewMode = 'list'; // 'list', 'swipe', or 'carousel'
         let currentCardIndex = 0;
         let searchQuery = '';
-        let userLocation = null;
+        let userLocation = (function () {
+            const cached = localStorage.getItem('userLocation');
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed && typeof parsed.lat === 'number' && typeof parsed.lng === 'number') {
+                        return parsed;
+                    }
+                } catch (e) {
+                    console.error('❌ Failed to parse cached user location');
+                }
+            }
+            return null;
+        })();
         let selectedProducts = []; // Array for multiple product selection
         let currentStep = 1;
         const totalSteps = 11;
@@ -5411,7 +5424,7 @@
             // Update Swipe View if active and showing this company
             if (viewMode === 'swipe') {
                 const currentService = services[currentCardIndex];
-                if (currentService && currentservice.id == branchId) {
+                if (currentService && currentService.id == branchId) {
                     renderSwipeCard(currentCardIndex);
                 }
             } 
@@ -6261,6 +6274,16 @@
             updateStepIndicators();
             updateNavigationButtons();
             hideError();
+
+            // Hide close button on final steps
+            const closeBtn = document.querySelector('.bottom-sheet-close-btn');
+            if (closeBtn) {
+                if (['paymentSuccess', 'scheduleSent', 'ratingSuccess'].includes(step)) {
+                    closeBtn.classList.add('hidden');
+                } else {
+                    closeBtn.classList.remove('hidden');
+                }
+            }
         }
 
         function updateStepIndicators() {
@@ -8410,6 +8433,11 @@
             setTimeout(() => {
                 closeScheduleFlow();
 
+                // Show premium glassmorphism pop-up after bottom sheet closes
+                if (window.showOrderSuccessPopup) {
+                    window.showOrderSuccessPopup(orderData.orderId);
+                }
+
                 // NOW it's safe to reset products after the save is complete
                 serviceProducts[selectedBranchId] = [];
                 selectedProducts = [];
@@ -8827,6 +8855,10 @@
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
                         };
+                        
+                        // Cache the user location
+                        localStorage.setItem('userLocation', JSON.stringify(userLocation));
+
                         // Re-render services with calculated distances
                         renderServices();
                     },

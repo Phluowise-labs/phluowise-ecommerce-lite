@@ -1315,7 +1315,20 @@
         let cardSingle = true; // true = list view, false = grid view
         let currentFilter = 'around';
         let searchQuery = '';
-        let userLocation = null;
+        let userLocation = (function () {
+            const cached = localStorage.getItem('userLocation');
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed && typeof parsed.lat === 'number' && typeof parsed.lng === 'number') {
+                        return parsed;
+                    }
+                } catch (e) {
+                    console.error('❌ Failed to parse cached user location');
+                }
+            }
+            return null;
+        })();
         let isRefreshing = false;
         let locationPermissionGranted = localStorage.getItem('locationPermissionGranted') === 'true';
 
@@ -1384,7 +1397,7 @@
             }
         }
 
-        // Enhanced distance calculation with road network factors
+        // Enhanced distance calculation with road network factors (Sync version for list rendering)
         function calculateEnhancedDistance(fromCoords, toCoords) {
             // Validate input coordinates
             if (!fromCoords || !toCoords ||
@@ -1403,8 +1416,13 @@
                 return null;
             }
 
-            // Apply road network factor (1.3 for urban areas)
-            const roadFactor = 1.3;
+            // Apply road network factor (matching DistanceCalculator.js logic)
+            let roadFactor = 1.3;
+            if (straightDistance < 2) roadFactor = 1.4;
+            else if (straightDistance < 5) roadFactor = 1.3;
+            else if (straightDistance < 10) roadFactor = 1.25;
+            else roadFactor = 1.2;
+
             const enhancedDistance = straightDistance * roadFactor;
 
             // Final validation
@@ -1836,6 +1854,10 @@
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
                         };
+                        
+                        // Cache the user location for instant UI on next load
+                        localStorage.setItem('userLocation', JSON.stringify(userLocation));
+
                         if (companies && companies.length > 0) {
                             updateDistances();
                         }
@@ -2306,6 +2328,10 @@
                                 lat: position.coords.latitude,
                                 lng: position.coords.longitude
                             };
+                            
+                            // Cache the user location
+                            localStorage.setItem('userLocation', JSON.stringify(userLocation));
+
                             // If companies are already loaded, update their distances
                             if (companies && companies.length > 0) {
                                 updateDistances();
