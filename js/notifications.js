@@ -732,6 +732,12 @@ if (typeof window.ScheduleNotificationManager !== 'undefined') {
     function getSettingsModalHTML() {
         const isEnabled = localStorage.getItem('phluowisePushEnabled') === 'true';
         const isChecked = isEnabled ? 'checked' : '';
+        
+        // Get current language name
+        const currentLangCode = window.getCurrentLanguage ? window.getCurrentLanguage() : 'en';
+        const languages = window.getLanguageList ? window.getLanguageList() : [];
+        const currentLang = languages.find(l => l.code === currentLangCode) || { name: 'English' };
+
         return `
     <div id="settingsModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" style="display: none; z-index: 999999 !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
         <div class="w-full h-full flex flex-col items-center justify-center p-5">
@@ -827,6 +833,25 @@ if (typeof window.ScheduleNotificationManager !== 'undefined') {
                         <div class="premium-toggle-track"></div>
                     </div>
                 </label>
+
+                <!-- Language Selection -->
+                <button class="w-full h-[60px] flex flex-row justify-between items-center px-6 border-b border-[#3A3B3F]"
+                    style="background-color: var(--bg-third, #101010);"
+                    onclick="openLanguageModal()">
+                    <div class="flex flex-row items-center gap-[30px]">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                        </svg>
+                        <span class="text-white text-lg font-semibold">Language</span>
+                    </div>
+                    <div class="flex flex-row items-center gap-2">
+                        <span id="currentLanguageDisplay" class="text-gray-400 text-sm">${currentLang.name}</span>
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </button>
             </div>
         </div>
     </div>
@@ -856,6 +881,112 @@ if (typeof window.ScheduleNotificationManager !== 'undefined') {
         if (modal) {
             modal.style.display = 'none';
         }
+    };
+
+    window.openLanguageModal = function () {
+        let modal = document.getElementById('languageModal');
+        if (!modal) {
+            const modalContainer = document.createElement('div');
+            modalContainer.innerHTML = getLanguageModalHTML();
+            document.body.appendChild(modalContainer.firstElementChild);
+            modal = document.getElementById('languageModal');
+        } else {
+            modal.outerHTML = getLanguageModalHTML();
+            modal = document.getElementById('languageModal');
+        }
+        modal.style.display = 'flex';
+    };
+
+    window.closeLanguageModal = function () {
+        const modal = document.getElementById('languageModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    function getLanguageModalHTML() {
+        const languages = window.getLanguageList ? window.getLanguageList() : [];
+        const currentLang = window.getCurrentLanguage ? window.getCurrentLanguage() : 'en';
+
+        let languagesHtml = '';
+        languages.forEach(lang => {
+            const isActive = lang.code === currentLang;
+            const activeStyle = isActive ? 'background-color: rgba(59, 116, 255, 0.15); border-color: #3B74FF;' : '';
+            const textOpacity = isActive ? 'opacity: 1;' : 'opacity: 0.65;';
+
+            languagesHtml += `
+                <button onclick="selectLanguage('${lang.code}')" 
+                        class="language-option w-full h-[65px] flex items-center px-6 gap-5 border-b"
+                        style="background-color: var(--bg-third); color: var(--text-color); border-color: var(--modal-border); ${activeStyle}">
+                    <span class="text-2xl">${lang.flag}</span>
+                    <span class="text-lg font-semibold" style="${textOpacity}">${lang.name}</span>
+                    ${isActive ? `
+                        <div class="ml-auto w-6 h-6 flex items-center justify-center rounded-full bg-[#3B74FF15]">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B74FF" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                    ` : `
+                        <div class="ml-auto opacity-0 transition-opacity duration-200">
+                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-500">
+                                <path d="M9 18l6-6-6-6"/>
+                            </svg>
+                        </div>
+                    `}
+                </button>
+            `;
+        });
+
+        return `
+        <div id="languageModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" style="display: none; z-index: 9999999 !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+            <div class="w-full h-full flex flex-col items-center justify-center p-5">
+                <!-- Back Button -->
+                <div class="w-full max-w-[400px] mb-4">
+                    <button onclick="closeLanguageModal()" class="glass-back-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Language Options Container -->
+                <div class="w-full max-w-[400px] rounded-[24px] overflow-hidden border shadow-2xl transition-all duration-300" 
+                     style="border-color: var(--modal-border); background-color: var(--modal-bg);">
+                    
+                    <!-- Header -->
+                    <div class="h-[65px] flex items-center px-6 border-b"
+                         style="background-color: var(--bg-third); border-color: var(--modal-border);">
+                        <span class="text-lg font-bold" style="color: var(--text-color);">Choose Language</span>
+                    </div>
+                    
+                    <div class="max-h-[65vh] overflow-y-auto">
+                        <style>
+                            .language-option {
+                                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                                position: relative;
+                                overflow: hidden;
+                            }
+                            .language-option:active {
+                                background-color: rgba(59, 116, 255, 0.1) !important;
+                                transform: scale(0.995);
+                            }
+                            .language-option:hover .ml-auto {
+                                opacity: 1;
+                            }
+                        </style>
+                        ${languagesHtml}
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+    }
+
+    window.selectLanguage = function (langCode) {
+        if (window.changeLanguage) {
+            window.changeLanguage(langCode);
+        }
+        closeLanguageModal();
     };
 
     // Auto-initialize when script loads - but only if no manager exists
