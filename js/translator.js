@@ -116,7 +116,63 @@
             .skiptranslate {
                 display: none !important;
             }
+
+            /* Global Font Enforcement */
+            * {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            }
+            
+            /* Specific overrides for Material Symbols and prevent translation */
+            .material-symbols-outlined, 
+            .material-icons,
+            .material-icons-outlined,
+            .material-icons-round,
+            .material-icons-sharp,
+            [class^="icon-"], 
+            [class*=" icon-"],
+            .fa, .fas, .far, .fab {
+                font-family: 'Material Symbols Outlined', 'Material Icons', 'Font Awesome 5 Free', 'Font Awesome 5 Brands' !important;
+                /* Tell Google Translate not to touch these */
+                unicode-bidi: isolate !important;
+            }
         `;
         document.head.appendChild(style);
+
+        // Ensure Inter font is loaded from Google Fonts if not already present
+        if (!document.querySelector('link[href*="fonts.googleapis.com/css2?family=Inter"]')) {
+            const fontLink = document.createElement('link');
+            fontLink.rel = 'stylesheet';
+            fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap';
+            document.head.appendChild(fontLink);
+        }
+
+        // Prevent icons from being translated by adding 'notranslate' class and 'translate="no"' attribute
+        function protectIcons() {
+            const iconSelectors = [
+                '.material-symbols-outlined',
+                '.material-icons',
+                '.material-icons-outlined',
+                '.material-icons-round',
+                '.material-icons-sharp',
+                '.fa', '.fas', '.far', '.fab'
+            ];
+            
+            document.querySelectorAll(iconSelectors.join(',')).forEach(el => {
+                el.classList.add('notranslate');
+                el.setAttribute('translate', 'no');
+            });
+        }
+
+        // Run immediately and also observe for dynamic changes
+        protectIcons();
+        
+        const observer = new MutationObserver((mutations) => {
+            protectIcons();
+        });
+        
+        observer.observe(document.body, { 
+            childList: true, 
+            subtree: true 
+        });
     });
 })();
